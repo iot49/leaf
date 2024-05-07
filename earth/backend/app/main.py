@@ -41,7 +41,7 @@ app = FastAPI(
     lifespan=lifespan,
     docs_url=None,
     redoc_url=None,
-    dependencies=[Depends(connection_report)],
+    # dependencies=[Depends(connection_report)],
 )
 
 

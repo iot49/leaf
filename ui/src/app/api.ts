@@ -24,7 +24,7 @@ export async function api_get(resource: string = '', requestOptions = {}, url = 
     }
   } catch (error) {
     // Failed to fetch (offline?)
-    console.log('api_get error', error);
+    console.log('api_get error', error.message);
     alertDialog('Offline?', 'Cannot connect to earth. Is the server running? Internet working?');
     // throw new FetchError(error.message);
   }

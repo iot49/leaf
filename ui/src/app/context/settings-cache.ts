@@ -6,9 +6,12 @@ export class SettingsCache {
 
   // decleare settings and default values
   private cache = {
-    me: {},
+    me: {
+      email: 'nobody@example.com',
+      roles: ['guest'],
+      trees: [],
+    },
     dark_theme: false,
-    tester: 'initial',
   };
 
   public constructor(settingsProvider) {

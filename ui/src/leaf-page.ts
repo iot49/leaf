@@ -143,10 +143,10 @@ export class LeafPage extends LeafBase {
 
   nav_menu() {
     const nav = [
-      { id: 'trees', icon: 'plus', text: 'Trees' },
+      { id: 'trees', icon: 'forest-outline', text: 'Trees' },
       { id: 'log', icon: 'math-log', text: 'Log', disabled: !this.connected },
-      { id: 'accounts', icon: 'account', text: 'Accounts', hide: !this.settings.me.superuser },
-      { id: 'logout', icon: 'gear', text: 'Logout' },
+      { id: 'accounts', icon: 'account-cog', text: 'Accounts', hide: !this.settings.me.superuser },
+      { id: 'logout', icon: 'logout', text: 'Logout' },
     ];
 
     return html`

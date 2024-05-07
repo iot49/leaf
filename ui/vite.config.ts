@@ -2,7 +2,6 @@
 
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
-import { VitePWA } from 'vite-plugin-pwa';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 // const slIconsPath = './node_modules/@shoelace-style/shoelace/dist/assets/icons';
@@ -29,6 +28,7 @@ export default defineConfig({
     ],
   },
   plugins: [
+    /*
     VitePWA({
       manifest: {
         icons: [
@@ -40,7 +40,7 @@ export default defineConfig({
           },
         ],
       },
-    }),
+    }), */
     viteStaticCopy({
       targets: [
         {

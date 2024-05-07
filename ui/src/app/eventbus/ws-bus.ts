@@ -70,8 +70,9 @@ export class WsBus implements Bus {
 
   protected _url() {
     if (this.tree_id === '#earth') {
-      return `ws://localhost:8001/ws`;
-      // return `wss://${location.host}/ws`;
+      // return `ws://localhost:8001/ws`;
+      return `wss://${location.host}/ws`;
+      // return `wss://leaf49.org/ws`;
     }
     console.log('NOT IMPLEMENTED: local connection to tree', this.tree_id);
   }
