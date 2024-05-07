@@ -2,7 +2,7 @@
 
 # IMPORTANT: set environment variables in the Balena dashboard
 
-version: "2"
+version: '2'
 
 networks:
   tunnel:
@@ -57,10 +57,10 @@ services:
       - PGID=1000
       - TZ=Etc/PDT
       - SUDO_PASSWORD=secret
-      - DEFAULT_WORKSPACE=/configuration
+      - DEFAULT_WORKSPACE=/home/config
     volumes:
       - code-server:/config
-      - config:/configuration
+      - config:/home/config
       - jupyter:/home/jovyan
       - letsencrypt:/home/letsencrypt
       - letsencrypt-log:/home/letsencrypt/log
@@ -107,7 +107,7 @@ services:
       - POSTGRES_USERNAME=${POSTGRES_USERNAME}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
       interval: 10s
       timeout: 5s
       retries: 5

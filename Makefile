@@ -97,6 +97,9 @@ balena-ui:
 	mv ui/dist/assets/svg ui/dist/assets/icons
 	./scripts/rsync-ui.sh
 
+balena-config:
+	./scripts/rsync-config.sh
+
 build-docs:
 	# switch to mkdocs: https://realpython.com/python-project-documentation-with-mkdocs/
 	pdoc -o gh-pages/eventbus eventbus
