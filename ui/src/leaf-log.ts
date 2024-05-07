@@ -3,7 +3,6 @@ import { css, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import { Config, configContext, type Log, logContext } from './app/context/contexts';
-import { shared_css } from './assets/css/shared_styles';
 import { LeafBase } from './leaf-base';
 
 @customElement('leaf-log')
@@ -17,7 +16,7 @@ export class LeafLog extends LeafBase {
   private log: Log;
 
   static styles = [
-    shared_css,
+    ...LeafBase.styles,
     css`
       main {
         display: flex;

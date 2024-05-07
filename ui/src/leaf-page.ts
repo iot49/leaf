@@ -4,7 +4,6 @@ import { customElement, property } from 'lit/decorators.js';
 import { consume } from '@lit/context';
 import { logout } from './app/api';
 import { Connected, connectedContext, Settings, settingsContext } from './app/context/contexts';
-import { shared_css } from './assets/css/shared_styles';
 import { LeafBase } from './leaf-base';
 
 @customElement('leaf-page')
@@ -25,7 +24,7 @@ export class LeafPage extends LeafBase {
   }
 
   static styles = [
-    shared_css,
+    ...LeafBase.styles,
     css`
       .page {
         box-sizing: content-box;

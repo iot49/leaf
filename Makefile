@@ -94,6 +94,7 @@ balena-push:
 
 balena-ui:
 	cd ui && npm run build
+	mv ui/dist/assets/svg ui/dist/assets/icons
 	./scripts/rsync-ui.sh
 
 build-docs:

@@ -25,7 +25,6 @@ export class LeafMain extends LeafContext {
 
   public router = new Router(this, [
     { path: '/ui/home', render: () => html`<h1>Home again!</h1>` },
-    { path: '/ui/api', render: () => html`<leaf-api></leaf-api>` },
     {
       path: '/ui/trees',
       render: () => html`<leaf-trees></leaf-trees>`,
@@ -72,7 +71,7 @@ export class LeafMain extends LeafContext {
   }
 
   render() {
-    console.log('main.render', (this.router as any)._currentRoute.path, this.router.routes);
+    // console.log('main.render', this.router.routes);
     if (!this.settings) return this.spinner('Loading settings from cache...');
     if (!this.connected) {
       this.router.goto('/');

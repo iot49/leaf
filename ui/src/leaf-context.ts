@@ -42,7 +42,6 @@ export class LeafContext extends LeafBase {
     super();
     //this._stateProvider.setValue(this.state, true);
     //this._logProvider.setValue(this.log, true);
-    console.log('log provider', this._logProvider.value);
   }
 
   private patch_config() {
