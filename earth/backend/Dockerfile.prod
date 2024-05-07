@@ -16,6 +16,10 @@ RUN sed '/-e/d' requirements.lock > requirements.txt && \
 # FINAL
 FROM python:3.11-slim-bookworm
 
+# setuidgid
+RUN apt-get update --yes \
+    && apt-get install --yes --no-install-recommends daemontools
+
 # create user
 # uid=100(app) gid=101(app) groups=101(app)
 # we want 1000, 1000 to be compatible with code-server

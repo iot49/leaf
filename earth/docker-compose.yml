@@ -12,7 +12,7 @@ networks:
 
 volumes:
   config: # app configuration files
-  ui: # ui static files, served api
+  ui: # ui static files, served by api at /ui
   jupyter: # jupyter notebooks
   letsencrypt: # letsencrypt certificates
   letsencrypt-log: # letsencrypt logs
