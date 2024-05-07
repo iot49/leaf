@@ -1,0 +1,85 @@
+name: Compile and release MicroPython firmware
+
+on:
+  push:
+    tags:
+      - "**"
+
+env:
+  BOARD: ESP32_S3_N16R8
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Define env
+        run: |
+          echo "BOARD=${BOARD}" >> $GITHUB_ENV
+          echo "IDF_VERSION=v5.0.4" >> $GITHUB_ENV
+          echo "FROZEN=src/freeze/manifest.py" >> $GITHUB_ENV
+          echo "USER_C_MODULES=src/modules/micropython.cmake" >> $GITHUB_ENV
+          echo "BUILD_DIR=micropython/ports/esp32/build-${{ env.BOARD }}" >> $GITHUB_ENV
+          echo "PORT_DIR=micropython/ports/esp32" >> $GITHUB_ENV
+          echo "FIRMWARE_DIR=firmware/${{ env.BOARD }}/$(date +%Y%m%d-%H%M%S)" >> $GITHUB_ENV
+          echo "WORKING_DIR=trees/vm" >> $GITHUB_ENV
+
+      - name: Display env
+        run: |
+          echo BOARD=${{ env.BOARD }}
+          echo BUILD_DIR=${{ env.BUILD_DIR }}
+          echo PORT_DIR=${{ env.PORT_DIR }}
+          echo FIRWARE_DIR=${{ env.FIRMWARE_DIR }}
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Checkout required submodules
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          pwd
+          ls -l
+          git submodule update --init micropython
+          cd micropython; git submodule update --init lib/berkeley-db-1.xx lib/micropython-lib
+
+      - name: Copy boards to PORT_DIR/boards
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          mkdir -p ${{ env.PORT_DIR }}/boards
+          cp -a boards/${{ env.BOARD }} ${{ env.PORT_DIR }}/boards
+          # Hack: sometimes (???) idf looks for custom partition table in PORT_DIR
+          cp ${{ env.PORT_DIR }}/boards/${{ env.BOARD }}/partition* ${{ env.PORT_DIR }}
+
+      # https://github.com/marketplace/actions/docker-cache
+      - name: Cache Docker images
+        uses: ScribeMD/docker-cache@0.5.0
+        with:
+          key: docker-${{ runner.os }}-${{ env.IDF_VERSION }}
+
+      - name: Compile
+        uses: addnab/docker-run-action@v3
+        with:
+          # https://github.com/espressif/esp-idf/blob/master/tools/docker/Dockerfile
+          image: espressif/idf:${{ env.IDF_VERSION }}
+          options: -v ${{ github.workspace }}/${{ env.WORKING_DIR }}:/project -w /project/${{ env.PORT_DIR }} -e BOARD=${{ env.BOARD }} -e USER_C_MODULES=/project/${{ env.USER_C_MODULES }} -e FROZEN=/project/${{ env.FROZEN }}
+          run: |
+            . $IDF_PATH/export.sh
+            # make sure FROZEN_MANIFEST is unset when running mpy-cross
+            make -C /project/micropython/mpy-cross 
+            make BOARD=${BOARD} clean
+            make V=1 BOARD=${BOARD} FROZEN_MANIFEST=${FROZEN}
+
+      - name: Release
+        working-directory: ${{ env.WORKING_DIR }}/${{ env.BUILD_DIR }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref_name }}
+        run: |
+          gh release create "$tag" \
+              --repo="$GITHUB_REPOSITORY" \
+              --title="${GITHUB_REPOSITORY#*/} MicroPython VM for ${BOARD} ${tag#v}" \
+              --generate-notes \
+              firmware.bin micropython.bin # micropython.uf2

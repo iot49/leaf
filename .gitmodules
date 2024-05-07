@@ -1,0 +1,3 @@
+[submodule "trees/vm/micropython"]
+	path = trees/vm/micropython
+	url = https://github.com/micropython/micropython.git

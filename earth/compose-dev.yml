@@ -1,0 +1,94 @@
+version: "3.8"
+
+networks:
+  tunnel:
+  config:
+  certbot:
+
+services:
+  api:
+    container_name: api
+    image: leaf-backend-dev
+    restart: always
+    command: "sh -c 'uvicorn app.main:app --reload --workers 3 --host 0.0.0.0 --port 8000'"
+    # command: "sh -c 'alembic upgrade head && uvicorn app.main:app --reload --workers 3 --host 0.0.0.0 --port 8000'"
+    # command: "sh -c 'alembic upgrade head && gunicorn -w 3 -k uvicorn.workers.UvicornWorker app.main:app  --bind 0.0.0.0:8000 --preload --log-level=debug --timeout 120'"
+    volumes:
+      - ./backend:/backend
+      - ../eventbus/src/eventbus:/backend/eventbus
+      - ./volumes/config:/home/config
+      - ./volumes/ui:/home/ui
+    ports:
+      - 8000:8000
+    expose:
+      - 8000
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+      - PROJECT_NAME=${PROJECT_NAME}
+      - DOMAIN=${DOMAIN}
+      - FIRST_SUPERUSER_EMAIL=${FIRST_SUPERUSER_EMAIL}
+      - POSTGRES_USERNAME=${POSTGRES_USERNAME}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_HOST_AUTH_METHOD=${POSTGRES_HOST_AUTH_METHOD}
+      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_ECHO=${DATABASE_ECHO}
+      - CF_POLICY_AUD=${CF_POLICY_AUD}
+    networks:
+      - tunnel
+      - config
+      - certbot
+
+  tunnel:
+    container_name: tunnel
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel run ${TUNNEL_TOKEN}
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    networks:
+      - tunnel
+
+  # https://eff-certbot.readthedocs.io/
+  # https://www.nodinrogers.com/post/2022-03-10-certbot-cloudflare-docker/
+  certbot:
+    image: certbot/dns-cloudflare
+
+    # Dry Run
+    # command: certonly --non-interactive --dns-cloudflare --dns-cloudflare-credentials /opt/cloudflare/credentials --agree-tos -m bernhard.e.boser@gmail.com -d backend.leaf49.org --server https://acme-v02.api.letsencrypt.org/directory --dry-run
+    # Renew certificate
+    # command: renew --non-interactive --no-self-upgrade --dns-cloudflare --dns-cloudflare-credentials /opt/cloudflare/credentials --agree-tos --server https://acme-v02.api.letsencrypt.org/directory
+
+    # Issue certificate
+    # command: certonly --non-interactive --dns-cloudflare --dns-cloudflare-credentials /opt/cloudflare/credentials --agree-tos -m bernhard.e.boser@gmail.com --key-type rsa -d dev.backend.leaf49.org --server https://acme-v02.api.letsencrypt.org/directory
+
+    # --key-type rsa
+    command: certonly --non-interactive --dns-cloudflare --dns-cloudflare-credentials /opt/cloudflare/credentials --agree-tos -d dev.backend.leaf49.org --server https://acme-v02.api.letsencrypt.org/directory --dry-run
+    # command: certonly --non-interactive --dns-cloudflare --dns-cloudflare-credentials /opt/cloudflare/credentials --agree-tos -d test.example.com --server https://acme-v02.api.letsencrypt.org/directory --dry-run
+
+    volumes:
+      - ./volumes/cloudflare:/opt/cloudflare
+      - ./volumes/letsencrypt:/etc/letsencrypt
+      - ./volumes/letsencrypt/log:/var/log/letsencrypt
+    networks:
+      - certbot
+
+  code-server:
+    image: lscr.io/linuxserver/code-server:latest
+    container_name: code-server
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/PDT
+      - SUDO_PASSWORD=secret
+      - DEFAULT_WORKSPACE=/configuration
+    volumes:
+      - ./volumes/code-server:/config
+      - ./volumes/config:/configuration
+    ports:
+      - 8443:8443
+    expose:
+      - 8443
+    restart: unless-stopped
+    networks:
+      - tunnel
+      - config

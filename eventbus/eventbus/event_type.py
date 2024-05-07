@@ -1,0 +1,31 @@
+# ping pong
+PING = "ping"
+PONG = "pong"
+
+# state update, action
+STATE = "state"
+STATE_ACTION = "action"
+
+# get/set state, log, config, ...
+GET_STATE = "get_state"
+GET_LOG = "get_log"
+GET_CONFIG = "get_config"
+PUT_CONFIG = "put_config"
+UPDATE_CONFIG = "update_config"
+
+# log message
+LOG = "log"
+
+# auth request and response
+GET_AUTH = "get_auth"
+PUT_AUTH = "put_auth"
+
+# hello
+HELLO_CONNECTED = "hello_connected"
+HELLO_NO_TOKEN = "hello_no_token"
+HELLO_INVALID_TOKEN = "hello_invalid_token"
+HELLO_ALREADY_CONNECTED = "hello_already_connected"
+BYE = "bye"
+BYE_TIMEOUT = "bye_timeout"
+
+CLEAR_COUNTER = "clear_counter"

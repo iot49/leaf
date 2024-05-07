@@ -1,0 +1,11 @@
+# https://medium.com/@alexgidiotis_96550/elevate-your-ci-mastering-pre-commit-hooks-and-github-actions-for-flawless-code-integration-bd0ae7a071c2
+
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  # Ruff version.
+  rev: v0.3.5
+  hooks:
+    # Run the linter.
+    - id: ruff
+      # args: [ --fix ]
+    # Run the formatter.
+    # - id: ruff-format

@@ -1,0 +1,13 @@
+html, body {
+  height: 100vh;
+  width: 100vw;
+  margin: 0;
+  overflow: hidden;
+
+  font-family: var(--sl-font-sans);
+  font-weight: var(--sl-font-weight-normal);
+  font-size: var(--sl-font-size-medium);
+  line-height: var(--sl-line-height-normal);
+
+  --page-header-height: 2.5rem;
+}

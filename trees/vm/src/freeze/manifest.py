@@ -1,0 +1,52 @@
+# default imports
+include("$(BOARD_DIR)/manifest.py")
+
+# app
+module("main.py")  # , base_path="/project/src/freeze")
+freeze("lib")
+
+# packages
+# package("app")
+# package("bsp")
+
+# micropython-lib
+require("aioble")
+require("bmi270")
+require("espflash")
+
+require("iperf3")
+require("pyjwt")
+
+require("abc")
+require("base64")
+require("bisect")
+require("collections")
+require("contextlib")
+require("copy")
+require("curses.ascii")
+require("datetime")
+require("fnmatch")
+require("functools")
+require("gzip")
+require("hashlib")
+require("hmac")
+require("html")
+require("inspect")
+require("io")
+require("itertools")
+require("keyword")
+require("locale")
+require("logging")
+require("operator")
+require("os-path")
+require("os")
+require("pathlib")
+require("shutil")
+require("stat")
+require("string")
+require("textwrap")
+require("time")
+require("traceback")
+require("unittest-discover")
+require("uu")
+require("zlib")

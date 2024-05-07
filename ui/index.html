@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/icons/leaf.svg" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Leaves</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700,900" rel="stylesheet">
+
+  <script type="module" src="./src/index.ts"></script>
+
+  <!--
+  <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.js"></script>
+  -->
+
+  <script type="module">
+    import { registerIconLibrary } from "@shoelace-style/shoelace/dist/shoelace.js";
+    registerIconLibrary('mdi', {
+      resolver: name => `/ui/assets/icons/${name}.svg`,
+      mutator: svg => svg.setAttribute('fill', 'currentColor')
+    });
+  </script>
+
+</head>
+
+<body theme="light">
+  <leaf-main></leaf-main>
+</body>
+
+</html>

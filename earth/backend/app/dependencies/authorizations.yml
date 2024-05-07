@@ -1,0 +1,52 @@
+# api authorization policies
+
+# ACCEPT path (default is DENY)
+
+# view and edit user profile
+/me*:
+  roles: [superuser, admin, user, guest]
+  methods: [GET, PUT]
+
+# websocket access to earth
+/client_token:
+  roles: [admin, user]
+  methods: [GET, PUT]
+
+# tree and branch details
+/tree/*:
+  roles: [superuser, admin, user, guest]
+  methods: [GET]
+
+# create and edit trees, branches
+/tree*:
+  roles: [admin]
+  methods: [GET, POST, PUT, DELETE]
+
+/branch*:
+  roles: [admin]
+  methods: [GET, POST, PUT, DELETE]
+
+# eventbus config
+"/update_config":
+  roles: [admin]
+  methods: [GET]
+
+# currently active eventbus connections (gateways, clients)
+"/connections":
+  roles: [superuser, admin, user]
+  methods: [GET]
+
+# create, disable, set roles
+/user*:
+  roles: [superuser]
+  methods: [GET, POST, PUT, DELETE]
+
+# create new api keys, disable or delete old ones
+/api_key*:
+  roles: [superuser]
+  methods: [GET, POST, PUT, DELETE]
+
+# debugging: view config, request headers, etc
+"/dev/*":
+  roles: [superuser]
+  methods: [GET, POST, PUT, DELETE]
