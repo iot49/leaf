@@ -1,15 +1,31 @@
 # Leaf
 
+## Configure repo
+
+### submodule
+
+```bash
+cd trees/vm
+git submodule add https://github.com/micropython/micropython.git
+```
+
+
+### .github secrets
+
+In github repo, choose
+
+* Settings
+* Secrets and variables
+* Actions
+* New repository secret
+
+
 ## Core Components
 
 ### Backend
 
 Micropython app for collecting sensor data.
 
-```bash
-cd trees/vm
-git submodule add https://github.com/micropython/micropython.git
-```
 
 ### Frontend
 

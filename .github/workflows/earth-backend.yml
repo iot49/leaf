@@ -5,9 +5,9 @@ on:
     branches:
       - main
     paths:
-      - "earth/**"
-      - "eventbus/**"
-      - ".github/workflows/earth-backend.yml"
+      - 'earth/**'
+      - 'eventbus/**'
+      - '.github/workflows/earth-backend.yml'
 
 env:
   IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/leaf-backend
