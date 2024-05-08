@@ -77,7 +77,7 @@ export class LeafTrees extends LeafBase {
                 <tr class=${tree.disabled ? 'disabled' : ''}>
                   <td>
                     <sl-input
-                      class="tree_id transparent"
+                      class="tree_id"
                       value=${tree.tree_id}
                       ?readonly=${!admin}
                       @sl-change=${async (e) => {
@@ -88,7 +88,7 @@ export class LeafTrees extends LeafBase {
                   </td>
                   <td>
                     <sl-input
-                      class="title transparent"
+                      class="title"
                       value=${tree.title}
                       ?readonly=${!admin}
                       @sl-change=${async (e) => {

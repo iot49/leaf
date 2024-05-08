@@ -12,6 +12,16 @@ export class LeafAccounts extends LeafBase {
       main {
         margin: 1rem;
       }
+      sl-input::part(base) {
+        background-color: transparent;
+        border: none;
+      }
+      sl-input::part(input) {
+        padding: 0;
+      }
+      .disabled sl-input::part(base) {
+        text-decoration: line-through;
+      }
     `,
   ];
 

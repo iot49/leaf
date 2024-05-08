@@ -25,6 +25,16 @@ export class LeafTree extends LeafBase {
       #device-id sl-input::part(base) {
         background-color: var(--sl-color-neutral-100);
       }
+      sl-input::part(base) {
+        background-color: transparent;
+        border: none;
+      }
+      sl-input::part(input) {
+        padding: 0;
+      }
+      .disabled sl-input::part(base) {
+        text-decoration: line-through;
+      }
     `,
   ];
 
