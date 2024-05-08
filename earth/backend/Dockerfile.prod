@@ -20,9 +20,7 @@ FROM python:3.11-slim-bookworm
 RUN apt-get update --yes \
     && apt-get install --yes --no-install-recommends daemontools
 
-# create user
-# uid=100(app) gid=101(app) groups=101(app)
-# we want 1000, 1000 to be compatible with code-server
+# create user with app-wide uid and gid
 RUN mkdir -p /home/app && \
     addgroup --gid 1000 --system app && adduser --uid 1000 --system --group app
 
@@ -39,6 +37,7 @@ RUN pip install --upgrade pip && \
 # app and eventbus packages
 COPY ./earth/backend/ .
 COPY ./eventbus/ .
+
 RUN chown -R app:app $HOME
 
-USER app
+CMD ["/bin/bash", "start.sh"]
