@@ -89,8 +89,9 @@ build-prod:
 	docker build -f earth/backend/Dockerfile.prod -t leaf-backend .
 
 balena-push:
-	cd earth && \
-	balena push -m boser/leaf
+	(cd earth && set -o allexport && source ../.env && set +o allexport && envsubst < "compose-balena.yml" > "docker-compose.yml";)
+	cd earth && balena push -m boser/leaf
+	cd earth && rm docker-compose.yml
 
 balena-ui:
 	cd ui && npm run build
