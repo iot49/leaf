@@ -15,7 +15,7 @@ Methods:
 Addr = str
 """Address
 
-- branch address: <tree_id>:<branch_id>
+- branch address: <tree_id>.<branch_id> or just <tree_id> (goes to all branches)
 - client address: @<client_id>
 - special addresses: 
     * #earth, 
@@ -25,6 +25,9 @@ Addr = str
 - Note: to broadcast to all nodes, separately post to 
         #branches and #clients to avoid recursion
 """
+
+SRC_ADDR: Addr = "#earth"
+
 
 Event = dict
 """Event
@@ -43,9 +46,6 @@ class EventBus:
     async def post(self, event: Event) -> None:
         """Post an event to this eventbus."""
         pass
-
-
-src_addr: Addr = "#earth"
 
 
 async def post(event: Event) -> None:

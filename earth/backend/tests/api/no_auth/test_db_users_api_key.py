@@ -22,9 +22,9 @@ async def test_init_db(async_client: AsyncClient):
         [
             {
                 "email": env.FIRST_SUPERUSER_EMAIL,
-                "roles": ["superuser", "admin"],
-                "name": "first superuser",
-                "profile": "",
+                "superuser": True,
+                "roles": ["admin"],
+                "disabled": False,
                 "trees": [],
             }
         ],

@@ -23,8 +23,8 @@ async def override_user(email: str = env.FIRST_SUPERUSER_EMAIL):
 @pytest.fixture
 async def create_users(async_client: AsyncClient, client_token):
     users = [
-        {"name": "superuser", "email": "superuser@x.y", "roles": ["superuser", "admin"]},
-        {"name": "superuser_only", "email": "superuser_only@x.y", "roles": ["superuser"]},
+        {"name": "superuser", "email": "superuser@x.y", "roles": ["admin"], "superuser": True},
+        {"name": "superuser_only", "email": "superuser_only@x.y", "roles": [], "superuser": True},
         {"name": "admin", "email": "admin@x.y", "roles": ["admin"]},
         {"name": "user", "email": "user@x.y", "roles": ["user"]},
         {"name": "guest", "email": "guest@x.y", "roles": ["guest"]},
@@ -32,7 +32,7 @@ async def create_users(async_client: AsyncClient, client_token):
     ]
     res = {}
     for user in users:
-        response = await async_client.post("/api/user", json=user, headers={"Authorization": f"Bearer {client_token}"})
+        response = await async_client.post("/api/user", json=user)
         assert response.status_code == 201
         u = response.json()
         res[user["email"]] = u

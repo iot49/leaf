@@ -38,7 +38,7 @@ async def test_get_put_me(async_client: AsyncClient, create_users, create_trees)
                 assert is_subset({"uuid": user["uuid"], "name": "new name"}, response.json())
 
             # change roles - ignored on /api/me
-            response = await async_client.put("/api/me", json={"roles": ["superuser", "admin", "user"]})
+            response = await async_client.put("/api/me", json={"roles": ["admin"]})
             assert response.status_code == 200 if user["roles"] else 403
             if response.status_code == 200:
                 assert is_subset({"roles": user["roles"]}, response.json())
@@ -91,7 +91,7 @@ async def test_superuser_role(async_client: AsyncClient, create_users):
             me = response.json()
             if response.status_code == 200:
                 assert is_subset(user, me)
-            expected_status = 200 if "superuser" in user["roles"] else 403
+            expected_status = 200 if user["superuser"] else 403
 
             # only admin can access /user
             response = await async_client.get("/api/user/count")
@@ -99,7 +99,7 @@ async def test_superuser_role(async_client: AsyncClient, create_users):
 
             response = await async_client.get("/api/user")
             assert response.status_code == expected_status
-            assert len(response.json()) == 7 if "superuser" in user["roles"] else 1
+            assert len(response.json()) == 7 if user["superuser"] else 1
 
             response = await async_client.get("/api/api_key")
             assert response.status_code == expected_status

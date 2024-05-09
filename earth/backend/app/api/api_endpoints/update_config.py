@@ -1,5 +1,6 @@
 import contextlib
 import json
+import logging
 import os
 import shutil
 from datetime import datetime, timezone
@@ -13,6 +14,8 @@ from eventbus.event import put_config
 
 from ...env import env
 from . import router
+
+logger = logging.getLogger(__name__)
 
 
 @contextlib.contextmanager
@@ -36,10 +39,10 @@ async def update_config():
 
     VERSION = datetime.now(timezone.utc).replace(microsecond=0).isoformat()[:-6]
 
-    print("Updating config...")
-    print(f"cwd: {os.getcwd()}")
-    print(f"CONFIG_DIR: {CONFIG_DIR}")
-    print(f"VERSION: {VERSION}")
+    logger.debug("Updating config...")
+    logger.debug(f"cwd: {os.getcwd()}")
+    logger.debug(f"CONFIG_DIR: {CONFIG_DIR}")
+    logger.debug(f"VERSION: {VERSION}")
 
     # send existing config if recently updated
     if isdir(os.path.join(CONFIG_DIR, "backups", VERSION)):
@@ -75,7 +78,7 @@ async def update_config():
                 cfg[path] = yaml.safe_load(open(os.path.join(CONFIG_DIR, "user-config", file), "r"))
             except (yaml.YAMLError, AttributeError) as e:
                 raise HTTPException(status_code=400, detail=f"Error parsing {file}: {e}")
-    print(f"config {json.dumps(cfg, indent=2)}")
+    logger.debug(f"config {json.dumps(cfg, indent=2)}")
 
     # env
     cfg.update({"domain": env.DOMAIN})
@@ -94,7 +97,7 @@ async def update_config():
 
     # create backup
     shutil.copytree(os.path.join(CONFIG_DIR, "user-config"), os.path.join(CONFIG_DIR, "backups", VERSION))
-    print("backup at ", os.path.join(CONFIG_DIR, "backups", VERSION))
+    logger.debug(f"backup at {os.path.join(CONFIG_DIR, 'backups', VERSION)}")
 
     # return config as yaml
     return yaml.dump(cfg, indent=2)

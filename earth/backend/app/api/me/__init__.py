@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -11,6 +12,7 @@ from ..user.model import User
 from ..user.schema import UserRead, UserUpdateNoRoles
 from .crud import crud
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -22,7 +24,7 @@ async def read_me(
     try:
         return await crud.get_me(uuid=user.uuid, db_session=session)
     except Exception as e:
-        print(f"\n\n---------------------- junk in database {e}")
+        logger.error(f"junk in database {e}")
         raise HTTPException(status_code=404, detail=f"junk in database {e}")
 
 

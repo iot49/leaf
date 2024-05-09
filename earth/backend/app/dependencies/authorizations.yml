@@ -14,7 +14,7 @@
 
 # tree and branch details
 /tree/*:
-  roles: [superuser, admin, user, guest]
+  roles: [admin, user, guest]
   methods: [GET]
 
 # create and edit trees, branches
@@ -27,12 +27,12 @@
   methods: [GET, POST, PUT, DELETE]
 
 # eventbus config
-"/update_config":
+'/update_config':
   roles: [admin]
   methods: [GET]
 
 # currently active eventbus connections (gateways, clients)
-"/connections":
+'/connections':
   roles: [superuser, admin, user]
   methods: [GET]
 
@@ -47,6 +47,6 @@
   methods: [GET, POST, PUT, DELETE]
 
 # debugging: view config, request headers, etc
-"/dev/*":
+'/dev/*':
   roles: [superuser]
   methods: [GET, POST, PUT, DELETE]

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, WebSocket
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from app import env
 from app.api import api_key
 from app.dependencies.verify_jwt import verify_gateway_token
 from app.tokens import new_gateway_token, verify_gateway_token_
@@ -16,7 +17,7 @@ router = APIRouter()
 async def secrets(request: Request, session: AsyncSession = Depends(get_session), tree=Depends(verify_gateway_token)):
     key = await api_key.get_key(db_session=session)
     gateway_token = await new_gateway_token(tree_uuid=tree.uuid, api_key=key)
-    return {"tree": tree, "gateway-token": gateway_token}
+    return {"domain": env.get_env().DOMAIN, "tree": tree, "gateway-token": gateway_token}
 
 
 # /gateway/ws  (serve gateway)
@@ -33,6 +34,10 @@ async def tree_ws(websocket: WebSocket):
         return dst == "#branches" or dst.startswith(param["peer"])
 
     async def authenticate(token: str) -> bool:
+        # TODO: remove this backdoor!
+        if env.get_env().ENVIRONMENT == env.Environment.development:
+            param["peer"] = "a"
+            return True
         try:
             tree = await verify_gateway_token_(token)
             param["peer"] = tree.tree_id

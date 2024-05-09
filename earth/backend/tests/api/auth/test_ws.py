@@ -209,19 +209,19 @@ async def test_ws_bridge(async_client, async_websocket_client, create_trees, cli
         # client 0 get config
         await client_ws_0.send_json(set_src(get_config, client_ws_0_addr))
         assert is_subset(
-            {"type": PUT_CONFIG, "dst": client_ws_0_addr, "src": eventbus.src_addr}, await client_ws_0.receive_json()
+            {"type": PUT_CONFIG, "dst": client_ws_0_addr, "src": eventbus.SRC_ADDR}, await client_ws_0.receive_json()
         )
         # gateway 1 branch 1 get config
         await gateway_ws_1.send_json(set_src(get_config, src_11))
         assert is_subset(
-            {"type": PUT_CONFIG, "dst": src_11, "src": eventbus.src_addr}, await gateway_ws_1.receive_json()
+            {"type": PUT_CONFIG, "dst": src_11, "src": eventbus.SRC_ADDR}, await gateway_ws_1.receive_json()
         )
         # update config
         await eventbus.post(update_config(data={"test": "test update"}, dst="#branches"))
         await eventbus.post(update_config(data={"test": "test update"}, dst="#clients"))
         proto = {
             "type": UPDATE_CONFIG,
-            "src": eventbus.src_addr,
+            "src": eventbus.SRC_ADDR,
             "data": {"test": "test update"},
         }
         assert is_subset(proto, await gateway_ws_0.receive_json())

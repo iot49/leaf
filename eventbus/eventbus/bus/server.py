@@ -4,7 +4,7 @@ import time
 from abc import abstractmethod
 from typing import Any, Awaitable, Callable
 
-from eventbus import event_type, src_addr
+from eventbus import SRC_ADDR, event_type
 from eventbus.event import get_auth
 
 from .. import Event, EventBus, post, subscribe, unsubscribe
@@ -112,25 +112,28 @@ class Server(EventBus):
         if self.addr_filter(dst):
             try:
                 await self.transport.send_json(event)
-            except RuntimeError:
-                print("server.post - RuntimeError sending event", event)
+            except RuntimeError as e:
+                logger.error(f"Server.post: Transport error {e}")
                 self.closed = True
+        else:
+            logger.debug(f"addr_filter skip peer={self.param['peer']} dst={dst})")
 
     async def process_event(self, event: Event) -> None:
         et = event.get("type")
-        # if et != "ping": print("eventbus.bus.server got event", event)
+        if et != "ping":
+            logger.debug(f"eventbus.bus.server got {event}")
         if et is None:
-            print("-------- server.process_event: Invalid event - no type (ignored)", event)
+            logger.error(f"Invalid event - no type (ignored) {event}")
             return
         if et == event_type.PING:
-            await self.post({"type": event_type.PONG, "src": src_addr, "dst": f"{self.param['peer']}"})
+            await self.post({"type": event_type.PONG, "src": SRC_ADDR, "dst": f"{self.param['peer']}"})
         elif et == event_type.BYE:
             self.closed = True
         else:
             if "src" in event and "dst" in event:
                 await post(event)
             else:
-                print("-------- server.process_event: Invalid event - no src/dst (ignored)", event)
+                logger.error(f"Invalid event - no src/dst (ignored) {event}")
 
     async def receiver_task(self):
         while not self.closed:
@@ -142,15 +145,15 @@ class Server(EventBus):
                 else:
                     await self.process_event(event)
             except asyncio.TimeoutError:
-                print("Timeout", self.param)
+                logger.debug(f"Timeout {self.param}")
                 await post(bye_timeout)
                 self.closed = True
             except Exception as e:
-                print("************ Server Error", e, type(e))
+                logger.error(f"unspecified error in receiver_task {e}")
                 self.closed = True
         try:
             await self.transport.close()
         except RuntimeError as e:
-            print("RuntimeError closing transport", e)
+            logger.exception("RuntimeError closing transport", e)
         except Exception as e:
-            print("Server Error closing transport", e)
+            logger.exception("Server Error closing transport", e)

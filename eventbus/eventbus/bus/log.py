@@ -1,10 +1,8 @@
 # https://github.com/tom-draper/api-analytics
 
-import logging
 from collections import deque
 
-from eventbus import Event, EventBus, event_type, post, post_sync, subscribe
-from eventbus.event import EPOCH_OFFSET, log_event
+from eventbus import Event, EventBus, event_type, post, subscribe
 
 
 class Log(EventBus):
@@ -27,24 +25,3 @@ class Log(EventBus):
                 history.append(ev)
                 ev["dst"] = dst
                 await post(ev)
-
-
-def configure_logging():
-    class LogHandler(logging.Handler):
-        def emit(self, record):
-            event = log_event(
-                levelname=record.levelname,
-                timestamp=record.ct + EPOCH_OFFSET,  # type: ignore
-                name=record.name,
-                message=record.message,
-            )
-            post_sync(event)
-            print("LogHandler", event["levelname"], event["name"], event["message"])
-
-    root_logger = logging.getLogger()
-    # remove default handler
-    root_logger.handlers = []
-    root_logger.addHandler(LogHandler())
-
-
-# configure()

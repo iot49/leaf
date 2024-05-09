@@ -1,6 +1,6 @@
 import eventbus
-from eventbus import src_addr
-from eventbus.eid import eid2addr, eid2lid
+from eventbus import SRC_ADDR
+from eventbus.eid import eid2addr, eid2eid, eid2lid
 from eventbus.event import (
     get_auth,
     get_state,
@@ -22,19 +22,28 @@ def is_subset(first, second):
 
 def test_make():
     event = make_event(GET_STATE, "@5", a="a")
-    proto = {"a": "a", "type": "get_state", "dst": "@5", "src": src_addr}
+    proto = {"a": "a", "type": "get_state", "dst": "@5", "src": SRC_ADDR}
     assert event == proto
+
+
+def test_eid():
+    eid = "a.b:c.d"
+    assert eid2lid(eid) == "a.b:c"
+    assert eid2addr(eid) == "a.b"
+    assert eid2eid("c.d") == "#earth:c.d"
+    assert eid2lid("#earth:c.d") == "#earth:c"
+    assert eid2addr("#earth:c.d") == "#earth"
 
 
 def test_events():
     assert ping == {"type": PING}
     assert pong == {"type": PONG}
-    assert get_state == {"type": GET_STATE, "dst": "#server", "src": eventbus.src_addr}
+    assert get_state == {"type": GET_STATE, "dst": "#server", "src": eventbus.SRC_ADDR}
     event = hello_connected("peer", param={})
-    proto = {"type": HELLO_CONNECTED, "dst": "peer", "param": {}, "src": eventbus.src_addr}
+    proto = {"type": HELLO_CONNECTED, "dst": "peer", "param": {}, "src": eventbus.SRC_ADDR}
     assert event == proto
     event = put_config({"a": 1})
-    proto = {"data": {"a": 1}, "type": PUT_CONFIG, "dst": "#server", "src": src_addr}
+    proto = {"data": {"a": 1}, "type": PUT_CONFIG, "dst": "#server", "src": SRC_ADDR}
     assert event == proto
     assert is_subset({"type": GET_AUTH}, get_auth)
 
@@ -44,13 +53,13 @@ def test_state():
 
     leaf_id = "leaf_id"
     attr_id = "attr_id"
-    entity = f"{leaf_id}:{attr_id}"
+    entity = f"{leaf_id}.{attr_id}"
     value = 123
     state_event = state(entity, value)
     proto = {
         "type": STATE,
         "value": value,
-        "src": eventbus.src_addr,
+        "src": eventbus.SRC_ADDR,
         "dst": "#clients",
     }
     assert is_subset(proto, state_event)
@@ -67,7 +76,7 @@ def test_state():
         "action": "action",
         "param": "param",
         "lid": eid2lid(state_event["eid"]),
-        "src": eventbus.src_addr,
-        "dst": eid2addr(state_event["eid"]),  # f"{eventbus.addr}:{leaf_id}",
+        "src": eventbus.SRC_ADDR,
+        "dst": eid2addr(state_event["eid"]),
     }
     assert is_subset(proto, action)
