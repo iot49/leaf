@@ -66,7 +66,7 @@ test:
 	rye run pytest -s # --cov="."
 	cd earth/backend && \
 	ENVIRONMENT="test" \
-	rye run pytest -s # -k test_ws_bridge # --cov="."
+	rye run pytest -s # -k test_admin_role # --cov="."
 
 clean:
 	@echo "Removing python cache files..."
