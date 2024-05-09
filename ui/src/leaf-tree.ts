@@ -264,22 +264,32 @@ print(":".join("{:02x}".format(x) for x in mac))`);
       await mpexec.close();
       return false;
     }
+    // create new branch
     const branch: any = await api_post('branch', {
       branch_id: branch_id,
       tree_uuid: this.tree.uuid,
       title: `Branch ${branch_id}`,
       mac: mac,
     });
-    const config = { wifi: this.config.wifi };
+    // get secrets and write to branch
+    const secrets = await api_get(
+      'secrets',
+      {
+        headers: { Authorization: `Bearer ${branch.gateway_token}` },
+      },
+      'gateway'
+    );
     let code = `
-with open("config.json", "w") as f:
-    f.write("""${JSON.stringify(config)}""")`;
-    await mpexec.exec(code);
-    const secrets = { gateway_token: branch.gateway_token };
-    code = `
 with open("secrets.json", "w") as f:
     f.write("""${JSON.stringify(secrets)}""")`;
     await mpexec.exec(code);
+    // write config to branch
+    const config = { wifi: this.config.wifi };
+    code = `
+with open("config.json", "w") as f:
+    f.write("""${JSON.stringify(config)}""")`;
+    await mpexec.exec(code);
+
     await mpexec.close();
     this.tree = await api_get(`tree/${this.uuid}`);
     return true;

@@ -71,5 +71,7 @@ config = Config(config_file="/config.json")
 state = CurrentState()
 Log()
 
+from .main import main
+
 # after loading config
 from .wifi import wifi

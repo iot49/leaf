@@ -89,11 +89,12 @@ class _Wifi:
                 for _ in range(10_000 // SLEEP_MS):
                     if radio._sta.isconnected():
                         self.ssid = w["ssid"]
-                        logger.info(f"\nConnected to {self.ssid} @ {self.ip}")
+                        logger.info(f"Connected to {self.ssid} @ {self.ip}")
                         self._enabled_count += 1
                         return
                     await asyncio.sleep_ms(SLEEP_MS)  # type: ignore
                     print(".", end="")
+                print()
         raise WifiException("Connection failed")
 
     async def __aexit__(self, *args):

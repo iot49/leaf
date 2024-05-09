@@ -149,7 +149,7 @@ class Server(EventBus):
                 await post(bye_timeout)
                 self.closed = True
             except Exception as e:
-                logger.error(f"unspecified error in receiver_task {e}")
+                logger.exception(f"***** {type(e)} receiver_task {e}", e)
                 self.closed = True
         try:
             await self.transport.close()

@@ -59,13 +59,9 @@ def post_sync(event: Event) -> None:
     """Post event 'eventually'"""
 
     async def poster():
-        print("1 poster", event)
         await post(event)
-        print("2 posted", event)
 
-    print("post_sync", event)
     asyncio.create_task(poster())
-    print("task created", event)
 
 
 # list of subscribers - call subscribe/unsubscribe to add/remove

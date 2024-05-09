@@ -1,9 +1,9 @@
 import { alertDialog } from './dialog';
 import { api_url } from './env';
 
-export async function api_get(resource: string = '', requestOptions = {}, url = api_url): Promise<object> {
+export async function api_get(resource: string = '', requestOptions = {}, path = 'api'): Promise<object> {
   try {
-    const response = await fetch(`${url}/${resource}`, requestOptions);
+    const response = await fetch(`${api_url}/${path}/${resource}`, requestOptions);
     if (response.ok) {
       return await response.json();
     } else if (response.status === 404) {

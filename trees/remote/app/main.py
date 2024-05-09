@@ -8,13 +8,16 @@ import ntptime  # type: ignore
 
 from eventbus import event_type
 from eventbus.bus import Counter
+from eventbus.event import ping
 
-from . import DOMAIN, get_state, logger, ping, wifi
+from . import DOMAIN, get_state, logger
+from .wifi import wifi
 
 
 async def ping_task(ws, interval):
     while True:
         try:
+            print("send ping", ping)
             await ws.send_json(ping)
         except OSError as e:
             print("Ping failed", e)
@@ -81,3 +84,7 @@ async def main():
 
         # plugins
         Counter("counter.count")
+
+        while True:
+            await asyncio.sleep(3)
+            logger.info("main loop")
