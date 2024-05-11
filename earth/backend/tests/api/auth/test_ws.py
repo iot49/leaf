@@ -5,7 +5,7 @@ from httpx_ws import aconnect_ws
 from tests.util import is_subset
 
 import eventbus
-from eventbus.event import bye, get_config, state, state_action, state_update, update_config
+from eventbus.event import bye, get_config, get_src_addr, state, state_action, state_update, update_config
 from eventbus.event_type import GET_AUTH, HELLO_CONNECTED, HELLO_INVALID_TOKEN, PUT_AUTH, PUT_CONFIG, UPDATE_CONFIG
 
 DEBUG = False
@@ -35,7 +35,7 @@ async def test_ws_client(async_websocket_client, client_token):
         s = state_update(s, value=456)
         await eventbus.post(s)
         assert s == await ws.receive_json()
-        await ws.send_json(bye)
+        await ws.send_json(bye())
 
 
 async def test_ws_gateway(async_client, async_websocket_client, create_trees):
@@ -43,24 +43,20 @@ async def test_ws_gateway(async_client, async_websocket_client, create_trees):
     for i, tree in enumerate(create_trees):
         gateway_token = tree["branches"][0]["gateway_token"]
 
-        try:
-            async with aconnect_ws("/gateway/ws", async_websocket_client) as ws:
-                # authenticate
-                auth = await ws.receive_json()
-                assert auth["type"] == GET_AUTH
-                await ws.send_json({"type": PUT_AUTH, "token": gateway_token})
-                # get the hello message
-                hello = await ws.receive_json()
-                assert hello["type"] == HELLO_CONNECTED
-                await ws.send_json(bye)
-                # no active connections
-                connections = await async_client.get("/api/connections")
-                connections = connections.json()
-                for conn in connections.values():
-                    assert not conn["connected"]
-        except Exception as e:
-            print(f"Error connecting to gateway {i}: {e}", type(e), e.args, e.with_traceback)
-            # raise e
+        async with aconnect_ws("/gateway/ws", async_websocket_client) as ws:
+            # authenticate
+            auth = await ws.receive_json()
+            assert auth["type"] == GET_AUTH
+            await ws.send_json({"type": PUT_AUTH, "token": gateway_token})
+            # get the hello message
+            hello = await ws.receive_json()
+            assert hello["type"] == HELLO_CONNECTED
+            await ws.send_json(bye())
+            # no active connections
+            connections = await async_client.get("/api/connections")
+            connections = connections.json()
+            for conn in connections.values():
+                assert not conn["connected"]
 
 
 async def test_ws_client_invalid_token(async_websocket_client):
@@ -78,19 +74,15 @@ async def test_ws_client_invalid_token(async_websocket_client):
 async def test_ws_gateway_invalid_token(async_websocket_client, create_trees):
     # gateway connection
     for i, _ in enumerate(create_trees):
-        try:
-            async with aconnect_ws("/gateway/ws", async_websocket_client) as ws:
-                # authenticate
-                auth = await ws.receive_json()
-                assert auth["type"] == GET_AUTH
-                await ws.send_json({"type": PUT_AUTH, "token": "invalid_token"})
-                # get the hello message
-                hello = await ws.receive_json()
-                assert hello["type"] == HELLO_INVALID_TOKEN
-                await ws.send_json(bye)
-        except Exception as e:
-            print(f"Error connecting to gateway {i}: {e}", type(e), e.args, e.with_traceback)
-            # raise e
+        async with aconnect_ws("/gateway/ws", async_websocket_client) as ws:
+            # authenticate
+            auth = await ws.receive_json()
+            assert auth["type"] == GET_AUTH
+            await ws.send_json({"type": PUT_AUTH, "token": "invalid_token"})
+            # get the hello message
+            hello = await ws.receive_json()
+            assert hello["type"] == HELLO_INVALID_TOKEN
+            await ws.send_json(bye())
 
 
 async def test_ws_bridge(async_client, async_websocket_client, create_trees, client_token):
@@ -207,21 +199,19 @@ async def test_ws_bridge(async_client, async_websocket_client, create_trees, cli
         assert a == await gateway_ws_1.receive_json()
 
         # client 0 get config
-        await client_ws_0.send_json(set_src(get_config, client_ws_0_addr))
+        await client_ws_0.send_json(set_src(get_config(), client_ws_0_addr))
         assert is_subset(
-            {"type": PUT_CONFIG, "dst": client_ws_0_addr, "src": eventbus.SRC_ADDR}, await client_ws_0.receive_json()
+            {"type": PUT_CONFIG, "dst": client_ws_0_addr, "src": get_src_addr()}, await client_ws_0.receive_json()
         )
         # gateway 1 branch 1 get config
-        await gateway_ws_1.send_json(set_src(get_config, src_11))
-        assert is_subset(
-            {"type": PUT_CONFIG, "dst": src_11, "src": eventbus.SRC_ADDR}, await gateway_ws_1.receive_json()
-        )
+        await gateway_ws_1.send_json(set_src(get_config(), src_11))
+        assert is_subset({"type": PUT_CONFIG, "dst": src_11, "src": get_src_addr()}, await gateway_ws_1.receive_json())
         # update config
         await eventbus.post(update_config(data={"test": "test update"}, dst="#branches"))
         await eventbus.post(update_config(data={"test": "test update"}, dst="#clients"))
         proto = {
             "type": UPDATE_CONFIG,
-            "src": eventbus.SRC_ADDR,
+            "src": get_src_addr(),
             "data": {"test": "test update"},
         }
         assert is_subset(proto, await gateway_ws_0.receive_json())
@@ -230,10 +220,10 @@ async def test_ws_bridge(async_client, async_websocket_client, create_trees, cli
         assert is_subset(proto, await client_ws_1.receive_json())
 
         # end conversation
-        await gateway_ws_0.send_json(bye)
-        await gateway_ws_1.send_json(bye)
-        await client_ws_0.send_json(bye)
-        await client_ws_1.send_json(bye)
+        await gateway_ws_0.send_json(bye())
+        await gateway_ws_1.send_json(bye())
+        await client_ws_0.send_json(bye())
+        await client_ws_1.send_json(bye())
 
         # no active connections
         connections = await async_client.get("/api/connections")

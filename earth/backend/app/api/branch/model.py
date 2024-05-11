@@ -13,22 +13,7 @@ from ..tree.model import Id
 if TYPE_CHECKING:
     from ..tree import Tree
 
-VALID_GATEWAY_PREFERENCES = [
-    "preferred",  # branch preferreably acts as a gateway
-    "optional",  # branch can act as a gateway (will assume gateway role if no gateway is found)
-    "never",  # branch cannot act as a gateway (e.g. battery powered or insufficient memory)
-]
-
 # all users can modify their own profile
-
-
-def validate_gateway(gateway: str) -> str:
-    gateway = gateway.lower()
-    assert gateway in VALID_GATEWAY_PREFERENCES, f"Invalid gateway preference: {gateway}"
-    return gateway
-
-
-GatewayPreference = Annotated[str, AfterValidator(validate_gateway)]
 
 
 def mac_addr(value: str):
@@ -48,7 +33,6 @@ class BranchBase(SQLModel):
     description: MarkDown = ""
     espnow_lmk: str = Field(default_factory=lambda: secrets.token_hex(16))
     tree_uuid: UUID = Field(foreign_key="tree.uuid")
-    gateway_preference: GatewayPreference = "optional"
 
     model_config = {
         "json_schema_extra": {
@@ -58,7 +42,6 @@ class BranchBase(SQLModel):
                     "mac": "12:34:56:78:9a:bc",
                     "description": "Branch 1 description (markdown supported)",
                     "tree_uuid": "00000000-0000-0000-0000-000000000000",
-                    "gateway_preference": "optional",
                 }
             ]
         }

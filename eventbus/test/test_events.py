@@ -1,8 +1,7 @@
-import eventbus
-from eventbus import SRC_ADDR
 from eventbus.eid import eid2addr, eid2eid, eid2lid
 from eventbus.event import (
     get_auth,
+    get_src_addr,
     get_state,
     hello_connected,
     make_event,
@@ -22,7 +21,7 @@ def is_subset(first, second):
 
 def test_make():
     event = make_event(GET_STATE, "@5", a="a")
-    proto = {"a": "a", "type": "get_state", "dst": "@5", "src": SRC_ADDR}
+    proto = {"a": "a", "type": "get_state", "dst": "@5", "src": get_src_addr()}
     assert event == proto
 
 
@@ -38,14 +37,14 @@ def test_eid():
 def test_events():
     assert ping == {"type": PING}
     assert pong == {"type": PONG}
-    assert get_state == {"type": GET_STATE, "dst": "#server", "src": eventbus.SRC_ADDR}
+    assert get_state() == {"type": GET_STATE, "dst": "#server", "src": get_src_addr()}
     event = hello_connected("peer", param={})
-    proto = {"type": HELLO_CONNECTED, "dst": "peer", "param": {}, "src": eventbus.SRC_ADDR}
+    proto = {"type": HELLO_CONNECTED, "dst": "peer", "param": {}, "src": get_src_addr()}
     assert event == proto
     event = put_config({"a": 1})
-    proto = {"data": {"a": 1}, "type": PUT_CONFIG, "dst": "#server", "src": SRC_ADDR}
+    proto = {"data": {"a": 1}, "type": PUT_CONFIG, "dst": "#server", "src": get_src_addr()}
     assert event == proto
-    assert is_subset({"type": GET_AUTH}, get_auth)
+    assert is_subset({"type": GET_AUTH}, get_auth())
 
 
 def test_state():
@@ -59,7 +58,7 @@ def test_state():
     proto = {
         "type": STATE,
         "value": value,
-        "src": eventbus.SRC_ADDR,
+        "src": get_src_addr(),
         "dst": "#clients",
     }
     assert is_subset(proto, state_event)
@@ -76,7 +75,7 @@ def test_state():
         "action": "action",
         "param": "param",
         "lid": eid2lid(state_event["eid"]),
-        "src": eventbus.SRC_ADDR,
+        "src": get_src_addr(),
         "dst": eid2addr(state_event["eid"]),
     }
     assert is_subset(proto, action)

@@ -1,10 +1,11 @@
 import { alertDialog } from '../dialog';
+import { ws_url } from '../env';
 import { Bus } from './eventbus';
 
 export class WsBus implements Bus {
   public tree_id: string;
   private _ws: WebSocket;
-  private _reconnect: boolean = true; // reconnected unless explicitly disconnected
+  private _reconnect: boolean = true; // reconnect unless explicitly disconnected
 
   constructor(tree_id: string) {
     this.tree_id = tree_id;
@@ -69,12 +70,9 @@ export class WsBus implements Bus {
   }
 
   protected _url() {
-    if (this.tree_id === '#earth') {
-      // return `ws://localhost:8001/ws`;
-      return `wss://${location.host}/ws`;
-      // return `wss://leaf49.org/ws`;
-    }
-    console.log('NOT IMPLEMENTED: local connection to tree', this.tree_id);
+    return `${ws_url}/ws`;
+    // if (this.tree_id === '#earth') return `${ws_url}/ws`;
+    // console.log('NOT IMPLEMENTED: local connection to tree', this.tree_id);
   }
 
   private message_event(event) {

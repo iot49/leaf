@@ -4,6 +4,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { consume } from '@lit/context';
 import { logout } from './app/api';
 import { Connected, connectedContext, Settings, settingsContext } from './app/context/contexts';
+import { domain } from './app/env';
 import { LeafBase } from './leaf-base';
 
 @customElement('leaf-page')
@@ -136,16 +137,23 @@ export class LeafPage extends LeafBase {
   async action(target: string) {
     if (target === 'logout') {
       logout();
+    } else if (target.startsWith('!')) {
+      location.href = `https://${target.slice(1)}.${domain}`;
     } else {
       await this.goto(target);
     }
   }
 
   nav_menu() {
+    // we use the html element id to specify the path (see action, above)
     const nav = [
-      { id: 'trees', icon: 'forest-outline', text: 'Trees' },
+      { id: 'connect', icon: 'forest-outline', text: 'Trees' },
       { id: 'log', icon: 'math-log', text: 'Log', disabled: !this.connected },
       { id: 'accounts', icon: 'account-cog', text: 'Accounts', hide: !this.settings.me.superuser },
+      { id: 'settings', icon: 'cog', text: 'Settings', hide: !this.settings.me.superuser },
+      { id: '!editor', icon: 'microsoft-visual-studio-code', text: 'Configuration' },
+      { id: '!jupyter', icon: 'code-block-braces', text: 'Jupyter' },
+      { id: '!homeassistant', icon: 'home-lightbulb-outline', text: 'Homeassistant' },
       { id: 'logout', icon: 'logout', text: 'Logout' },
     ];
 

@@ -16,8 +16,6 @@ class BranchRead(BaseRead):
     branch_id: Id
     description: str
     mac: MacAddr
-    gateway_preference: str
-    gateway_token: str | None = None
     tree_uuid: UUID
 
 

@@ -71,11 +71,19 @@ export class LeafMain extends LeafContext {
   }
 
   render() {
-    // console.log('main.render', this.router.routes);
+    console.log(`main.render currentRoute='${this.currentRoute}'`);
+
+    // settings are needed by all pages
     if (!this.settings) return this.spinner('Loading settings from cache...');
+
+    // some pages require a connection
     if (!this.connected) {
-      this.router.goto('/');
+      const requires_connection = ['view', 'log'];
+      if (requires_connection.includes(this.currentRoute.split('/')[0])) {
+        this.router.goto('/');
+      }
     } else if (!this.config) {
+      // wait for config, if we are connected
       return this.spinner('Fetching configuration from server...');
     }
     return html`<main>${this.router.outlet()}</main>`;

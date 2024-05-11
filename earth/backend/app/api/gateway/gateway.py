@@ -30,14 +30,10 @@ async def tree_ws(websocket: WebSocket):
     }
 
     def addr_filter(dst: str) -> bool:
-        # peer is the <tree_id>; allow <tree_id>:<branch_id>
+        # peer is <tree_id>.<branch_id>, the tree gateway will forward to the correct branche
         return dst == "#branches" or dst.startswith(param["peer"])
 
     async def authenticate(token: str) -> bool:
-        # TODO: remove this backdoor!
-        if env.get_env().ENVIRONMENT == env.Environment.development:
-            param["peer"] = "a"
-            return True
         try:
             tree = await verify_gateway_token_(token)
             param["peer"] = tree.tree_id

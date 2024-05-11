@@ -26,9 +26,6 @@ Addr = str
         #branches and #clients to avoid recursion
 """
 
-SRC_ADDR: Addr = "#earth"
-
-
 Event = dict
 """Event
 

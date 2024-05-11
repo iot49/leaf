@@ -49,7 +49,7 @@ help:
 serve:
 	cd earth/backend && \
 	ENVIRONMENT="dev" \
-	rye run uvicorn --port 8001 --reload app.main:app
+	rye run uvicorn --host 0.0.0.0 --port 8001 --reload app.main:app
 
 serve-alembic:
 	rye run alembic upgrade head
@@ -66,7 +66,7 @@ test:
 	rye run pytest -s # --cov="."
 	cd earth/backend && \
 	ENVIRONMENT="test" \
-	rye run pytest -s # -k test_admin_role # --cov="."
+	rye run pytest -s #-k test_ws_gateway # --cov="."
 
 clean:
 	@echo "Removing python cache files..."
@@ -95,7 +95,6 @@ balena-push:
 
 balena-ui:
 	cd ui && npm run build
-	mv ui/dist/assets/svg ui/dist/assets/icons
 	./scripts/rsync-ui.sh
 
 balena-config:

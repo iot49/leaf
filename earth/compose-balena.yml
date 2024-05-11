@@ -20,6 +20,7 @@ volumes:
   cloudflare: # cloudflare credentials
   postgres: # postgres database
   wireshark: # wireshark configuration
+  homeassistant: # homeassistant configuration
 
 services:
   tunnel:
@@ -52,9 +53,10 @@ services:
     expose:
       - 8000
     volumes:
-      - ui:/home/ui
-      - config:/home/config
-      - letsencrypt:/home/letsencrypt
+      - ui:/home/ui # static files (lit webapp)
+      - config:/home/config # ui configuration
+      - homeassistant:/home/homeassistant # to set permissions (in start.sh)
+      - letsencrypt:/home/letsencrypt # certificates
     networks:
       - tunnel
       - config
@@ -73,6 +75,7 @@ services:
     volumes:
       - code-server:/config
       - config:/home/config
+      - homeassistant:/home/homeassistant
       - jupyter:/home/jovyan
       - letsencrypt:/home/letsencrypt
       - letsencrypt-log:/home/letsencrypt/log
@@ -131,6 +134,7 @@ services:
   # https://www.nodinrogers.com/post/2022-03-10-certbot-cloudflare-docker/
   certbot:
     image: certbot/dns-cloudflare
+    restart: unless-stopped
 
     # Dry Run
     # command: certonly --non-interactive --dns-cloudflare --dns-cloudflare-credentials /opt/cloudflare/credentials --agree-tos -m bernhard.e.boser@gmail.com -d backend.leaf49.org --server https://acme-v02.api.letsencrypt.org/directory --dry-run
@@ -152,3 +156,34 @@ services:
       - letsencrypt-log:/var/log/letsencrypt
     networks:
       - certbot
+  # https://www.home-assistant.io/installation/alternative/#docker-compose
+  # https://github.com/home-assistant/docker/blob/master/Dockerfile
+  homeassistant:
+    image: 'ghcr.io/home-assistant/home-assistant:stable'
+    container_name: homeassistant
+    volumes:
+      - homeassistant:/config
+      - /run/dbus:/run/dbus:ro
+      # - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    privileged: true
+    expose:
+      - 8123
+    labels:
+      io.balena.features.dbus: 1
+    environment:
+      - DBUS_SYSTEM_BUS_ADDRESS=unix:path=/host/run/dbus/system_bus_socket
+    networks:
+      - tunnel
+
+  # https://github.com/rbonghi/docker-dropbox-app
+  dropbox:
+    image: rbonghi/dropbox:latest
+    command: ['--fromLocal', '--verbose', '--interval', '120']
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DROPBOX_APP_KEY=${DROPBOX_APP_KEY}
+      - DROPBOX_APP_SECRET=${DROPBOX_APP_SECRET}
+      - DROPBOX_REFRESH_TOKEN=${DROPBOX_REFRESH_TOKEN}
+    volumes:
+      - config:/dropbox

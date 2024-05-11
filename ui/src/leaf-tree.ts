@@ -14,6 +14,13 @@ export class LeafTree extends LeafBase {
   static styles = [
     ...LeafBase.styles,
     css`
+      main {
+        margin: 1rem;
+      }
+      #create_button {
+        margin-top: 2rem;
+        float: right;
+      }
       .branches-title {
         margin-top: 2rem;
       }
@@ -34,6 +41,12 @@ export class LeafTree extends LeafBase {
       }
       .disabled sl-input::part(base) {
         text-decoration: line-through;
+      }
+      .title {
+        min-width: 300px;
+      }
+      .branch_id {
+        max-width: 100px;
       }
     `,
   ];
@@ -119,8 +132,8 @@ export class LeafTree extends LeafBase {
                           html` <tr class=${branch.disabled ? 'disabled' : ''}>
                             <td>
                               <sl-input
-                                class=${'tree_id ' + branch.disabled ? 'disabled' : ''}
-                                value=${tree.tree_id}
+                                class=${'branch_id ' + branch.disabled ? 'disabled' : ''}
+                                value=${branch.branch_id}
                                 ?readonly=${!admin}
                                 @sl-change=${async (e) => {
                                   await api_put(`branch/${branch.uuid}`, { branch_id: e.target.value });
@@ -131,7 +144,7 @@ export class LeafTree extends LeafBase {
                             <td>
                               <sl-input
                                 class=${'title ' + branch.disabled ? 'disabled' : ''}
-                                value=${tree.title}
+                                value=${branch.title}
                                 ?readonly=${!admin}
                                 @sl-change=${async (e) => {
                                   await api_put(`branch/${branch.uuid}`, { title: e.target.value });

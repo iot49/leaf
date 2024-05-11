@@ -18,6 +18,7 @@ class Config(EventBus):
                 config = json.load(f)
         except FileNotFoundError:
             pass
+        self._config_file = config_file
         self._config = config
 
         subscribe(self)
@@ -26,8 +27,16 @@ class Config(EventBus):
         et = event["type"]
         if et == event_type.GET_CONFIG:
             await post(put_config(dst=event["src"], data=self._config))
-        elif et == event_type.UPDATE_CONFIG:
+        elif et == event_type.UPDATE_CONFIG or et == event_type.PUT_CONFIG:
             self._config = event["data"]
+            try:
+                import micropython  # type: ignore  # noqa: F401
+
+                with open(self._config_file, "w") as f:
+                    json.dump(self._config, f)
+            except ImportError:
+                # for earth, update_config writes config.json
+                pass
 
     def get(self, path=None, default=None) -> Any:
         """Get configuration value.

@@ -29,9 +29,11 @@ export class LeafBase extends LitElement {
   ];
 
   private main: LeafMain;
+  public currentRoute: string = '';
 
   async goto(path: string = '') {
     if (!this.main) this.main = document.querySelector('leaf-main');
+    this.currentRoute = path;
     await this.main.router.goto(`/ui/${path}`);
   }
 }

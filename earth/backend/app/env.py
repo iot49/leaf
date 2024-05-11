@@ -79,14 +79,12 @@ def get_env():
     if env.CONFIG_DIR is None:
         env.CONFIG_DIR = "/home/config"
         if not os.path.isdir(env.CONFIG_DIR):
-            env.CONFIG_DIR = "../volumes/config"
+            env.CONFIG_DIR = "/Users/boser/Dropbox/Apps/leaf49 (1)"
 
     # UI_DIR
     if env.UI_DIR is None:
         env.UI_DIR = "/home/ui"
         if not os.path.isdir(env.UI_DIR):
-            env.UI_DIR = "../volumes/ui"
-
             env.UI_DIR = "../../ui/dist"
 
     return env

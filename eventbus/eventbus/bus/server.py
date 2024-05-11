@@ -1,14 +1,20 @@
 import asyncio
+import json
 import logging
 import time
 from abc import abstractmethod
 from typing import Any, Awaitable, Callable
 
-from eventbus import SRC_ADDR, event_type
+try:
+    from fastapi import WebSocketDisconnect
+except ImportError:
+    WebSocketDisconnect = Exception
+
+from eventbus import event_type
 from eventbus.event import get_auth
 
 from .. import Event, EventBus, post, subscribe, unsubscribe
-from ..event import bye_timeout, hello_already_connected, hello_connected, hello_invalid_token, state
+from ..event import bye_timeout, get_src_addr, hello_already_connected, hello_connected, hello_invalid_token, state
 
 logger = logging.getLogger(__name__)
 
@@ -62,24 +68,22 @@ class Server(EventBus):
 
     async def run(self):
         """Returns when the connection is closed."""
-
         # send authentication request
         try:
-            await self.transport.send_json(get_auth)
+            await self.transport.send_json(get_auth())
             event = await asyncio.wait_for(self.transport.receive_json(), timeout=self.timeout + 1)
             if not await self.authenticate(event.get("token")):
-                await self.transport.send_json(hello_invalid_token)
+                await self.transport.send_json(hello_invalid_token())
                 return
         except (RuntimeError, asyncio.TimeoutError):
-            print("Server.run: Timeout waiting for token")
-            await self.transport.send_json(bye_timeout)
+            await self.transport.send_json(bye_timeout())
             return
 
         try:
-            # update connections registry
             peer = self.param["peer"]
+            # update connections registry
             if peer in Server.CONNECTIONS and Server.CONNECTIONS[peer]["connected"]:
-                await self.transport.send_json(hello_already_connected)
+                await self.transport.send_json(hello_already_connected())
                 return
             Server.CONNECTIONS[peer] = {
                 "param": self.param,
@@ -94,6 +98,9 @@ class Server(EventBus):
                 await post(state(eid=f"{self.param['peer']}:gateway:status:connected", value=True))
             # won't return until the connection is closed
             await self.receiver_task()
+        except RuntimeError:
+            # peer disconnected without sending BYE
+            self.closed = True
         finally:
             unsubscribe(self)
             self.param["disconnected_at"] = time.time()
@@ -120,16 +127,15 @@ class Server(EventBus):
 
     async def process_event(self, event: Event) -> None:
         et = event.get("type")
-        if et != "ping":
-            logger.debug(f"eventbus.bus.server got {event}")
         if et is None:
             logger.error(f"Invalid event - no type (ignored) {event}")
             return
         if et == event_type.PING:
-            await self.post({"type": event_type.PONG, "src": SRC_ADDR, "dst": f"{self.param['peer']}"})
+            await self.post({"type": event_type.PONG, "src": get_src_addr(), "dst": f"{self.param['peer']}"})
         elif et == event_type.BYE:
             self.closed = True
         else:
+            logger.debug(f"eventbus.bus.server got {event}")
             if "src" in event and "dst" in event:
                 await post(event)
             else:
@@ -146,14 +152,21 @@ class Server(EventBus):
                     await self.process_event(event)
             except asyncio.TimeoutError:
                 logger.debug(f"Timeout {self.param}")
-                await post(bye_timeout)
+                await post(bye_timeout())
+                self.closed = True
+            except json.JSONDecodeError as e:
+                logger.error(f"Invalid JSON {e}")
+                self.closed = True
+            except WebSocketDisconnect as e:
+                logger.error(f"WebSocketDisconnect {e}")
                 self.closed = True
             except Exception as e:
-                logger.exception(f"***** {type(e)} receiver_task {e}", e)
+                logger.exception(f"{type(e)} receiver_task {e}", exc_info=e)
                 self.closed = True
         try:
             await self.transport.close()
-        except RuntimeError as e:
-            logger.exception("RuntimeError closing transport", e)
+        except RuntimeError:
+            # logger.error("RuntimeError closing transport")
+            pass
         except Exception as e:
             logger.exception("Server Error closing transport", e)

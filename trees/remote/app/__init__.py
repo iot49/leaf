@@ -1,14 +1,22 @@
 # ruff: noqa: E402, F401
 
-import asyncio
 import json
 import logging
 import sys
 import time
 from os.path import isfile
 
-import aiohttp
 import machine  # type: ignore
+
+from eventbus.bus import Config, CurrentState, Log
+from eventbus.event import set_src_addr
+
+EPOCH_OFFSET = 946684800 if time.gmtime(0)[0] == 2000 else 0
+
+# use test server
+TESTING = True
+TEST_DOMAIN = "192.168.8.138:8001"
+SSL = not TESTING
 
 # bail if branch is not yet provisioned
 if not isfile("/secrets.json") or not isfile("/config.json"):
@@ -29,7 +37,7 @@ def configure_logging():
                 message=record.message,
             )
             post_sync(event)
-            print("LogHandler", event["levelname"], event["name"], event["message"])
+            # print(event["levelname"], event["name"], event["message"])
 
     root_logger = logging.getLogger()
     # remove default handler
@@ -38,38 +46,35 @@ def configure_logging():
 
 
 configure_logging()
+logger = logging.getLogger(__name__)
+Log()
 
 # globals
 
-logger = logging.getLogger(__name__)
-EPOCH_OFFSET = 946684800 if time.gmtime(0)[0] == 2000 else 0
 mac = ":".join("{:02x}".format(x) for x in machine.unique_id())
 
 with open("/secrets.json") as f:
-    secrets = json.load(f)
+    try:
+        secrets = json.load(f)
+    except ValueError:
+        logger.error("Invalid secrets.json")
+        sys.exit(-1)
 
-# configure eventbus SRC_ADDR before importing eventbus.event
-from eventbus import SRC_ADDR
 
 tree_id = secrets["tree"]["tree_id"]
+branch_id = "?"
 for branch in secrets["tree"]["branches"]:
     if branch["mac"] == mac:
         branch_id = branch["branch_id"]
-else:
-    branch_id = "?"
+        break
 
-SRC_ADDR = f"{tree_id}:{branch_id}"  # noqa: F811
-DOMAIN = secrets["domain"]
+set_src_addr(f"{tree_id}:{branch_id}")  # noqa: F811
 
-# setup eventbus
-from eventbus import event_type
-from eventbus.bus import Config, Counter, CurrentState, Log
-from eventbus.event import get_state, ping
+DOMAIN = TEST_DOMAIN if TESTING else secrets["domain"]
 
 # load config and current state
 config = Config(config_file="/config.json")
 state = CurrentState()
-Log()
 
 from .main import main
 

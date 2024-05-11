@@ -5,8 +5,7 @@
     "type": "module",
     "scripts": {
         "dev": "vite --host",
-        "build-x": "tsc && vite build && mv dist/assets/svg dist/assets/icons && cp -a dist/ ../earth/volumes/ui",
-        "build": "tsc && vite build && cp -a dist/ ../earth/volumes/ui",
+        "build": "tsc && vite build && mv dist/assets/svg dist/assets/icons",
         "preview": "vite preview",
         "debug": "vite --debug"
     },

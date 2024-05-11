@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-import network
+import network  # type: ignore
 
 from . import config
 
@@ -29,7 +29,10 @@ class _Radio:
     def __aexit__(self, *args):
         self._enabled_count -= 1
         if self._enabled_count < 1:
-            self._sta.active(False)
+            try:
+                self._sta.active(False)
+            except OSError:
+                pass
             logger.debug("radio OFF")
 
     def scan(self):
@@ -89,34 +92,24 @@ class _Wifi:
                 for _ in range(10_000 // SLEEP_MS):
                     if radio._sta.isconnected():
                         self.ssid = w["ssid"]
+                        print()
                         logger.info(f"Connected to {self.ssid} @ {self.ip}")
                         self._enabled_count += 1
                         return
                     await asyncio.sleep_ms(SLEEP_MS)  # type: ignore
                     print(".", end="")
-                print()
         raise WifiException("Connection failed")
 
     async def __aexit__(self, *args):
         self._enabled_count -= 1
         if self._enabled_count < 1:
-            radio._sta.disconnect()
+            try:
+                radio._sta.disconnect()
+            except OSError:
+                pass
             radio.__aexit__()
             logger.info("disconnected from Wifi")
 
 
 radio = _Radio()
 wifi = _Wifi()
-
-
-async def main():
-    async with wifi:
-        print(wifi.ip)
-        print(wifi.netmask)
-        print(wifi.gateway_ip)
-        print(wifi.dns_ip)
-        print(wifi.hostname)
-        await asyncio.sleep(60)
-
-
-# asyncio.run(main())

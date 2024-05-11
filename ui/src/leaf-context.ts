@@ -60,6 +60,7 @@ export class LeafContext extends LeafBase {
 
     // fetch most recent "api/me"
     const me = await api_get('me');
+    console.log('me', me);
     if (me) this.settings_cache.settings.me = me;
 
     window.addEventListener('leaf-connection', (event: CustomEvent) => {

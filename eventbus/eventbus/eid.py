@@ -1,5 +1,3 @@
-from . import SRC_ADDR
-
 """eid
 
 Examples:
@@ -15,7 +13,9 @@ tree_1.branch_1:gps.latitude
 def eid2eid(eid):
     """Pad if needed. Returns <SRC_ADDR>:<leaf_id>.<attribute_id>"""
     if ":" not in eid:
-        return f"{SRC_ADDR}:{eid}"
+        from eventbus.event import get_src_addr
+
+        return f"{get_src_addr()}:{eid}"
     return eid
 
 

@@ -50,15 +50,11 @@ class _EventBus implements EventBus {
       this._wdtId = setTimeout(this.wdt_timeout.bind(this), 2 * this.ping_interval);
 
       const event = _event.detail;
-      if (event.type !== 'pong') console.log('eventbus: leaf-event', event);
+      // if (event.type !== 'pong') console.log('eventbus: leaf-event', event);
       switch (event.type) {
         case 'get_auth':
-          if (event.src === '#earth') {
-            const client_token = await api_get('client_token');
-            await this.postEvent({ type: 'post_auth', token: client_token });
-          } else {
-            console.log('eventbus.ts - NOT IMPLEMENTED: get_auth for esp32 gateway', event);
-          }
+          const client_token = await api_get('client_token');
+          await this.postEvent({ type: 'post_auth', token: client_token });
           break;
         case 'hello_connected':
           this.ping_interval = 1000 * event.param.timeout_interval;
@@ -75,7 +71,6 @@ class _EventBus implements EventBus {
   }
 
   async connect(tree_id: string, bluetooth: boolean = false) {
-    console.log('eventbus.connect', tree_id, bluetooth);
     this.disconnect();
     this._bus = bluetooth ? new BleBus(tree_id) : new WsBus(tree_id);
   }

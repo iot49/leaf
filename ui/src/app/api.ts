@@ -1,5 +1,5 @@
-import { alertDialog } from './dialog';
 import { api_url } from './env';
+import { FetchError } from './errors';
 
 export async function api_get(resource: string = '', requestOptions = {}, path = 'api'): Promise<object> {
   try {
@@ -10,23 +10,27 @@ export async function api_get(resource: string = '', requestOptions = {}, path =
       // {"detail":"Not found"}
       console.log('api_get 404', resource);
       const json = await response.json();
-      alertDialog(`${resource} not found`, json.detail);
-      // throw new FetchError(json.detail);
+      console.log(`${resource} not found`, json.detail);
+      // alertDialog(`${resource} not found`, json.detail);
+      throw new FetchError(json.detail);
     } else if (response.status === 400) {
       // {"detail":"Missing required Cloudflare authorization token"}
       // force browser to reauthenticate with Cloudflare
-      window.open('/ui', '_self');
+      console.log('force reauthenticate', resource);
+      // window.open('/ui', '_self');
     } else {
       const text = await response.text();
       console.log('api_get error', response.status, text);
-      alertDialog(`Unspecified error`, `Failed fetching ${resource}: ${text}`);
-      // throw new FetchError(text);
+      console.log(`Unspecified error`, `Failed fetching ${resource}: ${text}`);
+      //alertDialog(`Unspecified error`, `Failed fetching ${resource}: ${text}`);
+      throw new FetchError(text);
     }
   } catch (error) {
     // Failed to fetch (offline?)
     console.log('api_get error', error.message);
-    alertDialog('Offline?', 'Cannot connect to earth. Is the server running? Internet working?');
-    // throw new FetchError(error.message);
+    console.log('Offline?', 'Cannot connect to earth. Is the server running? Internet working?');
+    // alertDialog('Offline?', 'Cannot connect to earth. Is the server running? Internet working?');
+    throw new FetchError(error.message);
   }
   // or should we return errors, status, ...?
   return undefined;

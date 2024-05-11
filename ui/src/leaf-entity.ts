@@ -92,6 +92,10 @@ export class LeafEntity extends LeafBase {
             return JSON.stringify(value);
         }
       }
+      // dev:gateway:status:connected: fmt = true, value = on throws exception:
+      // Replacement index on out of range for positional args tuple
+      console.log('1 leaf-entity.format', value, fmt, this.entity_id, this.spec);
+      console.log('2 leaf-entity.format', (`{${fmt}}` as any).format(value));
       return (`{${fmt}}` as any).format(value);
     } catch (e) {
       console.log('***** leaf-entity.format', e, value, fmt);
