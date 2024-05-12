@@ -7,6 +7,7 @@ import gc
 import os
 from contextlib import asynccontextmanager
 
+from api_analytics.fastapi import Analytics
 from fastapi import (
     Depends,
     FastAPI,
@@ -71,6 +72,9 @@ if env.BACKEND_CORS_ORIGINS:
         allow_headers=["*"],
     )
 
+# Analytics
+app.add_middleware(Analytics, api_key=env.ANALYTICS_API_KEY)  # type: ignore
+
 # Add Routers
 
 # /ui
@@ -128,14 +132,3 @@ async def api_documentation(request: Request):
 
   </body>
 </html>""")
-
-
-# move this to /gateway/credentials
-CREDENTIALS_DIR = "/home/cloudflare"
-CREDENTIALS_FILE = f"{CREDENTIALS_DIR}/credentials"
-if not os.path.exists(CREDENTIALS_DIR):
-    os.makedirs(os.path.dirname(CREDENTIALS_DIR), exist_ok=True)
-    with open(CREDENTIALS_FILE, "w") as f:
-        f.write(f"dns_cloudflare_email = {env.DNS_CF_EMAIL}\n")
-        f.write(f"dns_cloudflare_api_token = {env.DNS_CF_API_TOKEN}\n")
-    os.chmod(CREDENTIALS_FILE, 0o600)

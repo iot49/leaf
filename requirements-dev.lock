@@ -122,6 +122,9 @@ esptool==4.7.0
 executing==2.0.1
     # via stack-data
 fastapi==0.110.1
+    # via fastapi-analytics
+    # via leaves
+fastapi-analytics==1.2.2
     # via leaves
 fastapi-async-sqlalchemy==0.6.1
     # via leaves
@@ -429,6 +432,7 @@ referencing==0.34.0
     # via jsonschema-specifications
     # via jupyter-events
 requests==2.31.0
+    # via fastapi-analytics
     # via jupyterlab-server
     # via sphinx
 rfc3339-validator==0.1.4

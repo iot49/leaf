@@ -31,6 +31,11 @@ services:
     command: tunnel run
     networks:
       - tunnel
+    depends_on:
+      - api
+      - homeassistant
+      - jupyter
+      - code-server
 
   api:
     container_name: api
@@ -48,8 +53,8 @@ services:
       - CONFIG_DIR=/home/config
       - CF_POLICY_AUD=${CF_POLICY_AUD}
       - CF_TEAM_DOMAIN=${CF_TEAM_DOMAIN}
-      - DNS_CF_API_TOKEN=${DNS_CF_API_TOKEN}
-      - DNS_CF_EMAIL=${DNS_CF_EMAIL}
+      - CF_API_TOKEN=${CF_API_TOKEN}
+      - CF_EMAIL=${CF_EMAIL}
     restart: unless-stopped
     expose:
       - 8000
@@ -59,7 +64,6 @@ services:
       - homeassistant:/home/homeassistant # to set permissions (in start.sh)
       - letsencrypt:/home/letsencrypt # certificates
       - cloudflare:/home/cloudflare # certbot credentials
-
     networks:
       - tunnel
       - config
@@ -108,12 +112,12 @@ services:
       - tunnel
       - config
 
-  # TODO: create database!
+  # TODO: create database! (see testdrivenio / fastapi)
   database:
     container_name: database
     image: bitnami/postgresql:15.6.0
-    restart: always
-    user: unless-stopped
+    restart: unless-stopped
+    user: root
     volumes:
       - postgres:/bitnami/postgresql
     expose:
@@ -129,7 +133,8 @@ services:
       timeout: 5s
       retries: 5
 
-  # balena-engine run -v cloudflare:/opt/cloudflare -v letsencrypt:/etc/letsencrypt -v letsencrypt-log:/var/log/letsencrypt certbot/dns-cloudflare --non-interactive --dns-cloudflare --dns-cloudflare-credentials /opt/cloudflare/credentials certonly -m bernhard.e.boser@gmail.com -d backend.leaf49.org --agree-tos
+  # balena-engine run -v cloudflare:/opt/cloudflare -v letsencrypt:/etc/letsencrypt -v letsencrypt-log:/var/log/letsencrypt certbot/dns-cloudflare --non-interactive --dns-cloudflare --dns-cloudflare-credentials /opt/cloudflare/credentials certonly -d backend.leaf49.org --agree-tos
+  # balena-engine run -v cloudflare:/opt/cloudflare certbot/dns-cloudflare ls /opt/cloudflare
 
   # letsencrypt certificate factory
   # https://eff-certbot.readthedocs.io/
@@ -180,7 +185,7 @@ services:
   # https://github.com/rbonghi/docker-dropbox-app
   backup-config:
     image: rbonghi/dropbox:latest
-    command: ['--rootdir', 'backups', '--folder', 'config', '--fromLocal', '--verbose', '--interval', '120']
+    command: ['--folder', 'config', '--fromLocal', '--verbose', '--interval', '120']
     environment:
       - PYTHONUNBUFFERED=1
       - DROPBOX_APP_KEY=${DROPBOX_APP_KEY}
@@ -188,6 +193,17 @@ services:
       - DROPBOX_REFRESH_TOKEN=${DROPBOX_REFRESH_TOKEN}
     volumes:
       - config:/dropbox
+
+  backup-homeassistant:
+    image: rbonghi/dropbox:latest
+    command: ['--rootdir', '/dropbox/backups', '--folder', 'homeassistant', '--fromLocal', '--verbose', '--interval', '120']
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DROPBOX_APP_KEY=${DROPBOX_APP_KEY}
+      - DROPBOX_APP_SECRET=${DROPBOX_APP_SECRET}
+      - DROPBOX_REFRESH_TOKEN=${DROPBOX_REFRESH_TOKEN}
+    volumes:
+      - homeassistant:/dropbox
 
   backup-jupyter:
     image: rbonghi/dropbox:latest

@@ -93,12 +93,9 @@ balena-push:
 	cd earth && balena push -m boser/leaf
 	cd earth && rm docker-compose.yml
 
-balena-ui:
-	cd ui && npm run build
-	./scripts/rsync-ui.sh
-
-balena-config:
-	./scripts/rsync-config.sh
+ui:
+	cd ui && npm run build && rsync -av dist/ "/Users/boser/Dropbox/Apps/leaf49 (1)/ui"
+	# ./scripts/rsync-ui.sh
 
 build-docs:
 	# switch to mkdocs: https://realpython.com/python-project-documentation-with-mkdocs/
@@ -117,4 +114,4 @@ publish: build-docs
 	ghp-import -n -p -f gh-pages
 
 
-.PHONY: help serve serve-alembic add-migration test clean up up up-build up-prod down build-prod balena-push balena-ui build-docs publish
+.PHONY: help serve serve-alembic add-migration test clean up up up-build up-prod down build-prod balena-push ui build-docs publish
