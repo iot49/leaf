@@ -207,7 +207,7 @@ services:
 
   backup-jupyter:
     image: rbonghi/dropbox:latest
-    command: ['--folder', 'jupyter', '--fromLocal', '--verbose', '--interval', '3600']
+    command: ['--folder', 'jupyter', '--fromLocal', '--verbose', '--interval', '600']
     environment:
       - PYTHONUNBUFFERED=1
       - DROPBOX_APP_KEY=${DROPBOX_APP_KEY}
@@ -215,14 +215,3 @@ services:
       - DROPBOX_REFRESH_TOKEN=${DROPBOX_REFRESH_TOKEN}
     volumes:
       - jupyter:/dropbox
-
-  upload-ui:
-    image: rbonghi/dropbox:latest
-    command: ['--folder', 'ui', '--fromDropbox', '--verbose', '--interval', '120']
-    environment:
-      - PYTHONUNBUFFERED=1
-      - DROPBOX_APP_KEY=${DROPBOX_APP_KEY}
-      - DROPBOX_APP_SECRET=${DROPBOX_APP_SECRET}
-      - DROPBOX_REFRESH_TOKEN=${DROPBOX_REFRESH_TOKEN}
-    volumes:
-      - ui:/dropbox

@@ -94,8 +94,9 @@ balena-push:
 	cd earth && rm docker-compose.yml
 
 ui:
-	cd ui && npm run build && rsync -av dist/ "/Users/boser/Dropbox/Apps/leaf49 (1)/ui"
-	# ./scripts/rsync-ui.sh
+	# cd ui && npm run build && rsync -av dist/ "/Users/boser/Dropbox/Apps/leaf49 (1)/ui"
+	cd ui && npm run build
+	./scripts/rsync-ui.sh
 
 build-docs:
 	# switch to mkdocs: https://realpython.com/python-project-documentation-with-mkdocs/
