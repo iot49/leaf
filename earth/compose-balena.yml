@@ -7,7 +7,6 @@ version: '2'
 networks:
   tunnel:
   config:
-  certbot:
   database:
 
 volumes:
@@ -28,7 +27,7 @@ services:
     image: cloudflare/cloudflared:latest
     environment:
       - TUNNEL_TOKEN=${TUNNEL_TOKEN}
-    restart: always
+    restart: unless-stopped
     command: tunnel run
     networks:
       - tunnel
@@ -49,7 +48,9 @@ services:
       - CONFIG_DIR=/home/config
       - CF_POLICY_AUD=${CF_POLICY_AUD}
       - CF_TEAM_DOMAIN=${CF_TEAM_DOMAIN}
-    restart: always
+      - DNS_CF_API_TOKEN=${DNS_CF_API_TOKEN}
+      - DNS_CF_EMAIL=${DNS_CF_EMAIL}
+    restart: unless-stopped
     expose:
       - 8000
     volumes:
@@ -57,10 +58,11 @@ services:
       - config:/home/config # ui configuration
       - homeassistant:/home/homeassistant # to set permissions (in start.sh)
       - letsencrypt:/home/letsencrypt # certificates
+      - cloudflare:/home/cloudflare # certbot credentials
+
     networks:
       - tunnel
       - config
-      - certbot
       - database
 
   code-server:
@@ -98,7 +100,6 @@ services:
     volumes:
       - jupyter:/home/jovyan
       - config:/home/config
-      - letsencrypt:/home/letsencrypt
       - letsencrypt-log:/home/letsencrypt/log
     expose:
       - 8888
@@ -106,14 +107,13 @@ services:
     networks:
       - tunnel
       - config
-      - certbot
 
   # TODO: create database!
   database:
     container_name: database
     image: bitnami/postgresql:15.6.0
     restart: always
-    user: root
+    user: unless-stopped
     volumes:
       - postgres:/bitnami/postgresql
     expose:
@@ -129,12 +129,14 @@ services:
       timeout: 5s
       retries: 5
 
+  # balena-engine run -v cloudflare:/opt/cloudflare -v letsencrypt:/etc/letsencrypt -v letsencrypt-log:/var/log/letsencrypt certbot/dns-cloudflare --non-interactive --dns-cloudflare --dns-cloudflare-credentials /opt/cloudflare/credentials certonly -m bernhard.e.boser@gmail.com -d backend.leaf49.org --agree-tos
+
   # letsencrypt certificate factory
   # https://eff-certbot.readthedocs.io/
   # https://www.nodinrogers.com/post/2022-03-10-certbot-cloudflare-docker/
   certbot:
     image: certbot/dns-cloudflare
-    restart: unless-stopped
+    restart: no
 
     # Dry Run
     # command: certonly --non-interactive --dns-cloudflare --dns-cloudflare-credentials /opt/cloudflare/credentials --agree-tos -m bernhard.e.boser@gmail.com -d backend.leaf49.org --server https://acme-v02.api.letsencrypt.org/directory --dry-run
@@ -154,8 +156,7 @@ services:
       - cloudflare:/opt/cloudflare
       - letsencrypt:/etc/letsencrypt
       - letsencrypt-log:/var/log/letsencrypt
-    networks:
-      - certbot
+
   # https://www.home-assistant.io/installation/alternative/#docker-compose
   # https://github.com/home-assistant/docker/blob/master/Dockerfile
   homeassistant:
@@ -177,9 +178,9 @@ services:
       - tunnel
 
   # https://github.com/rbonghi/docker-dropbox-app
-  dropbox:
+  backup-config:
     image: rbonghi/dropbox:latest
-    command: ['--fromLocal', '--verbose', '--interval', '120']
+    command: ['--rootdir', 'backups', '--folder', 'config', '--fromLocal', '--verbose', '--interval', '120']
     environment:
       - PYTHONUNBUFFERED=1
       - DROPBOX_APP_KEY=${DROPBOX_APP_KEY}
@@ -187,3 +188,25 @@ services:
       - DROPBOX_REFRESH_TOKEN=${DROPBOX_REFRESH_TOKEN}
     volumes:
       - config:/dropbox
+
+  backup-jupyter:
+    image: rbonghi/dropbox:latest
+    command: ['--folder', 'jupyter', '--fromLocal', '--verbose', '--interval', '3600']
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DROPBOX_APP_KEY=${DROPBOX_APP_KEY}
+      - DROPBOX_APP_SECRET=${DROPBOX_APP_SECRET}
+      - DROPBOX_REFRESH_TOKEN=${DROPBOX_REFRESH_TOKEN}
+    volumes:
+      - jupyter:/dropbox
+
+  upload-ui:
+    image: rbonghi/dropbox:latest
+    command: ['--folder', 'ui', '--fromDropbox', '--verbose', '--interval', '120']
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DROPBOX_APP_KEY=${DROPBOX_APP_KEY}
+      - DROPBOX_APP_SECRET=${DROPBOX_APP_SECRET}
+      - DROPBOX_REFRESH_TOKEN=${DROPBOX_REFRESH_TOKEN}
+    volumes:
+      - ui:/dropbox

@@ -37,6 +37,9 @@ class Env(BaseSettings):
     CF_POLICY_AUD: str
     CF_TEAM_DOMAIN: str = "https://leaf49.cloudflareaccess.com"
 
+    DNS_CF_API_TOKEN: str | None = None
+    DNS_CF_EMAIL: str | None = None
+
     API_KEY_VALIDITY: timedelta = timedelta(days=100 * 365)
 
     # clients to gatway websocket
