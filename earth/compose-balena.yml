@@ -104,6 +104,7 @@ services:
     volumes:
       - jupyter:/home/jovyan
       - config:/home/config
+      - letsencrypt:/home/letsencrypt
       - letsencrypt-log:/home/letsencrypt/log
     expose:
       - 8888

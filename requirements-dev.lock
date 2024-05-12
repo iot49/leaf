@@ -57,6 +57,8 @@ babel==2.14.0
     # via jupyterlab-server
     # via pydata-sphinx-theme
     # via sphinx
+bcrypt==4.1.3
+    # via paramiko
 beautifulsoup4==4.12.3
     # via nbconvert
     # via pydata-sphinx-theme
@@ -73,6 +75,7 @@ certifi==2024.2.2
 cffi==1.16.0
     # via argon2-cffi-bindings
     # via cryptography
+    # via pynacl
 cfgv==3.4.0
     # via pre-commit
 charset-normalizer==3.3.2
@@ -93,6 +96,8 @@ coverage==7.4.4
 cryptography==42.0.5
     # via cryptograpy
     # via esptool
+    # via paramiko
+    # via pyopenssl
 cryptograpy==0.0.0
     # via leaves
 debugpy==1.8.1
@@ -329,6 +334,8 @@ packaging==24.0
     # via sphinx-jupyterbook-latex
 pandocfilters==1.5.1
     # via nbconvert
+paramiko==3.4.0
+    # via leaves
 parso==0.8.3
     # via jedi
 pdoc==14.4.0
@@ -381,6 +388,10 @@ pygments==2.17.2
     # via qtconsole
     # via sphinx
 pyjwt==2.8.0
+    # via leaves
+pynacl==1.5.0
+    # via paramiko
+pyopenssl==24.1.0
     # via leaves
 pyserial==3.5
     # via esptool
