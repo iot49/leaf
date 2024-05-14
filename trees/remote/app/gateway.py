@@ -109,7 +109,7 @@ class Gateway(EventBus):
             await self.post(get_cert())
 
     async def post(self, event: Event) -> None:
-        dst = event.get("dst")
-        if dst in ("#clients", "#earth"):
+        dst = event.get("dst", "")
+        if dst in ("#clients", "#earth") or dst.startswith("@"):
             logger.debug(f"sending {event}")
             await self._ws.send_json(event)

@@ -96,16 +96,17 @@ async def test_get_secrets(async_client, async_websocket_client, create_trees):
             await ws.send_json(set_src(get_secrets(), tree.get("tree_id")))
             proto = {
                 "type": "put_secrets",
-                "secrets": {
+                "data": {
                     "domain": f"{tree['tree_id']}.ws.leaf49.org",
                     "tree": {"tree_id": tree["tree_id"], "disabled": False},
                 },
             }
+            # print("\nresponse", await ws.receive_json())
             assert is_subset(proto, await ws.receive_json())
             # certificates
             await ws.send_json(set_src(get_cert(), tree.get("tree_id")))
             proto = {
-                "cert": {
+                "data": {
                     "tree_id": tree.get("tree_id"),
                     "domain": f"{tree.get('tree_id')}.ws.leaf49.org",
                     "cert": "\n",

@@ -57,6 +57,5 @@ class _LED:
 # create led singleton
 led = _LED()
 
-print("LED!")
 # start blink task
 # asyncio.create_task(led.run())

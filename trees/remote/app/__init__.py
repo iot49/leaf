@@ -1,5 +1,3 @@
-# ruff: noqa: E402, F401
-
 import json
 import logging
 import sys
@@ -14,7 +12,7 @@ from eventbus.event import set_src_addr
 EPOCH_OFFSET = 946684800 if time.gmtime(0)[0] == 2000 else 0
 
 # use test server
-TESTING = True
+TESTING = False
 TEST_DOMAIN = "192.168.8.138:8001"
 SSL = not TESTING
 
@@ -63,14 +61,14 @@ with open("/secrets.json") as f:
         sys.exit(-1)
 
 
-tree_id = secrets["tree"]["tree_id"]
-branch_id = "?"
+tree_id = secrets.get("tree", {}).get("tree_id", "tree_id")
+branch_id = "gateway"
 for branch in secrets["tree"]["branches"]:
     if branch["mac"] == mac:
         branch_id = branch["branch_id"]
         break
 
-set_src_addr(f"{tree_id}:{branch_id}")  # noqa: F811
+set_src_addr(f"{tree_id}:{branch_id}")
 
 DOMAIN = TEST_DOMAIN if TESTING else secrets["domain"]
 
@@ -80,5 +78,5 @@ state = CurrentState()
 
 
 # after loading config
-from .main import main
-from .wifi import wifi
+from .main import main  # noqa: E402, F401
+from .wifi import wifi  # noqa: E402, F401

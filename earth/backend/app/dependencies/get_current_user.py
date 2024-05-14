@@ -2,7 +2,6 @@ from fastapi import HTTPException
 from fastapi.requests import HTTPConnection
 from sqlmodel import select
 
-from ..api.user.model import User
 from ..db import SessionLocal
 
 
@@ -15,6 +14,8 @@ async def get_current_user(request: HTTPConnection):
 
     Returns (User): The user object, also assigned to request.state.user.
     """
+    from ..api.user.model import User
+
     # check if we already retrieved it
     try:
         user = request.state.user
