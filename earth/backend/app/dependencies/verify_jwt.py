@@ -1,10 +1,10 @@
-from app.db import SessionLocal
 from fastapi import Depends, HTTPException
 from fastapi.requests import HTTPConnection
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from ..api import user
-from ..api.tree.schema import TreeReadWithBraches
+from app.db import SessionLocal
+
+from .. import api
 from ..env import Environment, env
 
 
@@ -23,7 +23,7 @@ class JWTAuth(HTTPBearer):
 async def verify_gateway_token(
     request: HTTPConnection,
     credentials: HTTPAuthorizationCredentials = Depends(JWTAuth()),
-) -> TreeReadWithBraches:
+):  # -> api.tree.schema.TreeReadWithBraches:
     from .. import tokens
 
     token = credentials.credentials
@@ -35,7 +35,7 @@ async def verify_gateway_token(
 async def verify_client_token(
     request: HTTPConnection,
     credentials: HTTPAuthorizationCredentials = Depends(JWTAuth()),
-) -> user.schema.UserRead:
+):  # -> api.user.schema.UserRead:
     from .. import tokens
 
     # skip verification for dev environment and localhost
@@ -43,7 +43,7 @@ async def verify_client_token(
     if env.ENVIRONMENT == Environment.development and host in ["localhost", "127.0.0.1"]:
         # Skip verification when running locally
         async with SessionLocal() as db_session:
-            superuser = (await user.crud.get_list(db_session=db_session))[0]  # type: ignore
+            superuser = (await api.user.crud.get_list(db_session=db_session))[0]  # type: ignore
         request.state.user_email = superuser.email
         request.state.user = superuser
         return superuser  # type: ignore

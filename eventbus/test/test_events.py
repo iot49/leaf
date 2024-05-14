@@ -38,8 +38,8 @@ def test_events():
     assert ping == {"type": PING}
     assert pong == {"type": PONG}
     assert get_state() == {"type": GET_STATE, "dst": "#server", "src": get_src_addr()}
-    event = hello_connected("peer", param={})
-    proto = {"type": HELLO_CONNECTED, "dst": "peer", "param": {}, "src": get_src_addr()}
+    event = hello_connected(param={})
+    proto = {"type": HELLO_CONNECTED, "param": {}}
     assert event == proto
     event = put_config({"a": 1})
     proto = {"data": {"a": 1}, "type": PUT_CONFIG, "dst": "#server", "src": get_src_addr()}

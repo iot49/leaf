@@ -1,1 +1,5 @@
-from .gateway import router  # noqa: F401
+from fastapi import APIRouter
+
+router = APIRouter()
+
+from . import ws  # noqa: F401, E402

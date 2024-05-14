@@ -1,10 +1,4 @@
-# ruff: noqa: F401
-
-# TODO: prevent operations for disabled users, trees, branches, api_keys
-
-
 import gc
-import os
 from contextlib import asynccontextmanager
 
 from api_analytics.fastapi import Analytics
@@ -21,9 +15,7 @@ from starlette.middleware.cors import CORSMiddleware
 from . import api
 from .db import init_db
 from .dependencies.api_roles import verify_roles
-from .dependencies.connection_report import connection_report
 from .dependencies.verify_cloudflare_cookie import verify_cloudflare_cookie
-from .dependencies.verify_jwt import verify_gateway_token
 from .env import env
 
 
@@ -95,7 +87,6 @@ app.include_router(
     api.gateway.router,
     prefix="/gateway",
     tags=["gateway"],
-    # dependencies=[Depends(verify_gateway_token)],
 )
 
 

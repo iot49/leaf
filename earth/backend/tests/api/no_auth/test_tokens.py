@@ -20,7 +20,8 @@ async def test_client_token(async_client, create_trees):
         )
 
 
-async def test_gateway_token(async_client, create_trees):
+# moved to eventbus!
+async def _test_gateway_token(async_client, create_trees):
     for tree in create_trees:
         gateway_token = tree["branches"][0]["gateway_token"]
         assert is_subset(

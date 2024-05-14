@@ -3,8 +3,7 @@ from datetime import datetime, timedelta, timezone
 import jwt
 from fastapi import HTTPException
 
-from .api import api_key, tree, user
-from .api.tree.schema import TreeReadWithBraches
+from . import api
 from .db import SessionLocal
 from .env import env
 
@@ -27,7 +26,7 @@ async def new_client_token(*, user_uuid, tree=None, api_key=None, validity: time
     return jwt.encode(payload, str(key), algorithm="HS256", headers=headers)
 
 
-async def verify_client_token_(token) -> user.schema.UserRead:
+async def verify_client_token_(token):  # -> api.user.schema.UserRead:
     """Verifies the client token checking its validity and expiration.
 
     Args:
@@ -45,14 +44,14 @@ async def verify_client_token_(token) -> user.schema.UserRead:
         raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
 
     async with SessionLocal() as session:
-        key = await api_key.get_key(db_session=session, kid=header.get("kid"))
+        key = await api.api_key.get_key(db_session=session, kid=header.get("kid"))
         if key is None:
             raise HTTPException(status_code=401, detail="Invalid token (kid)")
 
         try:
             # verify that the token is valid and not expired (raises DecodeError if invalid)
             payload = jwt.decode(token, key=str(key), algorithms=["HS256"], audience="client->earth")
-            user_ = await user.crud.get_by_uuid(db_session=session, uuid=payload.get("user_uuid"))  # type: ignore
+            user_ = await api.user.crud.get_by_uuid(db_session=session, uuid=payload.get("user_uuid"))  # type: ignore
             if user_ is None:
                 raise HTTPException(status_code=401, detail="User not known")
             if user_.disabled:
@@ -74,7 +73,7 @@ async def new_gateway_token(tree_uuid, api_key, validity: timedelta = env.GATEWA
     return jwt.encode(payload, api_key.key, algorithm="HS256", headers={"kid": str(api_key.uuid)})
 
 
-async def verify_gateway_token_(token) -> TreeReadWithBraches:
+async def verify_gateway_token_(token):  # -> api.tree.schema.TreeReadWithBraches:
     """
     Verify the authenticity and validity of a gateway token.
 
@@ -93,7 +92,7 @@ async def verify_gateway_token_(token) -> TreeReadWithBraches:
         raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
 
     async with SessionLocal() as session:
-        key: api_key.ApiKeyRead | None = await api_key.get_key(db_session=session, kid=header.get("kid"))
+        key: api.api_key.ApiKeyRead | None = await api.api_key.get_key(db_session=session, kid=header.get("kid"))
         if key is None:
             raise HTTPException(status_code=401, detail="Invalid token (kid)")
 
@@ -101,7 +100,7 @@ async def verify_gateway_token_(token) -> TreeReadWithBraches:
             # verify that the token is valid and not expired
             payload = jwt.decode(token, key=key.key, algorithms=["HS256"], audience="gateway->earth")
             # verify that the tree exists
-            tree_ = await tree.crud.get_by_uuid(uuid=payload.get("tree_uuid"), db_session=session)  # type: ignore
+            tree_ = await api.tree.crud.get_by_uuid(uuid=payload.get("tree_uuid"), db_session=session)  # type: ignore
             if tree_ is None:
                 raise HTTPException(status_code=401, detail="Tree not found")
             if tree_.disabled:

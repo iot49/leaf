@@ -83,7 +83,7 @@ def get_env():
     if env.CONFIG_DIR is None:
         env.CONFIG_DIR = "/home/config"
         if not os.path.isdir(env.CONFIG_DIR):
-            env.CONFIG_DIR = "/Users/boser/Dropbox/Apps/leaf49 (1)"
+            env.CONFIG_DIR = "/Users/boser/Dropbox/Apps/leaf49 (1)/config"
 
     # UI_DIR
     if env.UI_DIR is None:

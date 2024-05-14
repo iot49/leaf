@@ -24,7 +24,6 @@ async def test_modify_branch(create_trees, async_client: AsyncClient):
     assert response["description"] == new_desc
     del response["updated_at"]
     del response["description"]
-    response.pop("gateway_token")
     assert is_subset(response, branch)
 
 

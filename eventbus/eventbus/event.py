@@ -55,6 +55,28 @@ def put_auth(get_auth, token: str):
     return make_event(event_type.PUT_AUTH, get_auth["src"], token=token)
 
 
+# secrets
+def get_secrets():
+    return make_event(event_type.GET_SECRETS, "#earth")
+
+
+def put_secrets(get_secrets, secrets: dict):
+    # secrets are for trees only
+    assert not get_secrets["src"].startswith("@")
+    return make_event(event_type.PUT_SECRETS, get_secrets["src"], data=secrets)
+
+
+# certificates
+def get_cert():
+    return make_event(event_type.GET_CERT, "#earth")
+
+
+def put_cert(get_cert, cert: dict):
+    # certificates are sensitive and for trees only
+    assert not get_cert["src"].startswith("@")
+    return make_event(event_type.PUT_CERT, get_cert["src"], data=cert)
+
+
 # current values
 def get_state():
     return make_event(event_type.GET_STATE, "#server")
@@ -77,8 +99,8 @@ def update_config(data: dict, dst: str = "#branches"):
 
 
 # connection management
-def hello_connected(peer: str, param: dict):
-    return make_event(event_type.HELLO_CONNECTED, peer, param=param)
+def hello_connected(param: dict):
+    return {"type": event_type.HELLO_CONNECTED, "param": param}
 
 
 def hello_no_token():

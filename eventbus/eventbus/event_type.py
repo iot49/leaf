@@ -16,9 +16,15 @@ UPDATE_CONFIG = "update_config"
 # log message
 LOG = "log"
 
-# auth request and response
+# auth and secrets
 GET_AUTH = "get_auth"
 PUT_AUTH = "put_auth"
+
+GET_SECRETS = "get_secrets"
+PUT_SECRETS = "put_secrets"
+
+GET_CERT = "get_cert"
+PUT_CERT = "put_cert"
 
 # hello
 HELLO_CONNECTED = "hello_connected"

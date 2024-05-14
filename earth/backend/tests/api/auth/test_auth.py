@@ -1,10 +1,5 @@
 import pytest
-from app.api.api_key import get_key
-from app.api.user.model import User
-from app.db import SessionLocal
-from app.tokens import new_client_token, verify_client_token_
 from httpx import AsyncClient
-from sqlalchemy import select
 from tests.api.conftest import override_user
 from tests.util import is_subset
 
@@ -15,18 +10,6 @@ async def superuser_token(async_client):
     return me.json()["client_token"]
 
 
-async def test_client_token():
-    async with SessionLocal() as session:
-        # create a client token
-        query = select(User)
-        response = await session.execute(query)
-        user1 = response.one()[0]
-        api_key = await get_key(db_session=session)
-        token = await new_client_token(user_uuid=user1.uuid, api_key=api_key)
-        user2 = await verify_client_token_(token=token)
-        assert user1 == user2
-
-
 async def test_get_put_me(async_client: AsyncClient, create_users, create_trees):
     # all users can get/put /api/me
     for user in create_users.values():
@@ -34,6 +17,7 @@ async def test_get_put_me(async_client: AsyncClient, create_users, create_trees)
             # change name
             response = await async_client.put("/api/me", json={"name": "new name"})
             assert response.status_code == 200 if user["roles"] else 403
+
             if response.status_code == 200:
                 assert is_subset({"uuid": user["uuid"], "name": "new name"}, response.json())
 
@@ -108,21 +92,18 @@ async def test_superuser_role(async_client: AsyncClient, create_users):
             assert response.status_code == expected_status
 
 
-async def test_gateway(async_client: AsyncClient, create_users, create_trees):
-    for tree in create_trees:
-        gateway_token = tree["branches"][0]["gateway_token"]
-        for user in create_users.values():
-            async with override_user(user["email"]):
-                response = await async_client.get("/api/me")
-                assert response.status_code == 200 if user["roles"] else 403
-                me = response.json()
-                if response.status_code == 200:
-                    assert is_subset(user, me)
+async def test_client_token(async_client: AsyncClient, create_users):
+    # only admin, user can get client_token (to access websocket)
+    for user in create_users.values():
+        async with override_user(user["email"]):
+            response = await async_client.get("/api/client_token")
+            assert response.status_code == 403 if set(["admin", "user"]).isdisjoint(user["roles"]) else 200
 
-                response = await async_client.get("/gateway/secrets", headers={"Authorization": "Bearer bad token"})
-                assert response.status_code == 401
 
-                response = await async_client.get(
-                    "/gateway/secrets", headers={"Authorization": f"Bearer {gateway_token}"}
-                )
-                assert response.status_code == 200
+async def test_gateway_token(async_client: AsyncClient, create_users, create_trees):
+    # only admin can get gateway_token (for branch onboarding)
+    for user in create_users.values():
+        async with override_user(user["email"]):
+            for tree in create_trees:
+                response = await async_client.get(f"/api/gateway_token/{tree['uuid']}")
+                assert response.status_code == 200 if "admin" in user["roles"] else 403

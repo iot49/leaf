@@ -16,7 +16,7 @@ class Config(EventBus):
         try:
             with open(config_file) as f:
                 config = json.load(f)
-        except FileNotFoundError:
+        except OSError:
             pass
         self._config_file = config_file
         self._config = config
@@ -42,7 +42,7 @@ class Config(EventBus):
         """Get configuration value.
 
         Examples:
-            config.get("version") -> "1.0.0"
+            config.get("version")
             config.get("wifi")
         """
         if not path:

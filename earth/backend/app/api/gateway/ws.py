@@ -1,17 +1,15 @@
 from fastapi import HTTPException, WebSocket
 
-from app.tokens import verify_client_token_
 from eventbus import serve
 
-from ...bus import config
+from ...bus import certificates, config, secrets
+from ...tokens import verify_gateway_token_
 from . import router
 
-_CLIENT_ADDR = 1
 
-
-# /ws  (serve client)
+# /gateway/ws  (serve gateway)
 @router.websocket("/ws")
-async def client_ws(websocket: WebSocket):
+async def tree_ws(websocket: WebSocket):
     param = {
         "host": str(websocket.headers.get("host")),
         "url": str(websocket.url),
@@ -19,13 +17,12 @@ async def client_ws(websocket: WebSocket):
     }
 
     async def authenticate(token: str) -> tuple[bool, str]:
-        global _CLIENT_ADDR
         try:
-            user = await verify_client_token_(token)
-            param["user"] = user.email
-            _CLIENT_ADDR += 1
-            client_addr = f"@{_CLIENT_ADDR}"
-            return (True, client_addr)
+            tree = await verify_gateway_token_(token)
+            param["versions"]["secrets"] = await secrets.get_version(tree.tree_id)
+            # TODO: increase timeout except for testing
+            param["versions"]["certificate"] = certificates.get_version(tree.tree_id, timeout=0.1)
+            return (True, tree.tree_id)
         except HTTPException:
             return (False, "")
 

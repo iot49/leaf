@@ -81,9 +81,23 @@ def unsubscribe(bus: EventBus) -> None:
 from .bus import Server, Transport  # noqa: E402
 
 
-async def serve(
-    transport: Transport, addr_filter: Callable[[str], bool], authenticate: Callable[[str], Awaitable[bool]], param
-) -> None:
+async def serve(transport: Transport, authenticate: Callable[[str], Awaitable[tuple[bool, str]]], param) -> None:
     # won't return until the connection is closed
-    server = Server(transport=transport, addr_filter=addr_filter, authenticate=authenticate, param=param)
+    server = Server(transport=transport, authenticate=authenticate, param=param)
     await server.run()
+
+
+def tree_id(addr: Addr) -> str:
+    """Return tree_id from address."""
+    try:
+        return addr.split(".")[0]
+    except IndexError:
+        return addr
+
+
+def branch_id(addr: Addr) -> str:
+    """Return tree_id from address."""
+    try:
+        return addr.split(".")[1]
+    except IndexError:
+        return addr

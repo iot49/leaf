@@ -18,6 +18,13 @@ class CRUDTree(CRUDBase[Tree, TreeCreate, TreeRead, TreeUpdate]):
         branches = branches.scalars().all()
         return TreeReadWithBraches(**tree.model_dump(), branches=branches)  # type: ignore
 
+    async def get_by_tree_id(self, *, tree_id: str, db_session: AsyncSession) -> TreeReadWithBraches:
+        tree = await db_session.execute(select(Tree).where(Tree.tree_id == tree_id))  # type: ignore
+        tree = tree.scalars().first()  # Get the first result from the query
+        if tree is None:
+            raise HTTPException(status_code=404, detail="Tree not found")
+        return await self.get_by_uuid(uuid=tree.uuid, db_session=db_session)
+
     # customize to also delete linked branches
     async def remove(self, *, uuid: UUID | str, db_session: AsyncSession) -> TreeRead:
         # verify the object exists

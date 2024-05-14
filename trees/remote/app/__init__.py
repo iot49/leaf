@@ -18,6 +18,8 @@ TESTING = True
 TEST_DOMAIN = "192.168.8.138:8001"
 SSL = not TESTING
 
+CERT_DIR = "/certs"
+
 # bail if branch is not yet provisioned
 if not isfile("/secrets.json") or not isfile("/config.json"):
     sys.exit(-1)
@@ -76,7 +78,7 @@ DOMAIN = TEST_DOMAIN if TESTING else secrets["domain"]
 config = Config(config_file="/config.json")
 state = CurrentState()
 
-from .main import main
 
 # after loading config
+from .main import main
 from .wifi import wifi

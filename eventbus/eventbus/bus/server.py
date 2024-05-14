@@ -14,7 +14,7 @@ from eventbus import event_type
 from eventbus.event import get_auth
 
 from .. import Event, EventBus, post, subscribe, unsubscribe
-from ..event import bye_timeout, get_src_addr, hello_already_connected, hello_connected, hello_invalid_token, state
+from ..event import bye_timeout, hello_already_connected, hello_connected, hello_invalid_token, pong, state
 
 logger = logging.getLogger(__name__)
 
@@ -39,29 +39,19 @@ class Server(EventBus):
     CONNECTIONS = {}
 
     def __init__(
-        self,
-        *,
-        transport: Transport,
-        addr_filter: Callable[[str], bool],
-        authenticate: Callable[[str], Awaitable[bool]],
-        param: dict = {},
+        self, *, transport: Transport, authenticate: Callable[[str], Awaitable[tuple[bool, str]]], param: dict
     ):
         """Create a Server instance.
 
         Args:
             transport (Transport): The transport object (e.g. websocket) used for communication.
-            bridge (Bridge): The bridge object used for message routing.
-            addr_filter ((str, ) -> bool): The address filter used to route messages to this client.
-                Messages addressed to this client are always accepted.
-            timeout (float, optional): The timeout in seconds. Longer silence results in disconnect.
-                Typically clients will send a ping message to keep the connection alive. The
-                server responds with pong.
+            authenticate (Callable[[str], Awaitable[bool]]): The authentication function.
+            param (dict, optional): The parameters to pass to the client. Defaults to {}.
         """
 
+        self.closed = False
         self.transport = transport
         self.timeout = BUS_TIMEOUT
-        self.closed = False
-        self.addr_filter = addr_filter
         self.authenticate = authenticate
         self.param = param
         self.param["timeout_interval"] = self.timeout
@@ -72,45 +62,58 @@ class Server(EventBus):
         try:
             await self.transport.send_json(get_auth())
             event = await asyncio.wait_for(self.transport.receive_json(), timeout=self.timeout + 1)
-            if not await self.authenticate(event.get("token")):
+            authenticated, client_addr = await self.authenticate(event.get("token"))
+            if not authenticated:
                 await self.transport.send_json(hello_invalid_token())
                 return
+            self.client_addr = client_addr
+            self.gateway = not client_addr.startswith("@")
         except (RuntimeError, asyncio.TimeoutError):
             await self.transport.send_json(bye_timeout())
             return
 
         try:
-            peer = self.param["peer"]
             # update connections registry
-            if peer in Server.CONNECTIONS and Server.CONNECTIONS[peer]["connected"]:
+            connection = Server.CONNECTIONS.get(self.client_addr)
+            if connection and connection.get("connected"):
                 await self.transport.send_json(hello_already_connected())
                 return
-            Server.CONNECTIONS[peer] = {
+            Server.CONNECTIONS[self.client_addr] = {
                 "param": self.param,
                 "connected_at": time.time(),
+                "connected": True,
             }
             # ready for events
             subscribe(self)
             # send greeting
-            await self.transport.send_json(hello_connected(peer, self.param))
+            await self.transport.send_json(hello_connected(self.param))
             # update gateway connection state
-            if self.param["gateway"]:
-                await post(state(eid=f"{self.param['peer']}:gateway:status:connected", value=True))
+            if self.gateway:
+                await post(state(eid=f"{self.client_addr}.gateway:status.connected", value=True))
             # won't return until the connection is closed
             await self.receiver_task()
         except RuntimeError:
-            # peer disconnected without sending BYE
+            # client disconnected without sending BYE
             self.closed = True
         finally:
             unsubscribe(self)
-            self.param["disconnected_at"] = time.time()
-            self.param["connected"] = False
-            Server.CONNECTIONS[self.param["peer"]] = self.param
-            if self.param["gateway"]:
-                await post(state(eid=f"{self.param['peer']}:gateway:status:connected", value=False))
+            connection = Server.CONNECTIONS.get(self.client_addr) or {}
+            connection["connected"] = False
+            connection["disconnected_at"] = time.time()
+            if self.gateway:
+                await post(state(eid=f"{self.client_addr}.gateway:status.connected", value=False))
+            else:
+                # del Server.CONNECTIONS[self.client_addr]
+                pass
+
+    def addr_filter(self, dst: str) -> bool:
+        if self.gateway:
+            return dst == "#branches" or dst.startswith(self.client_addr)
+        else:
+            return dst in ("#clients", self.client_addr)
 
     async def post(self, event: Event) -> None:
-        # TODO: batch send events as lists
+        # forward event to client
         if self.closed:
             unsubscribe(self)
             return
@@ -118,12 +121,13 @@ class Server(EventBus):
         dst = event.get("dst", "")
         if self.addr_filter(dst):
             try:
+                # TODO: batch send events as lists
                 await self.transport.send_json(event)
             except RuntimeError as e:
                 logger.error(f"Server.post: Transport error {e}")
                 self.closed = True
         else:
-            logger.debug(f"addr_filter skip peer={self.param['peer']} dst={dst})")
+            logger.debug(f"addr_filter skip type={event.get('type')} dst={dst} (client_addr={self.client_addr})")
 
     async def process_event(self, event: Event) -> None:
         et = event.get("type")
@@ -131,15 +135,18 @@ class Server(EventBus):
             logger.error(f"Invalid event - no type (ignored) {event}")
             return
         if et == event_type.PING:
-            await self.post({"type": event_type.PONG, "src": get_src_addr(), "dst": f"{self.param['peer']}"})
+            await self.transport.send_json(pong)
         elif et == event_type.BYE:
             self.closed = True
         else:
             logger.debug(f"eventbus.bus.server got {event}")
-            if "src" in event and "dst" in event:
+            if "dst" in event:
+                # TODO: firewall
+                if not self.gateway:
+                    event["src"] = self.client_addr
                 await post(event)
             else:
-                logger.error(f"Invalid event - no src/dst (ignored) {event}")
+                logger.error(f"Invalid event - no dst (ignored) {event}")
 
     async def receiver_task(self):
         while not self.closed:

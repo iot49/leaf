@@ -16,7 +16,6 @@ export interface Bus {
 }
 
 class _EventBus implements EventBus {
-  public src_addr: string;
   private ping_interval: number = 1000;
   private _bus: Bus;
   private _wdtId: ReturnType<typeof setInterval>;
@@ -58,7 +57,6 @@ class _EventBus implements EventBus {
           break;
         case 'hello_connected':
           this.ping_interval = 1000 * event.param.timeout_interval;
-          this.src_addr = event.param.peer;
           break;
         default:
           break;
@@ -80,7 +78,6 @@ class _EventBus implements EventBus {
   }
 
   async postEvent(event: any) {
-    event['src'] = this.src_addr;
     if (event.type != 'ping') console.log('eventbus.postEvent', event);
     return this._bus.postEvent(event);
   }

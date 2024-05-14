@@ -17,6 +17,6 @@ class BaseUUIDModel(SQLModel):
         index=True,
         nullable=False,
     )
-    updated_at: datetime | None = Field(default_factory=utcnow, sa_column_kwargs={"onupdate": utcnow})
-    created_at: datetime | None = Field(default_factory=utcnow)
+    updated_at: datetime = Field(default_factory=utcnow, sa_column_kwargs={"onupdate": utcnow})
+    created_at: datetime = Field(default_factory=utcnow)
     disabled: bool = False

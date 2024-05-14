@@ -3,24 +3,8 @@ from pydantic.functional_validators import AfterValidator
 from sqlmodel import JSON, AutoString, Column, Field, SQLModel
 from typing_extensions import Annotated
 
+from ...types import Role
 from ..base import BaseUUIDModel
-
-VALID_ROLES = [
-    "admin",  # create and edit trees, branch onboarding
-    "user",  # view trees and branches, connect to websockets (earth and local)
-    "guest",  # same as user, except no websocket access
-]
-
-# all users can modify their own profile
-
-
-def validate_roles(role: str) -> str:
-    role = role.lower()
-    assert role in VALID_ROLES, f"Invalid role: {role}"
-    return role
-
-
-Role = Annotated[str, AfterValidator(validate_roles)]
 
 
 def validate_length(value: str, max_length) -> str:

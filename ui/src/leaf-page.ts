@@ -139,6 +139,8 @@ export class LeafPage extends LeafBase {
       logout();
     } else if (target.startsWith('!')) {
       location.href = `https://${target.slice(1)}.${domain}`;
+    } else if (target === 'docs') {
+      location.href = `https://${domain}/docs`;
     } else {
       await this.goto(target);
     }
@@ -154,6 +156,7 @@ export class LeafPage extends LeafBase {
       { id: '!editor', icon: 'microsoft-visual-studio-code', text: 'Configuration' },
       { id: '!jupyter', icon: 'code-block-braces', text: 'Jupyter' },
       { id: '!homeassistant', icon: 'home-lightbulb-outline', text: 'Homeassistant' },
+      { id: 'docs', icon: 'book-open', text: 'Api Docs' },
       { id: 'logout', icon: 'logout', text: 'Logout' },
     ];
 

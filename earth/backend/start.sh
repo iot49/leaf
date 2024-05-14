@@ -7,9 +7,13 @@ EOF
 
 chmod 600 /home/cloudflare/credentials
 
+# we need access to certificates ...
+chmod a+rx /home/letsencrypt/live
+chmod a+rx /home/letsencrypt/archive
+
 # fix ownership and permissions to edit files with code-server
 chown -R app:app /home/config
-chmod a+x /home/homeassistant/*.yaml  # homeassistant runs as root ...
+chmod a+w /home/homeassistant/*.yaml  # homeassistant runs as root ...
 
 setuidgid app uvicorn app.main:app --workers 3 --host 0.0.0.0 --port 8000
 

@@ -1,25 +1,15 @@
-import re
 import secrets
-from typing import TYPE_CHECKING, Annotated
+from typing import TYPE_CHECKING
 from uuid import UUID
 
-from pydantic import AfterValidator
 from sqlmodel import Field, Relationship, SQLModel
 
-from app.utils.uuid6 import uuid7
-
+from ...types import Id
+from ...utils.uuid6 import uuid7
 from ..base import BaseUUIDModel
 
 if TYPE_CHECKING:
     from ..branch import Branch
-
-
-def alphanumunderscore(value: str):
-    assert re.match(r"^[a-z0-9_]+$", value) is not None, "Only lowercase alphanumeric characters and underscore allowed"
-    return value
-
-
-Id = Annotated[str, AfterValidator(alphanumunderscore)]
 
 
 class TreeCredentials(SQLModel):

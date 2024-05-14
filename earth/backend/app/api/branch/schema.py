@@ -2,8 +2,8 @@ from uuid import UUID
 
 from sqlmodel import SQLModel
 
+from ...types import Id
 from ..base.schema import BaseRead
-from ..tree.model import Id
 from .model import BranchBase, MacAddr
 
 

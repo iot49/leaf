@@ -10,7 +10,12 @@
 # websocket access to earth
 /client_token:
   roles: [admin, user]
-  methods: [GET, PUT]
+  methods: [GET]
+
+# websocket access to earth
+/gateway_token/*:
+  roles: [admin]
+  methods: [GET]
 
 # tree and branch details
 /tree/*:
