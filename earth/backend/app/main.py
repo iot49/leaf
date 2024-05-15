@@ -12,8 +12,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 
-from . import api
-from .db import init_db
+from . import api, db
 from .dependencies.api_roles import verify_roles
 from .dependencies.verify_cloudflare_cookie import verify_cloudflare_cookie
 from .env import env
@@ -22,7 +21,7 @@ from .env import env
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    await init_db()
+    await db.init_db()
     yield
     # Shutdown
     gc.collect()

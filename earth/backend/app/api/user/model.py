@@ -30,7 +30,8 @@ class UserBase(SQLModel):
                     "email": "obama@whitehouse.gov",
                     "roles": ["user"],
                     "name": "Barack Obama",
-                    "profile": "Barack Obama, 44th President of the United States (**markdown** supported in profile)",
+                    "profile": "44th President",
+                    "superuser": False,
                 }
             ]
         }

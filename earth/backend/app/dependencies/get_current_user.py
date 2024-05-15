@@ -2,7 +2,7 @@ from fastapi import HTTPException
 from fastapi.requests import HTTPConnection
 from sqlmodel import select
 
-from ..db import SessionLocal
+from ..db import get_session
 
 
 async def get_current_user(request: HTTPConnection):
@@ -31,7 +31,7 @@ async def get_current_user(request: HTTPConnection):
         raise HTTPException(status_code=400, detail="Not authenticated.")
 
     # lookup user in the database or create if not found
-    async with SessionLocal() as session:
+    async for session in get_session():
         user = await session.execute(select(User).where(User.email == email))
         user = user.scalars().first()
         if user is None:

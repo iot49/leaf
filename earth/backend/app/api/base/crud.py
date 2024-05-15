@@ -61,6 +61,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, ReadSchemaType, UpdateSchema
                 status_code=409,
                 detail=f"Object already exists {e}",
             )
+
         await db_session.refresh(db_obj)
         return db_obj  # type: ignore
 

@@ -18,7 +18,7 @@ If successful, sets request.state.user_email to the email address in the token.
 
 Raises: HTTPException with status 400 if the token is missing or invalid.
 
-Test skipped for config.ENVIRONMENT == config.Environment.development and request.url.hostname == "localhost".
+Test skipped for config.ENVIRONMENT != config.Environment.production.
 """
 
 # CF Access team domain
@@ -54,12 +54,13 @@ async def verify_cloudflare_cookie(request: HTTPConnection, session: str = Depen
     Returns: The email address in the token.
     """
     host = request.url.hostname
-    if env.ENVIRONMENT != Environment.production and host in ["localhost", "127.0.0.1"]:
+    if env.ENVIRONMENT != Environment.production and host in ["localhost", "127.0.0.1", "0.0.0.0"]:
         # Skip verification when running locally
         request.state.user_email = env.FIRST_SUPERUSER_EMAIL
         return env.FIRST_SUPERUSER_EMAIL
 
     if "CF_Authorization" not in request.cookies:
+        print(f"Missing required Cloudflare cookie; host={host}, env={env.ENVIRONMENT}")
         raise HTTPException(
             status_code=400,
             detail="Missing required Cloudflare authorization token",

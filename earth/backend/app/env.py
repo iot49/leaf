@@ -25,24 +25,18 @@ class Env(BaseSettings):
 
     FIRST_SUPERUSER_EMAIL: EmailStr
 
-    DATABASE_URL: str | None = None
+    # database
+    POSTGRES_USERNAME: str = "postgres"
+    POSTGRES_PASSWORD: str = "postgres"
     DATABASE_ECHO: bool = False
 
-    # directory which to serve the UI from
-    UI_DIR: str | None = None
-
-    # yaml config
-    CONFIG_DIR: str | None = None
-
+    # cloudflare tunnel
     CF_POLICY_AUD: str
     CF_TEAM_DOMAIN: str = "https://leaf49.cloudflareaccess.com"
 
+    # api keys
     API_KEY_VALIDITY: timedelta = timedelta(days=100 * 365)
-
-    # clients to gatway websocket
     CLIENT_TOKEN_VALIDITY: timedelta = timedelta(days=30)
-
-    # gateway to earth websocket
     GATEWAY_TOKEN_VALIDITY: timedelta = timedelta(days=90)
 
     # analytics
@@ -64,34 +58,36 @@ class Env(BaseSettings):
         extra="ignore",
     )
 
+    @property
+    def DATABASE_URL(self) -> str:
+        if self.ENVIRONMENT == Environment.production:
+            return f"postgresql+asyncpg://{self.POSTGRES_USERNAME}:{self.POSTGRES_PASSWORD}@{self.DOMAIN}/{self.PROJECT_NAME}_{self.ENVIRONMENT}"
+            # return "sqlite+aiosqlite:///sqlite-prod.db"
+        if self.ENVIRONMENT == Environment.development:
+            return f"postgresql+asyncpg://{self.POSTGRES_USERNAME}:{self.POSTGRES_PASSWORD}@192.168.8.191:5432/{self.PROJECT_NAME}_{self.ENVIRONMENT}"
+            # return "sqlite+aiosqlite:///sqlite-dev.db"
+        # in memory database raises sqlalchemy.exc.InvalidRequestError: Could not refresh instance (on session.refresh(obj))
+        return "sqlite+aiosqlite:///sqlite-test.db"
+
+    @property
+    def CONFIG_DIR(self) -> str:
+        dir = "/home/config"
+        if not os.path.isdir(dir):
+            dir = "/Users/boser/Dropbox/Apps/leaf49 (1)/config"
+        return dir
+
+    @property
+    def UI_DIR(self) -> str:
+        dir = "/home/ui"
+        if not os.path.isdir(dir):
+            dir = "../../ui/dist"
+        return dir
+
 
 @lru_cache()
 def get_env():
     load_dotenv()
-    env = Env()  # type: ignore
-
-    # DATABASE_URL
-    if env.DATABASE_URL is None:
-        if env.ENVIRONMENT == Environment.production:
-            env.DATABASE_URL = "sqlite+aiosqlite:///sqlite-prod.db"
-        elif env.ENVIRONMENT == Environment.development:
-            env.DATABASE_URL = "sqlite+aiosqlite:///sqlite-dev.db"
-        else:
-            env.DATABASE_URL = "sqlite+aiosqlite://"
-
-    # CONFIG_DIR
-    if env.CONFIG_DIR is None:
-        env.CONFIG_DIR = "/home/config"
-        if not os.path.isdir(env.CONFIG_DIR):
-            env.CONFIG_DIR = "/Users/boser/Dropbox/Apps/leaf49 (1)/config"
-
-    # UI_DIR
-    if env.UI_DIR is None:
-        env.UI_DIR = "/home/ui"
-        if not os.path.isdir(env.UI_DIR):
-            env.UI_DIR = "../../ui/dist"
-
-    return env
+    return Env()  # type: ignore
 
 
 env = get_env()

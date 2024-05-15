@@ -10,12 +10,6 @@ from eventbus.bus import Config, CurrentState, Log
 from eventbus.event import set_src_addr
 
 EPOCH_OFFSET = 946684800 if time.gmtime(0)[0] == 2000 else 0
-
-# use test server
-TESTING = False
-TEST_DOMAIN = "192.168.8.138:8001"
-SSL = not TESTING
-
 CERT_DIR = "/certs"
 
 # bail if branch is not yet provisioned
@@ -70,12 +64,12 @@ for branch in secrets["tree"]["branches"]:
 
 set_src_addr(f"{tree_id}:{branch_id}")
 
-DOMAIN = TEST_DOMAIN if TESTING else secrets["domain"]
-
 # load config and current state
 config = Config(config_file="/config.json")
 state = CurrentState()
 
+DOMAIN = config.get("domain")
+TEST_DOMAIN = "192.168.8.138:8001"
 
 # after loading config
 from .main import main  # noqa: E402, F401

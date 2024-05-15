@@ -35,7 +35,7 @@ class UpdateListener(EventBus):
             logger.info(f"GOT certs: {event}")
 
 
-async def main_task():
+async def main_task(testing):
     async with wifi:
         ntptime.settime()
         t = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time()))
@@ -56,7 +56,7 @@ async def main_task():
         gateway = Gateway()
         reconnect_delay = 10
         while True:
-            msg = await gateway.connnect()
+            msg = await gateway.connnect(testing)
             logger.info(f"Disconnected: {msg}")
             if msg == "server unreachable":
                 await asyncio.sleep(reconnect_delay)
@@ -65,11 +65,11 @@ async def main_task():
                 reconnect_delay = 10
 
 
-async def main():
+async def main(testing):
     logger.info("Starting main")
     while True:
         try:
-            await main_task()
+            await main_task(testing)
         except Exception as e:
             logger.exception(f"??? main: {e}", exc_info=e)
         finally:

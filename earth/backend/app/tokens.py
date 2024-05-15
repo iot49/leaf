@@ -4,7 +4,7 @@ import jwt
 from fastapi import HTTPException
 
 from . import api
-from .db import SessionLocal
+from .db import get_session
 from .env import env
 
 
@@ -43,7 +43,7 @@ async def verify_client_token_(token):  # -> api.user.schema.UserRead:
     except jwt.DecodeError as e:
         raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
 
-    async with SessionLocal() as session:
+    async for session in get_session():
         key = await api.api_key.get_key(db_session=session, kid=header.get("kid"))
         if key is None:
             raise HTTPException(status_code=401, detail="Invalid token (kid)")
@@ -51,7 +51,7 @@ async def verify_client_token_(token):  # -> api.user.schema.UserRead:
         try:
             # verify that the token is valid and not expired (raises DecodeError if invalid)
             payload = jwt.decode(token, key=str(key), algorithms=["HS256"], audience="client->earth")
-            user_ = await api.user.crud.get_by_uuid(db_session=session, uuid=payload.get("user_uuid"))  # type: ignore
+            user_ = await api.user.crud.get_by_uuid(db_session=session, uuid=payload.get("user_uuid"))
             if user_ is None:
                 raise HTTPException(status_code=401, detail="User not known")
             if user_.disabled:
@@ -91,7 +91,7 @@ async def verify_gateway_token_(token):  # -> api.tree.schema.TreeReadWithBrache
     except jwt.DecodeError as e:
         raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
 
-    async with SessionLocal() as session:
+    async for session in get_session():
         key: api.api_key.ApiKeyRead | None = await api.api_key.get_key(db_session=session, kid=header.get("kid"))
         if key is None:
             raise HTTPException(status_code=401, detail="Invalid token (kid)")

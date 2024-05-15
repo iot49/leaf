@@ -42,4 +42,4 @@ async def get_gateway_token(
 
 @router.get("/gateway_secrets/{tree_uuid}")
 async def get_gateway_secrets(tree_uuid: str) -> dict:
-    return await get_secrets(tree_uuid)
+    return await get_secrets(tree_uuid=tree_uuid)

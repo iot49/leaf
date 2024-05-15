@@ -3,7 +3,9 @@ import { FetchError } from './errors';
 
 export async function api_get(resource: string = '', requestOptions = {}, path = 'api'): Promise<object> {
   try {
-    const response = await fetch(`${api_url}/${path}/${resource}`, requestOptions);
+    const url = `${api_url}/${path}/${resource}`;
+    console.log('api_get', url);
+    const response = await fetch(url, requestOptions);
     if (response.ok) {
       return await response.json();
     } else if (response.status === 404) {

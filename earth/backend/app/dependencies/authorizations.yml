@@ -17,6 +17,11 @@
   roles: [admin]
   methods: [GET]
 
+# branch onboarding
+/gateway_secrets/*:
+  roles: [admin]
+  methods: [GET]
+
 # tree and branch details
 /tree/*:
   roles: [admin, user, guest]

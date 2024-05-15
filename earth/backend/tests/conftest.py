@@ -4,10 +4,16 @@ from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 import pytest
+from app import db
+from app.db import init_db
 from app.main import app
 from httpx import ASGITransport, AsyncClient
 from httpx_ws.transport import ASGIWebSocketTransport
-from sqlmodel import SQLModel
+
+
+@pytest.fixture(scope="session", autouse=True)
+async def initialize_db():
+    await init_db()
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -31,11 +37,8 @@ async def async_websocket_client() -> AsyncGenerator:
 
 @pytest.fixture(autouse=True)
 async def clear_db() -> AsyncGenerator:
-    from app.db import engine, init_db
-
-    async with engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.drop_all)
-    await init_db()
+    await db.db.clear()
+    await db.db.populate()
     yield
 
 

@@ -8,7 +8,7 @@ import aiohttp
 from eventbus import Event, EventBus, event_type, post, subscribe, unsubscribe
 from eventbus.event import get_cert, get_config, get_log, get_secrets, get_state, ping
 
-from . import CERT_DIR, DOMAIN, SSL, config, secrets
+from . import CERT_DIR, DOMAIN, TEST_DOMAIN, config, secrets
 from .wifi import wifi
 
 logger = logging.getLogger(__name__)
@@ -19,18 +19,19 @@ class Gateway(EventBus):
     def __init__(self):
         self.connected = False
 
-    async def connnect(self) -> str:
+    async def connnect(self, testing) -> str:
         """Connect to earth. Returns when the connection is closed.
 
         Returns:
             str: disconnect reason.
         """
         async with wifi:
+            scheme = "ws" if testing else "wss"
+            url = f"{scheme}://{TEST_DOMAIN if testing else DOMAIN}/gateway/ws"
+            logger.info(f"Connecting to earth @ {url}")
             try:
                 async with aiohttp.ClientSession() as session:
                     # connect to websocket
-                    scheme = "wss" if SSL else "ws"
-                    url = f"{scheme}://{DOMAIN}/gateway/ws"
                     gateway_token = secrets["gateway-token"]
                     async with session.ws_connect(url) as ws:
                         self.connected = True
@@ -39,7 +40,7 @@ class Gateway(EventBus):
                     return msg
             except Exception as e:
                 logger.error(f"connect error: {e}")
-                return "server unreachable"
+                return f"unreachable: {url}"
             finally:
                 self.connected = False
 

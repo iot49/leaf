@@ -2,9 +2,7 @@ from fastapi import Depends, HTTPException
 from fastapi.requests import HTTPConnection
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from app.db import SessionLocal
-
-from .. import api
+from .. import api, db
 from ..env import Environment, env
 
 
@@ -42,11 +40,11 @@ async def verify_client_token(
     host = request.url.hostname
     if env.ENVIRONMENT == Environment.development and host in ["localhost", "127.0.0.1"]:
         # Skip verification when running locally
-        async with SessionLocal() as db_session:
+        async for db_session in db.get_session():
             superuser = (await api.user.crud.get_list(db_session=db_session))[0]  # type: ignore
-        request.state.user_email = superuser.email
-        request.state.user = superuser
-        return superuser  # type: ignore
+            request.state.user_email = superuser.email
+            request.state.user = superuser
+            return superuser  # type: ignore
 
     token = credentials.credentials
     user_ = await tokens.verify_client_token_(token=token)

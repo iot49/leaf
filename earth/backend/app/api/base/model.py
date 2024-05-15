@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from uuid import UUID
 
 from sqlmodel import Field, SQLModel
@@ -7,7 +7,11 @@ from app.utils.uuid6 import uuid7
 
 
 def utcnow():
-    return datetime.now(timezone.utc)
+    # TODO: use utc time for postgresql
+    # insertion in postgresql fails with
+    #       can't subtract offset-naive and offset-aware datetimes
+    # return datetime.now(timezone.utc).replace(tzinfo=None)
+    return datetime.utcnow()
 
 
 class BaseUUIDModel(SQLModel):

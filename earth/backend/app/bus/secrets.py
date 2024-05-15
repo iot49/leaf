@@ -15,22 +15,27 @@ def _get_version(tree) -> str:  # api.tree.schema.TreeReadWithBraches):
 
 
 async def get_version(tree_id: str) -> str:
-    async with db.SessionLocal() as session:
+    async for session in db.get_session():
         tree = await api.tree.crud.get_by_tree_id(tree_id=tree_id, db_session=session)  # type: ignore
-    return _get_version(tree)
+        return _get_version(tree)
+    return ""
 
 
-async def get_secrets(tree_id: str) -> dict:
-    async with db.SessionLocal() as session:
-        tree = await api.tree.crud.get_by_tree_id(tree_id=tree_id, db_session=session)  # type: ignore
+async def get_secrets(*, tree_uuid: str | None = None, tree_id: str | None = None) -> dict:
+    async for session in db.get_session():
+        if tree_uuid is not None:
+            tree = await api.tree.crud.get_by_uuid(uuid=tree_uuid, db_session=session)  # type: ignore
+        else:
+            tree = await api.tree.crud.get_by_tree_id(tree_id=tree_id, db_session=session)  # type: ignore
         key = await api.api_key.get_key(db_session=session)
         gateway_token = await tokens.new_gateway_token(tree_uuid=tree.uuid, api_key=key)
         return {
-            "domain": f"{tree_id}.ws.{env.get_env().DOMAIN}",
+            "domain": f"{tree.tree_id}.ws.{env.get_env().DOMAIN}",
             "tree": jsonable_encoder(tree),
             "gateway-token": gateway_token,
             "version": _get_version(tree),
         }
+    return {}
 
 
 class Secrets(EventBus):
@@ -43,4 +48,4 @@ class Secrets(EventBus):
         et = event["type"]
         if et == event_type.GET_SECRETS:
             tree_id = eventbus.tree_id(event["src"])
-            await post(put_secrets(event, secrets=await get_secrets(tree_id)))
+            await post(put_secrets(event, secrets=await get_secrets(tree_id=tree_id)))

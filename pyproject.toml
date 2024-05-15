@@ -58,6 +58,7 @@ dev-dependencies = [
     "esptool>=4.7.0",
     "pytest_mock>=3.14.0",
     "javascripthon>=0.12",
+    "psycopg2-binary>=2.9.9",
 ]
 
 [tool.ruff]
