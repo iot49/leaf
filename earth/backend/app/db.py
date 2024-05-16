@@ -43,7 +43,7 @@ class DBEngine:
             logger.debug("database does not exist")
 
             def _create_db():
-                logger.debug("creating database")
+                logger.debug(f"creating database {url}")
                 create_database(url)
 
             logger.debug("greenlet spawning _create_db")
@@ -80,7 +80,7 @@ class DBEngine:
                 await user.crud.create(obj_in=obj_in, db_session=session)
 
         except HTTPException as e:
-            logger.debug(f"first superuser already exists {e}")
+            logger.debug(f"{env.FIRST_SUPERUSER_EMAIL} already exists {e.detail[:21]} ...")
 
     async def clear(self):
         async with self.engine.begin() as conn:

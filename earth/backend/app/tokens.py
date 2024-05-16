@@ -68,7 +68,7 @@ async def new_gateway_token(tree, api_key, validity: timedelta = env.GATEWAY_TOK
         "nbf": datetime.now(timezone.utc),
         "exp": datetime.now(timezone.utc) + validity,
         "aud": "gateway->earth",
-        "tree_uuid": str(tree.tree_uuid),
+        "tree_uuid": str(tree.uuid),
         "tree_id": tree.tree_id,
     }
     return jwt.encode(payload, api_key.key, algorithm="HS256", headers={"kid": str(api_key.uuid)})
