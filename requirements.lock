@@ -47,6 +47,8 @@ charset-normalizer==3.3.2
     # via requests
 click==8.1.7
     # via uvicorn
+colored==2.2.4
+    # via leaves
 coverage==7.4.4
     # via coverage
     # via pytest-cov

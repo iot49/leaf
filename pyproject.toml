@@ -37,6 +37,7 @@ dependencies = [
     "fastapi-analytics>=1.2.2",
     "pyopenssl>=24.1.0",
     "paramiko>=3.4.0",
+    "colored>=2.2.4",
 ]
 
 [build-system]
