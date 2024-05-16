@@ -116,6 +116,8 @@ services:
 
   database:
     container_name: database
+    # timescale sort of works, too, but sometimes fails with
+    #     source database "template1" is being accessed by other users
     # image: timescale/timescaledb-ha:pg16
     image: bitnami/postgresql:15.6.0
     restart: unless-stopped

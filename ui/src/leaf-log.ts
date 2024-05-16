@@ -56,10 +56,10 @@ export class LeafLog extends LeafBase {
   ];
 
   entry_template(entry) {
-    const epoch_offset = this.config.app.epoch_offset || 946684800;
+    //const epoch_offset = this.config.app.epoch_offset || 946684800;
     return html`
       <div class="entry">
-        <span class="timestamp">${new Date(1000 * (entry.ct + epoch_offset)).toISOString().split('.')[0]}</span>
+        <span class="timestamp">${new Date(1000 * entry.ct /* + epoch_offset*/).toISOString().split('.')[0]}</span>
         <span class="level">${entry.levelname}</span>
         <span class="name">${entry.name}</span>
         <span class="message">${entry.message}</span>

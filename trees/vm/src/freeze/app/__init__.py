@@ -26,6 +26,7 @@ def configure_logging():
 
             event = log_event(
                 levelname=record.levelname,
+                levelno=record.levelno,
                 timestamp=record.ct + EPOCH_OFFSET,  # type: ignore
                 name=record.name,
                 message=record.message,

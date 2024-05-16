@@ -1,5 +1,6 @@
 # https://github.com/tom-draper/api-analytics
 
+import logging
 from collections import deque
 
 from eventbus import Event, EventBus, event_type, post, subscribe
@@ -13,10 +14,11 @@ class Log(EventBus):
         subscribe(self)
 
     async def post(self, event: Event) -> None:
-        tp = event["type"]
+        tp = event.get("type")
         if tp == event_type.LOG:
-            self.history.appendleft(event)  # type: ignore
-            print(event["levelname"], event["name"], event["message"])
+            if event.get("levelno", 0) >= logging.ERROR:
+                self.history.appendleft(event)  # type: ignore
+            print(event.get("levelname"), event.get("name"), event.get("message"))
         elif tp == event_type.GET_LOG:
             history = self.history
             dst = event["src"]

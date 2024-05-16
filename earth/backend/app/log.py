@@ -5,6 +5,9 @@ from logging import Formatter
 from colored import Fore, Style
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from eventbus import post_sync
+from eventbus.event import log_event
+
 
 class LogMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
@@ -52,11 +55,23 @@ class PrintFormatter(Formatter):
         return f"{colors[record.levelno]}{record.levelname+':':9}{Style.reset} {record.name:12} {record.funcName:12} {record.getMessage()}"
 
 
+class EventLogHandler(logging.Handler):
+    def emit(self, record):
+        event = log_event(
+            levelname=record.levelname,
+            levelno=record.levelno,
+            timestamp=record.created,
+            name=record.name,
+            message=record.getMessage(),
+        )
+        post_sync(event)
+
+
 logger = logging.root
 handler = logging.StreamHandler()
 # handler.setFormatter(JsonFormatter())
 handler.setFormatter(PrintFormatter())
-logger.handlers = [handler]
+logger.handlers = [handler, EventLogHandler()]
 logger.setLevel(logging.ERROR)
 
 logging.getLogger("uvicorn.access").disabled = True

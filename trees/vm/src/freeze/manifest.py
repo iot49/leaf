@@ -2,12 +2,12 @@
 include("$(BOARD_DIR)/manifest.py")
 
 # app
-module("main.py")  # , base_path="/project/src/freeze")
+module("main.py")
 freeze("lib")
 
 # packages
-# package("app")
-# package("bsp")
+package("app")
+package("plugins")
 
 # micropython-lib
 require("aioble")

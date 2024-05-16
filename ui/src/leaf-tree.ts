@@ -5,7 +5,7 @@ import { customElement, property, query, state } from 'lit/decorators.js';
 import { api_delete, api_get, api_post, api_put } from './app/api';
 import { Config, configContext, Settings, settingsContext } from './app/context/contexts';
 import { alertDialog, confirmDialog, promptDialog } from './app/dialog';
-import { get_resource } from './app/github-resource';
+import { get_resource } from './app/github-releases';
 import { MpExec } from './app/mpexec/mpexec';
 import { LeafBase } from './leaf-base';
 
@@ -259,6 +259,8 @@ export class LeafTree extends LeafBase {
 
   async flash() {
     // choose firmware, flash, reset
+    const releases = await get_resource();
+    console.log(releases);
   }
 
   async registerDevice(): Promise<boolean> {
