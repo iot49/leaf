@@ -49,11 +49,11 @@ help:
 serve:
 	cd earth/backend && \
 	ENVIRONMENT="dev" \
-	rye run uvicorn --host 0.0.0.0 --port 8001 --reload app.main:app
+	rye run uvicorn --host 0.0.0.0 --port 8001 --log-level error --reload app.main:app
 
 serve-alembic:
 	rye run alembic upgrade head
-	rye run uvicorn --port 8000 --reload app.main:app
+	rye run uvicorn --port 8000 --log-level error --reload app.main:app
 
 add-migration:
 	rye run alembic stamp head && \

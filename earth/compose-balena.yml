@@ -18,7 +18,6 @@ volumes:
   code-server: # code-server configuration
   cloudflare: # cloudflare credentials
   postgres: # postgres database
-  timescaledb: # timescaledb database
   wireshark: # wireshark configuration
   homeassistant: # homeassistant configuration
 
@@ -46,16 +45,16 @@ services:
       - PROJECT_NAME=${PROJECT_NAME}
       - DOMAIN=${DOMAIN}
       - FIRST_SUPERUSER_EMAIL=${FIRST_SUPERUSER_EMAIL}
-      - DATABASE_URL=sqlite+aiosqlite:///sqlite-prod.db
-      - DATABASE_ECHO=False
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_USERNAME=${POSTGRES_USERNAME}
+      - DATABASE_ECHO=False
       - UI_DIR=/home/ui
       - CONFIG_DIR=/home/config
       - CF_POLICY_AUD=${CF_POLICY_AUD}
       - CF_TEAM_DOMAIN=${CF_TEAM_DOMAIN}
       - CF_API_TOKEN=${CF_API_TOKEN}
       - CF_EMAIL=${CF_EMAIL}
+      - ANALYTICS_API_KEY=${ANALYTICS_API_KEY}
     restart: unless-stopped
     expose:
       - 8000
@@ -131,7 +130,7 @@ services:
       - POSTGRES_USERNAME=${POSTGRES_USERNAME}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USERNAME}']
       interval: 10s
       timeout: 5s
       retries: 5

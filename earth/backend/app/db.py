@@ -1,3 +1,4 @@
+import logging
 from typing import AsyncGenerator
 
 from fastapi import HTTPException
@@ -12,6 +13,9 @@ from sqlmodel import SQLModel
 
 from .env import env
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
 
 class DBEngine:
     def __init__(self, url: str):
@@ -21,7 +25,7 @@ class DBEngine:
 
     async def configure(self, echo: bool = False):
         url = self.url
-        print("configuring database", url)
+        logger.debug("configuring database {url}")
         self.engine = create_async_engine(
             url,
             echo=echo,
@@ -31,21 +35,23 @@ class DBEngine:
 
         # create tables; this will fail if the database does not exist
         try:
-            print("Creating tables ...")
+            logger.debug("creating tables ...")
             async with self.engine.begin() as conn:
                 await conn.run_sync(SQLModel.metadata.create_all)
         except Exception:
             # create database
-            print("Database does not exist")
+            logger.debug("database does not exist")
 
             def _create_db():
-                print("Creating database")
+                logger.debug("creating database")
                 create_database(url)
 
+            logger.debug("greenlet spawning _create_db")
             await greenlet_spawn(_create_db)
 
             # try again creating tables
             async with self.engine.begin() as conn:
+                logger.debug("creating tables, 2nd attempt ...")
                 await conn.run_sync(SQLModel.metadata.create_all)
 
         self.session_local = async_sessionmaker(
@@ -62,6 +68,7 @@ class DBEngine:
         try:
             from .api import user
 
+            logger.debug("create first superuser ...")
             async with self.session_local() as session:
                 # create first superuser
                 obj_in = user.schema.UserCreate(
@@ -72,8 +79,8 @@ class DBEngine:
                 )
                 await user.crud.create(obj_in=obj_in, db_session=session)
 
-        except HTTPException:
-            pass
+        except HTTPException as e:
+            logger.debug(f"first superuser already exists {e}")
 
     async def clear(self):
         async with self.engine.begin() as conn:
@@ -86,6 +93,7 @@ db: DBEngine
 
 async def init_db(url=env.DATABASE_URL, echo=env.DATABASE_ECHO):
     global db
+    logger.debug(f"initializing database {url}, echo={echo}")
     db = DBEngine(url)
     await db.configure(echo=echo)
 

@@ -14,7 +14,8 @@ RUN sed '/-e/d' requirements.lock > requirements.txt && \
 
 ######################################################################
 # FINAL
-FROM python:3.11-slim-bookworm
+# FROM python:3.11-slim-bookworm
+FROM python:3.11-bookworm
 
 # setuidgid
 RUN apt-get update --yes \

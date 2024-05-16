@@ -1,4 +1,5 @@
 import gc
+import logging
 from contextlib import asynccontextmanager
 
 from api_analytics.fastapi import Analytics
@@ -16,14 +17,19 @@ from . import api, db
 from .dependencies.api_roles import verify_roles
 from .dependencies.verify_cloudflare_cookie import verify_cloudflare_cookie
 from .env import Environment, env
+from .log import LogMiddleware
 
-print("Loading main.py!")
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+print("\n")
+logger.info("--------------- starting earth backend ---------------")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    print("calling init_db from lifespan")
+    logger.debug("calling init_db from lifespan")
     await db.init_db()
     yield
     # Shutdown
@@ -47,7 +53,7 @@ async def validation_error(request: Request, exc: ResponseValidationError):
     return JSONResponse(
         status_code=418,
         content={
-            "DB Validation Error": {"request": str(request.url.path), "detail": str(exc)},
+            "Database Validation Error": {"request": str(request.url.path), "detail": str(exc)},
             "body": str(exc.body[0]),
             "err": err,
             "err_type": f"{type(err[0])}",
@@ -65,6 +71,9 @@ if env.BACKEND_CORS_ORIGINS:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+# Logging
+app.add_middleware(LogMiddleware)
 
 # Analytics
 app.add_middleware(Analytics, api_key=env.ANALYTICS_API_KEY)  # type: ignore
