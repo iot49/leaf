@@ -1,10 +1,10 @@
 import logging
 from datetime import timedelta
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from ...api import api_key
+from ...api import api_key, tree
 from ...bus.secrets import get_secrets
 from ...db import get_session
 from ...dependencies.get_current_user import get_current_user
@@ -23,8 +23,6 @@ async def get_client_token(
     # used only for login to websocket connections to earth
     # short validity requires getting a new token for each connection
     key: api_key.ApiKeyRead | None = await api_key.get_key(db_session=session)
-    if key is None:
-        raise HTTPException(status_code=404, detail="API key not found")
     return await new_client_token(user_uuid=user.uuid, api_key=key, validity=timedelta(minutes=1))
 
 
@@ -34,10 +32,9 @@ async def get_gateway_token(
     session: AsyncSession = Depends(get_session),
 ) -> str:
     # used for branch on-barding
+    _tree: tree.schema.TreeRead | None = await tree.crud.get_by_uuid(uuid=tree_uuid, db_session=session)
     key: api_key.ApiKeyRead | None = await api_key.get_key(db_session=session)
-    if key is None:
-        raise HTTPException(status_code=404, detail="API key not found")
-    return await new_gateway_token(tree_uuid=tree_uuid, api_key=key)
+    return await new_gateway_token(tree=_tree, api_key=key)
 
 
 @router.get("/gateway_secrets/{tree_uuid}")

@@ -15,12 +15,15 @@ from starlette.middleware.cors import CORSMiddleware
 from . import api, db
 from .dependencies.api_roles import verify_roles
 from .dependencies.verify_cloudflare_cookie import verify_cloudflare_cookie
-from .env import env
+from .env import Environment, env
+
+print("Loading main.py!")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
+    print("calling init_db from lifespan")
     await db.init_db()
     yield
     # Shutdown
@@ -97,7 +100,7 @@ app.include_router(
     tags=["root"],
 )
 
-docs_auth = [Depends(verify_cloudflare_cookie)] if env.ENVIRONMENT == "production" else []
+docs_auth = [Depends(verify_cloudflare_cookie)] if env.ENVIRONMENT == Environment.production else []
 
 
 @app.get("/docs", include_in_schema=False, dependencies=docs_auth)

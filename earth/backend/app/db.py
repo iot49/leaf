@@ -21,6 +21,7 @@ class DBEngine:
 
     async def configure(self, echo: bool = False):
         url = self.url
+        print("configuring database", url)
         self.engine = create_async_engine(
             url,
             echo=echo,
@@ -30,11 +31,15 @@ class DBEngine:
 
         # create tables; this will fail if the database does not exist
         try:
+            print("Creating tables ...")
             async with self.engine.begin() as conn:
                 await conn.run_sync(SQLModel.metadata.create_all)
         except Exception:
             # create database
+            print("Database does not exist")
+
             def _create_db():
+                print("Creating database")
                 create_database(url)
 
             await greenlet_spawn(_create_db)

@@ -28,7 +28,7 @@ async def get_secrets(*, tree_uuid: str | None = None, tree_id: str | None = Non
         else:
             tree = await api.tree.crud.get_by_tree_id(tree_id=tree_id, db_session=session)  # type: ignore
         key = await api.api_key.get_key(db_session=session)
-        gateway_token = await tokens.new_gateway_token(tree_uuid=tree.uuid, api_key=key)
+        gateway_token = await tokens.new_gateway_token(tree=tree, api_key=key)
         return {
             "domain": f"{tree.tree_id}.ws.{env.get_env().DOMAIN}",
             "tree": jsonable_encoder(tree),

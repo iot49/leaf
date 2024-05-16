@@ -63,12 +63,13 @@ async def verify_client_token_(token):  # -> api.user.schema.UserRead:
             raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
 
 
-async def new_gateway_token(tree_uuid, api_key, validity: timedelta = env.GATEWAY_TOKEN_VALIDITY):
+async def new_gateway_token(tree, api_key, validity: timedelta = env.GATEWAY_TOKEN_VALIDITY):
     payload = {
         "nbf": datetime.now(timezone.utc),
         "exp": datetime.now(timezone.utc) + validity,
         "aud": "gateway->earth",
-        "tree_uuid": str(tree_uuid),
+        "tree_uuid": str(tree.tree_uuid),
+        "tree_id": tree.tree_id,
     }
     return jwt.encode(payload, api_key.key, algorithm="HS256", headers={"kid": str(api_key.uuid)})
 
@@ -92,10 +93,7 @@ async def verify_gateway_token_(token):  # -> api.tree.schema.TreeReadWithBrache
         raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
 
     async for session in get_session():
-        key: api.api_key.ApiKeyRead | None = await api.api_key.get_key(db_session=session, kid=header.get("kid"))
-        if key is None:
-            raise HTTPException(status_code=401, detail="Invalid token (kid)")
-
+        key: api.api_key.ApiKeyRead = await api.api_key.get_key(db_session=session, kid=header.get("kid"))
         try:
             # verify that the token is valid and not expired
             payload = jwt.decode(token, key=key.key, algorithms=["HS256"], audience="gateway->earth")

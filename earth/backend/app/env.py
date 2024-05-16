@@ -30,6 +30,8 @@ class Env(BaseSettings):
     POSTGRES_PASSWORD: str = "postgres"
     DATABASE_ECHO: bool = False
 
+    LOCAL_CONFIG_DIR: str = ""
+
     # cloudflare tunnel
     CF_POLICY_AUD: str
     CF_TEAM_DOMAIN: str = "https://leaf49.cloudflareaccess.com"
@@ -61,20 +63,18 @@ class Env(BaseSettings):
     @property
     def DATABASE_URL(self) -> str:
         if self.ENVIRONMENT == Environment.production:
-            return f"postgresql+asyncpg://{self.POSTGRES_USERNAME}:{self.POSTGRES_PASSWORD}@{self.DOMAIN}/{self.PROJECT_NAME}_{self.ENVIRONMENT}"
-            # return "sqlite+aiosqlite:///sqlite-prod.db"
+            return f"postgresql+asyncpg://{self.POSTGRES_USERNAME}:{self.POSTGRES_PASSWORD}@{self.DOMAIN}/{self.PROJECT_NAME}_{self.ENVIRONMENT.value}"
+            # return f"sqlite+aiosqlite:///sqlite-{self.PROJECT_NAME}-{self.ENVIRONMENT.value}.db"
         if self.ENVIRONMENT == Environment.development:
-            return f"postgresql+asyncpg://{self.POSTGRES_USERNAME}:{self.POSTGRES_PASSWORD}@192.168.8.191:5432/{self.PROJECT_NAME}_{self.ENVIRONMENT}"
-            # return "sqlite+aiosqlite:///sqlite-dev.db"
+            return f"postgresql+asyncpg://{self.POSTGRES_USERNAME}:{self.POSTGRES_PASSWORD}@192.168.8.191:5432/{self.PROJECT_NAME}_{self.ENVIRONMENT.value}"
+            # return f"sqlite+aiosqlite:///sqlite-{self.PROJECT_NAME}-{self.ENVIRONMENT.value}.db"
         # in memory database raises sqlalchemy.exc.InvalidRequestError: Could not refresh instance (on session.refresh(obj))
         return "sqlite+aiosqlite:///sqlite-test.db"
 
     @property
     def CONFIG_DIR(self) -> str:
         dir = "/home/config"
-        if not os.path.isdir(dir):
-            dir = "/Users/boser/Dropbox/Apps/leaf49 (1)/config"
-        return dir
+        return dir if os.path.isdir(dir) else env.LOCAL_CONFIG_DIR
 
     @property
     def UI_DIR(self) -> str:

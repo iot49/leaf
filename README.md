@@ -16,12 +16,15 @@ git submodule add https://github.com/micropython/micropython.git
    b) built by github action earth-backend.yml
    c) deploy to balena: `make balena-push`
 2) UI (LitElement)
-   * create latest release and push to balena (static content): `make balena-ui`
+   * create latest release and push to balena (static content): `make ui`
    * Note: `mv ui/dist/assets/svg ui/dist/assets/icons`
-1) Trees (MicroPython)
+3) Trees (MicroPython)
    * push tag `v*` builds VM and publishes as release
    * flash or ota update
 
+## Run
+
+1) Productioon:
 
 ### .github secrets
 

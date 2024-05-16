@@ -2,6 +2,8 @@
 
 from uuid import UUID
 
+from fastapi import HTTPException
+
 from .crud import crud
 from .endpoints import router
 from .model import ApiKey, ApiKeyBase
@@ -10,7 +12,7 @@ from .schema import ApiKeyCreate, ApiKeyRead, ApiKeyUpdate
 # TODO: implement api_key management
 
 
-async def get_key(db_session, kid: str | None = None) -> ApiKeyRead | None:
+async def get_key(db_session, kid: str | None = None) -> ApiKeyRead:
     """
     Retrieve an API key from the database.
 
@@ -35,4 +37,4 @@ async def get_key(db_session, kid: str | None = None) -> ApiKeyRead | None:
     for key in api_keys:
         if str(key.uuid) == kid:
             return key  # type: ignore
-    return None
+    raise HTTPException(status_code=404, detail="API key not found")
