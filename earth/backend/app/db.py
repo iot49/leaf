@@ -25,7 +25,7 @@ class DBEngine:
 
     async def configure(self, echo: bool = False):
         url = self.url
-        logger.debug("configuring database {url}")
+        logger.debug(f"configuring database {url}")
         self.engine = create_async_engine(
             url,
             echo=echo,

@@ -63,7 +63,7 @@ class Env(BaseSettings):
     @property
     def DATABASE_URL(self) -> str:
         if self.ENVIRONMENT == Environment.production:
-            return f"postgresql+asyncpg://{self.POSTGRES_USERNAME}:{self.POSTGRES_PASSWORD}@{self.DOMAIN}/{self.PROJECT_NAME}_{self.ENVIRONMENT.value}"
+            return f"postgresql+asyncpg://{self.POSTGRES_USERNAME}:{self.POSTGRES_PASSWORD}@database:5432/{self.PROJECT_NAME}_{self.ENVIRONMENT.value}"
             # return f"sqlite+aiosqlite:///sqlite-{self.PROJECT_NAME}-{self.ENVIRONMENT.value}.db"
         if self.ENVIRONMENT == Environment.development:
             return f"postgresql+asyncpg://{self.POSTGRES_USERNAME}:{self.POSTGRES_PASSWORD}@192.168.8.191:5432/{self.PROJECT_NAME}_{self.ENVIRONMENT.value}"
