@@ -75,8 +75,8 @@ jobs:
             make BOARD=${BOARD} clean
             make V=1 BOARD=${BOARD} FROZEN_MANIFEST=${FROZEN}
             # rename so we can release multiple versions for different boards
-            mv ${{ env.BUILD_DIR }}/firmware.bin    ${{ env.BUILD_DIR }}/${{ env.BOARD }}-firmware.bin
-            mv ${{ env.BUILD_DIR }}/micropython.bin ${{ env.BUILD_DIR }}/${{ env.BOARD }}-micropython.bin
+            mv /project/${{ env.BUILD_DIR }}/firmware.bin    /project/${{ env.BUILD_DIR }}/${{ env.BOARD }}-firmware.bin
+            mv /project/${{ env.BUILD_DIR }}/micropython.bin /project/${{ env.BUILD_DIR }}/${{ env.BOARD }}-micropython.bin
 
       - name: Release
         working-directory: ${{ env.WORKING_DIR }}/${{ env.PORT_DIR }}

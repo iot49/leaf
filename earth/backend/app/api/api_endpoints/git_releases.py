@@ -259,6 +259,20 @@ RESOURCE = [
 ]
 
 
-releases = GitReleases.model_validate({"releases": RESOURCE})
+releases = GitReleases.model_validate({"releases": RESOURCE}).releases
 
-print(releases.model_dump_json(indent=2))
+
+def sorter(x):
+    print(x)
+    return x.published_at
+
+
+# print(releases.releases.sort(key=lambda x: x.published_at, reverse=True))
+releases.sort(key=lambda x: x.published_at, reverse=True)
+print(type(releases))
+
+for release in releases:
+    print(release.tag_name, release.published_at)
+    for asset in release.assets:
+        print(asset.name, asset.size, asset.browser_download_url)
+    print()
