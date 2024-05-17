@@ -85,7 +85,6 @@ jobs:
           tag: ${{ github.ref_name }}
         run: |
           gh release create "$tag" \
-              --repo="$GITHUB_REPOSITORY" \
               --notes-from-tag \
               --title="V$tag" \
               build-${{ env.BOARD }}/${{ env.BOARD }}-firmware.bin \
