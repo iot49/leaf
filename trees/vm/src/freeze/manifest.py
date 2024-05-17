@@ -1,7 +1,10 @@
+# ruff: noqa: F821
+# type: ignore
+
 # default imports
 include("$(BOARD_DIR)/manifest.py")
 
-# app
+module("version.py")
 module("main.py")
 freeze("lib")
 

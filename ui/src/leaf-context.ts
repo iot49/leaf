@@ -11,9 +11,8 @@ import { state_handler } from './app/eventbus/state';
 @customElement('leaf-context')
 export class LeafContext extends LeafBase {
   public connected: Connected = false;
-  // public state: State = new Map<string, object>();
+
   public config: Config;
-  // public log: any[] = [];
   public settings: any;
   protected settings_cache: SettingsCache;
 
@@ -40,28 +39,6 @@ export class LeafContext extends LeafBase {
 
   constructor() {
     super();
-    //this._stateProvider.setValue(this.state, true);
-    //this._logProvider.setValue(this.log, true);
-  }
-
-  private patch_config() {
-    // cfg.views[0].cards[0].entities[0].icon = "plus";
-    // cfg.views[0].cards[0].entities[2].unit = '%';
-    // cfg.views[0].cards[0].entities[2].format = '.1f';
-  }
-
-  async connectedCallback(): Promise<void> {
-    super.connectedCallback();
-    this.settings_cache = new SettingsCache(this._settingsProvider);
-    await this.settings_cache.load().then(() => {
-      this.settings = this.settings_cache.settings;
-      this.requestUpdate();
-    });
-
-    // fetch most recent "api/me"
-    const me = await api_get('me');
-    console.log('me', me);
-    if (me) this.settings_cache.settings.me = me;
 
     window.addEventListener('leaf-connection', (event: CustomEvent) => {
       this.connected = event.detail;
@@ -100,5 +77,25 @@ export class LeafContext extends LeafBase {
           break;
       }
     });
+  }
+
+  private patch_config() {
+    // cfg.views[0].cards[0].entities[0].icon = "plus";
+    // cfg.views[0].cards[0].entities[2].unit = '%';
+    // cfg.views[0].cards[0].entities[2].format = '.1f';
+  }
+
+  async connectedCallback(): Promise<void> {
+    super.connectedCallback();
+    this.settings_cache = new SettingsCache(this._settingsProvider);
+    await this.settings_cache.load().then(() => {
+      this.settings = this.settings_cache.settings;
+      this.requestUpdate();
+    });
+
+    // fetch most recent "api/me"
+    const me = await api_get('me');
+    console.log('me', me);
+    if (me) this.settings_cache.settings.me = me;
   }
 }

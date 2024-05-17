@@ -2,16 +2,20 @@
 BOARD=ESP32_S3_N16R8
 
 FROZEN_MANIFEST=src/freeze/manifest.py
+VERSION_FILE=src/freeze/version.py
 USER_C_MODULES=src/modules/micropython.cmake
 PORT_DIR=micropython/ports/esp32
 BUILD_DIR=${PORT_DIR}/build-${BOARD}
 FIRMWARE_DIR=firmware/${BOARD}/$(shell date +%Y%m%d-%H%M%S)
 LATEST_FIRMWARE_DIR=firmware/${BOARD}/latest
 
+TAG := $(shell date +"%Y.%m.%d")
+
 
 .PHONY: build dependencies flash
 
 build: dependencies
+	echo "TAG = '${TAG}'" > ${VERSION_FILE}
 	docker run --rm \
 		-v .:/project -w /project/micropython \
 		espressif/idf:v5.0.4 \

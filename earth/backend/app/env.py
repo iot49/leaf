@@ -4,7 +4,7 @@ from enum import Enum
 from functools import lru_cache
 
 from dotenv import load_dotenv
-from pydantic import AnyHttpUrl, EmailStr, ValidationInfo, field_validator
+from pydantic import AnyHttpUrl, EmailStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -44,16 +44,6 @@ class Env(BaseSettings):
     # analytics
     ANALYTICS_API_KEY: str | None = None
 
-    # CORS
-    BACKEND_CORS_ORIGINS: list[str] | list[AnyHttpUrl] = ["http://localhost:5173", "http://localhost:4173"]  # ["*"]
-
-    @field_validator("BACKEND_CORS_ORIGINS")
-    def assemble_cors_origins(cls, v: str | list[str], info: ValidationInfo) -> list[str] | str:
-        if isinstance(v, str) and not v.startswith("["):
-            return [i.strip() for i in v.split(",")]
-        elif isinstance(v, (list, str)):
-            return v
-
     model_config = SettingsConfigDict(
         # env_file=".env",
         case_sensitive=True,
@@ -70,6 +60,12 @@ class Env(BaseSettings):
             # return f"sqlite+aiosqlite:///sqlite-{self.PROJECT_NAME}-{self.ENVIRONMENT.value}.db"
         # in memory database raises sqlalchemy.exc.InvalidRequestError: Could not refresh instance (on session.refresh(obj))
         return "sqlite+aiosqlite:///sqlite-test.db"
+
+    @property
+    def BACKEND_CORS_ORIGINS(self) -> list[str] | list[AnyHttpUrl]:
+        if self.ENVIRONMENT == Environment.development:
+            return ["http://localhost:5173", "http://localhost:4173"]
+        return []
 
     @property
     def CONFIG_DIR(self) -> str:

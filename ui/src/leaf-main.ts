@@ -2,6 +2,7 @@ import { Router } from '@lit-labs/router';
 import { css, html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { escapeHtml } from './app/dialog';
+import { eventbus } from './app/eventbus/eventbus';
 import { LeafBase } from './leaf-base';
 import { LeafContext } from './leaf-context';
 
@@ -78,6 +79,7 @@ export class LeafMain extends LeafContext {
 
     // some pages require a connection
     if (!this.connected) {
+      if (this.settings.auto_connect) eventbus.connect('#earth');
       const requires_connection = ['view', 'log'];
       if (requires_connection.includes(this.currentRoute.split('/')[0])) {
         this.router.goto('/');

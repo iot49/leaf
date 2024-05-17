@@ -11,6 +11,7 @@ export class SettingsCache {
       roles: ['guest'],
       trees: [],
     },
+    auto_connect: true,
     dark_theme: false,
   };
 

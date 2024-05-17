@@ -1,11 +1,12 @@
 import { consume } from '@lit/context';
-import { SlDialog, SlTabGroup } from '@shoelace-style/shoelace';
+import { SlDialog, SlSelect, SlTabGroup } from '@shoelace-style/shoelace';
 import { css, html } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { api_delete, api_get, api_post, api_put } from './app/api';
 import { Config, configContext, Settings, settingsContext } from './app/context/contexts';
 import { alertDialog, confirmDialog, promptDialog } from './app/dialog';
 import { get_resource } from './app/github-releases';
+import { flash_esp } from './app/mpexec/flash_esp';
 import { MpExec } from './app/mpexec/mpexec';
 import { LeafBase } from './leaf-base';
 
@@ -61,26 +62,19 @@ export class LeafTree extends LeafBase {
 
   @property() uuid: string;
   @state() tree: any;
+  @state() releases: any;
 
   @query('#enroll') enrollDialog: SlDialog;
   @query('#enroll-tabs') enrollTabs: SlTabGroup;
 
-  async git() {
-    const releases = await get_resource();
-    console.log(releases);
-    for (const release of releases) {
-      console.log(release.tag_name);
-      // console.log(await get_asset(release, release.tag_name, "firmware.bin"));
-    }
-  }
-
   async connectedCallback() {
     super.connectedCallback();
     this.tree = await api_get(`tree/${this.uuid}`);
+    this.releases = await get_resource();
   }
 
   render() {
-    if (!this.tree) {
+    if (!this.tree || !this.releases) {
       return html`<sl-spinner style="font-size: 50px; --track-width: 10px;"></sl-spinner>`;
     } else {
       const me = this.settings.me;
@@ -200,7 +194,6 @@ export class LeafTree extends LeafBase {
                 (this.enrollDialog as any).branch_id = branch_id;
                 this.enrollDialog.show();
               }}
-              @clickX=${(_) => this.enrollDialog.show()}
             >
               <sl-icon library="mdi" name="plus" style="font-size: 30px"></sl-icon>
             </sl-button>
@@ -213,13 +206,19 @@ export class LeafTree extends LeafBase {
     return html`
       <sl-dialog id="enroll" label="Enroll New Branch" style="--width: 80vw;">
         <sl-tab-group id="enroll-tabs" placement="start">
-          <sl-tab slot="nav" panel="flash">Flash</sl-tab>
-          <sl-tab slot="nav" panel="uid">Read mac</sl-tab>
-          <sl-tab slot="nav" panel="register">Register</sl-tab>
+          <sl-tab slot="nav" panel="flash">Setup</sl-tab>
+          <sl-tab slot="nav" panel="flashing">Flashing ...</sl-tab>
+          <sl-tab slot="nav" panel="uid">Read MAC Address</sl-tab>
+          <sl-tab slot="nav" panel="register">Register with Earth</sl-tab>
 
-          <!-- FLASH -->
+          <!-- SETUP -->
           <sl-tab-panel name="flash">
             <h3>Flash Firmware</h3>
+            <sl-select id="firmware" label="Chooose Firmware" value="0">
+              ${this.releases.map((release: any, index: number) => {
+                return html`<sl-option value=${index}>${release.name}</sl-option><a href="https://github.com/iot49/leaf/commits/">Change Log</a>`;
+              })}
+            </sl-select>
             <p>Connect the device to the computer with a USB cable.</p>
             <p>
               Then put it into bootloader mode. On the ESP32-S3 this usually requires pressing and holding down the BOOT button, then briefly pressing
@@ -227,6 +226,13 @@ export class LeafTree extends LeafBase {
             </p>
             <sl-button @click=${(_) => this.enrollTabs.show('uid')}>Skip</sl-button>
             <sl-button variant="primary" @click=${async (_) => await this.flash()}>Flash</sl-button>
+          </sl-tab-panel>
+
+          <!-- FLASHING -->
+          <sl-tab-panel name="flashing">
+            <h3>Flashing ...</h3>
+            <div id="flash_param"></div>
+            <div id="flash_progress"></div>
           </sl-tab-panel>
 
           <!-- UID -->
@@ -259,8 +265,24 @@ export class LeafTree extends LeafBase {
 
   async flash() {
     // choose firmware, flash, reset
-    const releases = await get_resource();
-    console.log(releases);
+    const firmware_id: any = (this.shadowRoot.querySelector('#firmware') as SlSelect).value;
+    const release: any = this.releases[firmware_id];
+    const asset = release.assets.find((asset: any) => asset.name === 'firmware.bin');
+    console.log('firmware url', asset.size, asset.created_at, asset.browser_download_url);
+    this.enrollTabs.show('flashing');
+    var headers = {
+      Accept: 'application/octet-stream',
+    };
+
+    const response = await fetch('http://cors.io/?https://github.com/iot49/leaf/blob/main/LICENSE', {
+      method: 'GET',
+      headers: headers,
+    });
+    const binary = await response.blob();
+    console.log('binary', binary.size, binary);
+    await flash_esp(asset.browser_download_url, (i, bytesSent, totalBytes) => {
+      console.log('progress', i, bytesSent, totalBytes);
+    });
   }
 
   async registerDevice(): Promise<boolean> {

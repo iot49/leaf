@@ -3,7 +3,7 @@ name: Compile and release MicroPython firmware
 on:
   push:
     tags:
-      - "**"
+      - '**'
 
 env:
   BOARD: ESP32_S3_N16R8
@@ -21,6 +21,7 @@ jobs:
           echo "BOARD=${BOARD}" >> $GITHUB_ENV
           echo "IDF_VERSION=v5.0.4" >> $GITHUB_ENV
           echo "FROZEN=src/freeze/manifest.py" >> $GITHUB_ENV
+          echo "VERSION_FILE=src/freeze/version.py" >> $GITHUB_ENV
           echo "USER_C_MODULES=src/modules/micropython.cmake" >> $GITHUB_ENV
           echo "BUILD_DIR=micropython/ports/esp32/build-${{ env.BOARD }}" >> $GITHUB_ENV
           echo "PORT_DIR=micropython/ports/esp32" >> $GITHUB_ENV
@@ -33,6 +34,7 @@ jobs:
           echo BUILD_DIR=${{ env.BUILD_DIR }}
           echo PORT_DIR=${{ env.PORT_DIR }}
           echo FIRWARE_DIR=${{ env.FIRMWARE_DIR }}
+          echo FIRWARE_DIR=${{ env.VERSION_DIR }}
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -48,6 +50,7 @@ jobs:
       - name: Copy boards to PORT_DIR/boards
         working-directory: ${{ env.WORKING_DIR }}
         run: |
+          echo "TAG = 'V${tag#v}'" > ${{ env.VERSION_FILE }}
           mkdir -p ${{ env.PORT_DIR }}/boards
           cp -a boards/${{ env.BOARD }} ${{ env.PORT_DIR }}/boards
           # Hack: sometimes (???) idf looks for custom partition table in PORT_DIR
@@ -67,7 +70,7 @@ jobs:
           options: -v ${{ github.workspace }}/${{ env.WORKING_DIR }}:/project -w /project/${{ env.PORT_DIR }} -e BOARD=${{ env.BOARD }} -e USER_C_MODULES=/project/${{ env.USER_C_MODULES }} -e FROZEN=/project/${{ env.FROZEN }}
           run: |
             . $IDF_PATH/export.sh
-            # make sure FROZEN_MANIFEST is unset when running mpy-cross
+            # make sure FROZEN_MANIFEST is not set when running mpy-cross
             make -C /project/micropython/mpy-cross 
             make BOARD=${BOARD} clean
             make V=1 BOARD=${BOARD} FROZEN_MANIFEST=${FROZEN}
@@ -80,6 +83,5 @@ jobs:
         run: |
           gh release create "$tag" \
               --repo="$GITHUB_REPOSITORY" \
-              --title="${GITHUB_REPOSITORY#*/} MicroPython VM for ${BOARD} ${tag#v}" \
-              --generate-notes \
+              --title="${BOARD} V${tag#v}" \
               firmware.bin micropython.bin # micropython.uf2

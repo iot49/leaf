@@ -4,7 +4,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { consume } from '@lit/context';
 import { logout } from './app/api';
 import { Connected, connectedContext, Settings, settingsContext } from './app/context/contexts';
-import { domain } from './app/env';
+import { api_url, domain } from './app/env';
 import { LeafBase } from './leaf-base';
 
 @customElement('leaf-page')
@@ -139,8 +139,10 @@ export class LeafPage extends LeafBase {
       logout();
     } else if (target.startsWith('!')) {
       location.href = `https://${target.slice(1)}.${domain}`;
+    } else if (target === 'api') {
+      location.href = `${api_url}/docs`;
     } else if (target === 'docs') {
-      location.href = `https://${domain}/docs`;
+      location.href = `https://iot49.org`;
     } else {
       await this.goto(target);
     }
@@ -156,7 +158,8 @@ export class LeafPage extends LeafBase {
       { id: '!editor', icon: 'microsoft-visual-studio-code', text: 'Configuration' },
       { id: '!jupyter', icon: 'code-block-braces', text: 'Jupyter' },
       { id: '!homeassistant', icon: 'home-lightbulb-outline', text: 'Homeassistant' },
-      { id: 'docs', icon: 'book-open', text: 'Api Docs' },
+      { id: 'docs', icon: 'book-open', text: 'Docs' },
+      { id: 'api', icon: 'book-open', text: 'Api' },
       { id: 'logout', icon: 'logout', text: 'Logout' },
     ];
 
