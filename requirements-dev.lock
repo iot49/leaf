@@ -68,6 +68,8 @@ bitstring==4.1.4
     # via esptool
 bleach==6.1.0
     # via nbconvert
+cachetools==5.3.3
+    # via leaves
 certifi==2024.2.2
     # via httpcore
     # via httpx

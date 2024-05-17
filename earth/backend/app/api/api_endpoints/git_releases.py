@@ -1,6 +1,8 @@
 import json
+from datetime import datetime
 
 import aiohttp
+from cachetools import TTLCache, cached
 from pydantic import BaseModel
 from pydantic_core import Url
 
@@ -10,13 +12,13 @@ from app.env import env
 class GitReleaseAsset(BaseModel):
     name: str
     size: int
-    updated_at: str
     browser_download_url: Url
 
 
 class GitRelease(BaseModel):
     tag_name: str
     name: str
+    published_at: datetime
     assets: list[GitReleaseAsset]
 
 
@@ -24,6 +26,7 @@ class GitReleases(BaseModel):
     releases: list[GitRelease]
 
 
+@cached(cache=TTLCache(maxsize=32, ttl=600))
 async def get_resource(resource: str = "releases"):
     url = f"https://api.github.com/repos/{env.GITHUB_OWNER}/{env.GITHUB_REPO}/{resource}"
     headers = {

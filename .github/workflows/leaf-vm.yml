@@ -74,16 +74,19 @@ jobs:
             make -C /project/micropython/mpy-cross 
             make BOARD=${BOARD} clean
             make V=1 BOARD=${BOARD} FROZEN_MANIFEST=${FROZEN}
+            # rename so we can release multiple versions for different boards
+            mv ${{ env.BUILD_DIR }}/firmware.bin    ${{ env.BUILD_DIR }}/${{ env.BOARD }}-firmware.bin
+            mv ${{ env.BUILD_DIR }}/micropython.bin ${{ env.BUILD_DIR }}/${{ env.BOARD }}-micropython.bin
 
       - name: Release
-        working-directory: ${{ env.WORKING_DIR }}/${{ env.BUILD_DIR }}
+        working-directory: ${{ env.WORKING_DIR }}/${{ env.PORT_DIR }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.ref_name }}
         run: |
-          mv firmware.bin ${{ env.BOARD }}-firmware.bin
-          mv micropython.bin ${{ env.BOARD }}-micropython.bin
           gh release create "$tag" \
               --repo="$GITHUB_REPOSITORY" \
               --notes-from-tag \
-              ${{ env.BOARD }}-firmware.bin ${{ env.BOARD }}-micropython.bin # micropython.uf2
+              --title="V$tag" \
+              build-${{ env.BOARD }}/${{ env.BOARD }}-firmware.bin \
+              build-${{ env.BOARD }}/${{ env.BOARD }}-micropython.bin

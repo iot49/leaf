@@ -36,6 +36,8 @@ attrs==23.2.0
     # via aiohttp
 bcrypt==4.1.3
     # via paramiko
+cachetools==5.3.3
+    # via leaves
 certifi==2024.2.2
     # via httpcore
     # via httpx

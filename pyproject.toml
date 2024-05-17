@@ -38,6 +38,7 @@ dependencies = [
     "pyopenssl>=24.1.0",
     "paramiko>=3.4.0",
     "colored>=2.2.4",
+    "cachetools>=5.3.3",
 ]
 
 [build-system]
