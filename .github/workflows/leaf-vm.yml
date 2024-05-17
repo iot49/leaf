@@ -83,5 +83,5 @@ jobs:
         run: |
           gh release create "$tag" \
               --repo="$GITHUB_REPOSITORY" \
-              --title="${BOARD} V${tag#v}" \
-              firmware.bin micropython.bin # micropython.uf2
+              --notes-from-tag \
+              ${{ env.BOARD }}-firmware.bin ${{ env.BOARD }}-micropython.bin # micropython.uf2

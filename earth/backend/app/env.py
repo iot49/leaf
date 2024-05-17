@@ -44,6 +44,10 @@ class Env(BaseSettings):
     # analytics
     ANALYTICS_API_KEY: str | None = None
 
+    # github repo
+    GITHUB_OWNER: str = "iot49"
+    GITHUB_REPO: str = "leaf"
+
     model_config = SettingsConfigDict(
         # env_file=".env",
         case_sensitive=True,
