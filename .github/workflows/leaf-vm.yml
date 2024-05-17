@@ -81,6 +81,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.ref_name }}
         run: |
+          mv firmware.bin ${{ env.BOARD }}-firmware.bin
+          mv micropython.bin ${{ env.BOARD }}-micropython.bin
           gh release create "$tag" \
               --repo="$GITHUB_REPOSITORY" \
               --notes-from-tag \
