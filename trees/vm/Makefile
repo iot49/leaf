@@ -8,7 +8,7 @@ PORT_DIR=micropython/ports/esp32
 BUILD_DIR=${PORT_DIR}/build-${BOARD}
 FIRMWARE_DIR=firmware/${BOARD}/$(shell date +%Y%m%d-%H%M%S)
 LATEST_FIRMWARE_DIR=firmware/${BOARD}/latest
-GITHUB_REPOSITORY=https://github.com/iot49/leaf.git
+GITHUB_REPOSITORY=iot49/leaf
 IDF_VERSION=v5.0.4
 
 tag := $(shell date +"%Y.%m.%d")
@@ -17,7 +17,7 @@ tag := $(shell date +"%Y.%m.%d")
 .PHONY: build dependencies flash
 
 build: dependencies
-	echo "TAG = '${tag#v}'\nBOARD = '${BOARD}'\nGITHUB_REPOSITORY = '${GITHUB_REPOSITORY}'\nIDF_VERSION = '${IDF_VERSION}'" > ${VERSION_FILE}
+	echo "TAG = '${tag}'\nBOARD = '${BOARD}'\nGITHUB_REPOSITORY = '${GITHUB_REPOSITORY}'\nIDF_VERSION = '${IDF_VERSION}'" > ${VERSION_FILE}
 	docker run --rm \
 		-v .:/project -w /project/micropython \
 		espressif/idf:${IDF_VERSION} \
