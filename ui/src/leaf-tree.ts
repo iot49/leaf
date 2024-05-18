@@ -1,11 +1,10 @@
 import { consume } from '@lit/context';
-import { SlDialog, SlSelect, SlTabGroup } from '@shoelace-style/shoelace';
+import { SlDialog, SlProgressBar, SlSelect, SlTabGroup } from '@shoelace-style/shoelace';
 import { css, html } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { api_delete, api_get, api_post, api_put } from './app/api';
 import { Config, configContext, Settings, settingsContext } from './app/context/contexts';
 import { alertDialog, confirmDialog, promptDialog } from './app/dialog';
-import { get_resource } from './app/github-releases';
 import { flash_esp } from './app/mpexec/flash_esp';
 import { MpExec } from './app/mpexec/mpexec';
 import { LeafBase } from './leaf-base';
@@ -70,7 +69,7 @@ export class LeafTree extends LeafBase {
   async connectedCallback() {
     super.connectedCallback();
     this.tree = await api_get(`tree/${this.uuid}`);
-    this.releases = await get_resource();
+    this.releases = ((await api_get('vm')) as any).releases;
   }
 
   render() {
@@ -80,7 +79,9 @@ export class LeafTree extends LeafBase {
       const me = this.settings.me;
       const admin = me.roles.includes('admin');
       const tree = this.tree;
-      return html`${this.enrollTemplate()}
+
+      return html`<script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.js"></script>
+        ${this.enrollTemplate()}
         <leaf-page>
           <nav slot="nav">Tree Details</nav>
           <main>
@@ -214,11 +215,12 @@ export class LeafTree extends LeafBase {
           <!-- SETUP -->
           <sl-tab-panel name="flash">
             <h3>Flash Firmware</h3>
-            <sl-select id="firmware" label="Chooose Firmware" value="0">
-              ${this.releases.map((release: any, index: number) => {
-                return html`<sl-option value=${index}>${release.name}</sl-option><a href="https://github.com/iot49/leaf/commits/">Change Log</a>`;
+            <sl-select id="firmware" label="Chooose Firmware Version" value=${this.releases[0].tag_name}>
+              ${this.releases.map((release: any) => {
+                return html`<sl-option value=${release.tag_name}>${release.tag_name}</sl-option>`;
               })}
             </sl-select>
+            <a href="https://github.com/iot49/leaf/commits/">Change Log</a>
             <p>Connect the device to the computer with a USB cable.</p>
             <p>
               Then put it into bootloader mode. On the ESP32-S3 this usually requires pressing and holding down the BOOT button, then briefly pressing
@@ -231,14 +233,14 @@ export class LeafTree extends LeafBase {
           <!-- FLASHING -->
           <sl-tab-panel name="flashing">
             <h3>Flashing ...</h3>
-            <div id="flash_param"></div>
-            <div id="flash_progress"></div>
+            <div id="flash-param"></div>
+            <sl-progress-bar value="0" id="progress-bar">0%</sl-progress-bar>
           </sl-tab-panel>
 
           <!-- UID -->
           <sl-tab-panel name="uid">
             <h3>Configure Device</h3>
-            <p>Connect the device with a USB cable.</p>
+            <p>Connect the device with a USB cable and press the reset button. Then click "connect" below.</p>
             <sl-button
               variant="primary"
               @click=${async (_) => {
@@ -256,7 +258,14 @@ export class LeafTree extends LeafBase {
               The status LED will blink fast when it is connected to the internet, slowly once it has connected to the earth, and stay on solid green
               when the registration is complete.
             </p>
-            <sl-button variant="primary" @click=${(_) => this.enrollDialog.hide()}>Done</sl-button>
+            <sl-button
+              variant="primary"
+              @click=${(_) => {
+                this.enrollTabs.show('flash');
+                this.enrollDialog.hide();
+              }}
+              >Done</sl-button
+            >
           </sl-tab-panel>
         </sl-tab-group>
       </sl-dialog>
@@ -264,25 +273,32 @@ export class LeafTree extends LeafBase {
   }
 
   async flash() {
-    // choose firmware, flash, reset
-    const firmware_id: any = (this.shadowRoot.querySelector('#firmware') as SlSelect).value;
-    const release: any = this.releases[firmware_id];
-    const asset = release.assets.find((asset: any) => asset.name === 'firmware.bin');
-    console.log('firmware url', asset.size, asset.created_at, asset.browser_download_url);
-    this.enrollTabs.show('flashing');
-    var headers = {
-      Accept: 'application/octet-stream',
-    };
+    const tag: any = (this.shadowRoot.querySelector('#firmware') as SlSelect).value;
+    const progress = this.shadowRoot.querySelector('#progress-bar') as SlProgressBar;
+    const flashParam = this.shadowRoot.querySelector('#flash-param') as any;
+    const eraseFlash = false;
 
-    const response = await fetch('http://cors.io/?https://github.com/iot49/leaf/blob/main/LICENSE', {
-      method: 'GET',
-      headers: headers,
-    });
-    const binary = await response.blob();
-    console.log('binary', binary.size, binary);
-    await flash_esp(asset.browser_download_url, (i, bytesSent, totalBytes) => {
-      console.log('progress', i, bytesSent, totalBytes);
-    });
+    this.enrollTabs.show('flashing');
+    try {
+      await flash_esp(
+        tag,
+        eraseFlash,
+        (chip, flashSize) => {
+          console.log('>>> chip', chip, flashSize);
+          flashParam.innerHTML = `Flashing ${tag} to ${chip} with ${flashSize / 1024} MB flash`;
+        },
+        (_, bytesSent, totalBytes) => {
+          console.log('>>> progress', bytesSent, totalBytes);
+          progress.value = (bytesSent / totalBytes) * 100;
+          progress.textContent = `${progress.value.toFixed(0)}%`;
+        }
+      );
+      this.enrollTabs.show('uid');
+    } catch (e) {
+      console.log('>>> flash error', e);
+      alertDialog('Flash Error', 'Failed to open Serial port. Is the device connected and in bootloader mode?');
+      this.enrollTabs.show('flash');
+    }
   }
 
   async registerDevice(): Promise<boolean> {

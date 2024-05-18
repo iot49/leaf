@@ -1,8 +1,32 @@
 import { ESPLoader, FlashOptions, LoaderOptions, Transport } from 'esptool-js';
 
-import { CryptoJS } from 'crypto-js';
+import { api_url } from '../env';
 
-export async function flash_esp(url, progress_callback) {
+declare let CryptoJS; // CryptoJS is imported in HTML script
+
+// this ought to be trivial, but perhaps not in JS
+function arrayBufferToString(buffer) {
+  var array = new Uint8Array(buffer);
+  var str = '';
+  for (var i = 0; i < array.length; i++) {
+    str += String.fromCharCode(array[i]);
+  }
+  return str;
+}
+const VERBOSE = false;
+const espLoaderTerminal = {
+  clean() {
+    if (VERBOSE) console.log('clean');
+  },
+  writeLine(data) {
+    if (VERBOSE) console.log(data);
+  },
+  write(data) {
+    if (VERBOSE) console.log(data);
+  },
+};
+
+export async function flash_esp(tag, eraseFlash, chip_callback, progress_callback) {
   // connect to device
   const portFilters = [
     {
@@ -14,66 +38,54 @@ export async function flash_esp(url, progress_callback) {
   const device = await (navigator as Navigator & { serial?: any }).serial?.requestPort({
     filters: portFilters,
   });
-  console.log('device', device);
   const transport = new Transport(device, true);
 
-  // create a terminal
-  const espLoaderTerminal = {
-    clean() {
-      //console.log('------------------------- clean');
-    },
-    writeLine(data) {
-      //console.log(data);
-    },
-    write(data) {
-      //console.log(data);
-    },
-  };
-
   // connect to device and flash
-  try {
-    let serialOptions = {
-      transport,
-      baudrate: 921600,
-      terminal: espLoaderTerminal,
-    } as LoaderOptions;
-    const esploader = new ESPLoader(serialOptions);
+  let serialOptions = {
+    transport,
+    baudrate: 921600,
+    terminal: espLoaderTerminal,
+    debugLogging: false,
+    enableTracing: false,
+  } as LoaderOptions;
+  const esploader = new ESPLoader(serialOptions);
 
-    // verify chip version info
-    const chip = await esploader.main();
-    const flashSize = await esploader.getFlashSize();
-    console.log(`\n${chip} with ${flashSize / 1024} MB flash\n`);
-    //term.writeln(`Flash size: ${flashSize / 1024} MB`);
-    if (chip != 'ESP32-S3') {
-      console.log(`This is a ${chip}. Leaf is currently only supported on ESP32-S3.`);
-      return;
-    }
-
-    // write flash
-    console.log('Writing flash...');
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: { 'Access-Control-Allow-Origin': 'http://localhost:5173', 'Content-Type': 'application/octet-stream' },
-    });
-    const binary = await response.blob();
-    console.log('binary', binary.size, binary);
-    const fileArray = [
-      {
-        address: 0,
-        data: '',
-      },
-    ];
-    const flashOptions = {
-      fileArray: fileArray,
-      flashSize: 'keep',
-      eraseAll: this.eraseFlash,
-      compress: true,
-      reportProgress: progress_callback,
-      calculateMD5Hash: (image) => CryptoJS.MD5(CryptoJS.enc.Latin1.parse(image)),
-    } as FlashOptions;
-    await esploader.writeFlash(flashOptions);
-  } catch (e) {
-    console.log(`Error: ${e.message}`);
+  // verify chip version info
+  const chip = await esploader.main();
+  const flashSize = await esploader.getFlashSize();
+  console.log(`\n${chip} with ${flashSize / 1024} MB flash\n`);
+  chip_callback(chip, flashSize);
+  if (chip != 'ESP32-S3') {
+    console.log(`This is a ${chip}. Leaf is currently only supported on ESP32-S3.`);
     return;
   }
+
+  // download firmware
+  console.log('Download firmware', tag);
+  const url = `${api_url}/api/vm/${tag}/ESP32_S3_N16R8/firmware.bin`;
+  const response = await fetch(url, {
+    headers: { 'Content-Type': 'application/octet-stream' },
+    responseType: 'arraybuffer',
+  } as RequestInit);
+  const array = await response.arrayBuffer();
+  const data = arrayBufferToString(array);
+
+  // write flash
+  const fileArray = [
+    {
+      address: 0,
+      data: data,
+    },
+  ];
+  const flashOptions = {
+    fileArray: fileArray,
+    flashSize: 'keep',
+    eraseAll: eraseFlash,
+    compress: true,
+    reportProgress: progress_callback,
+    calculateMD5Hash: (image) => CryptoJS.MD5(CryptoJS.enc.Latin1.parse(image)),
+  } as FlashOptions;
+  console.log('flashOptions', flashOptions);
+  await esploader.writeFlash(flashOptions);
+  console.log('Done writing flash');
 }

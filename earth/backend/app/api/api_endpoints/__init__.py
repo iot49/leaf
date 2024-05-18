@@ -4,4 +4,4 @@ from fastapi import APIRouter
 
 router = APIRouter()
 
-from . import connections, tokens, update_config
+from . import connections, tokens, update_config, vm

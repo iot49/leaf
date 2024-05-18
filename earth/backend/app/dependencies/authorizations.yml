@@ -7,6 +7,11 @@
   roles: [superuser, admin, user, guest]
   methods: [GET, PUT]
 
+# vm releases
+/vm*:
+  roles: [admin, user, guest]
+  methods: [GET]
+
 # websocket access to earth
 /client_token:
   roles: [admin, user]
