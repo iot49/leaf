@@ -50,7 +50,8 @@ jobs:
       - name: Copy boards to PORT_DIR/boards
         working-directory: ${{ env.WORKING_DIR }}
         run: |
-          echo "TAG = '${tag#v}'\nBOARD = '${{ env.BOARD }}'\nREPO = '${GITHUB_REPOSITORY}'\nIDF_VERSION = '${{ env.IDF_VERSION }}'" > ${{ env.VERSION_FILE }}
+          echo "TAG = '${tag}'\nBOARD = '${{ env.BOARD }}'\nGITHUB_REPOSITORY = '${GITHUB_REPOSITORY}'\nIDF_VERSION = '${{ env.IDF_VERSION }}'" > ${{ env.VERSION_FILE }}
+          cat ${{ env.VERSION_FILE }}
           mkdir -p ${{ env.PORT_DIR }}/boards
           cp -a boards/${{ env.BOARD }} ${{ env.PORT_DIR }}/boards
           # Hack: sometimes (???) idf looks for custom partition table in PORT_DIR

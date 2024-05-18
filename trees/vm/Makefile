@@ -8,17 +8,19 @@ PORT_DIR=micropython/ports/esp32
 BUILD_DIR=${PORT_DIR}/build-${BOARD}
 FIRMWARE_DIR=firmware/${BOARD}/$(shell date +%Y%m%d-%H%M%S)
 LATEST_FIRMWARE_DIR=firmware/${BOARD}/latest
+GITHUB_REPOSITORY=https://github.com/iot49/leaf.git
+IDF_VERSION=v5.0.4
 
-TAG := $(shell date +"%Y.%m.%d")
+tag := $(shell date +"%Y.%m.%d")
 
 
 .PHONY: build dependencies flash
 
 build: dependencies
-	echo "TAG = '${TAG}'" > ${VERSION_FILE}
+	echo "TAG = '${tag#v}'\nBOARD = '${BOARD}'\nGITHUB_REPOSITORY = '${GITHUB_REPOSITORY}'\nIDF_VERSION = '${IDF_VERSION}'" > ${VERSION_FILE}
 	docker run --rm \
 		-v .:/project -w /project/micropython \
-		espressif/idf:v5.0.4 \
+		espressif/idf:${IDF_VERSION} \
 		bash -c " \
 			make -C mpy-cross; \
 			cd ports/esp32; \
@@ -32,6 +34,10 @@ build: dependencies
 	cp ${BUILD_DIR}/{firmware.bin,micropython.bin,micropython.uf2} ${FIRMWARE_DIR}
 	mkdir -p ${LATEST_FIRMWARE_DIR}
 	cp ${BUILD_DIR}/{firmware.bin,micropython.bin,micropython.uf2} ${LATEST_FIRMWARE_DIR}
+	@echo Cleaning up
+	rm -rf ${PORT_DIR}/build-${BOARD}
+	rm -rf ${PORT_DIR}/boards/${BOARD}
+	rm ${PORT_DIR}/partitions-S3*
 
 dependencies:
 	git submodule update --init micropython
