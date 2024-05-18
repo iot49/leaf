@@ -193,6 +193,7 @@ export class LeafTree extends LeafBase {
                   return;
                 }
                 (this.enrollDialog as any).branch_id = branch_id;
+                this.enrollTabs.show('firmware');
                 this.enrollDialog.show();
               }}
             >
@@ -207,13 +208,13 @@ export class LeafTree extends LeafBase {
     return html`
       <sl-dialog id="enroll" label="Enroll New Branch" style="--width: 80vw;">
         <sl-tab-group id="enroll-tabs" placement="start">
-          <sl-tab slot="nav" panel="flash">Setup</sl-tab>
+          <sl-tab slot="nav" panel="firmware">Firmware</sl-tab>
           <sl-tab slot="nav" panel="flashing">Flashing ...</sl-tab>
           <sl-tab slot="nav" panel="uid">Read MAC Address</sl-tab>
           <sl-tab slot="nav" panel="register">Register with Earth</sl-tab>
 
           <!-- SETUP -->
-          <sl-tab-panel name="flash">
+          <sl-tab-panel name="firmware">
             <h3>Flash Firmware</h3>
             <sl-select id="firmware" label="Chooose Firmware Version" value=${this.releases[0].tag_name}>
               ${this.releases.map((release: any) => {
@@ -246,26 +247,27 @@ export class LeafTree extends LeafBase {
               @click=${async (_) => {
                 if (await this.registerDevice()) this.enrollTabs.show('register');
               }}
-              >Connect</sl-button
-            >
+              >Connect</sl-button>
           </sl-tab-panel>
 
           <!-- REGISTER: read mac, write config to device, device will contact server and complete registration -->
           <sl-tab-panel name="register">
             <h3>Provision Device & register with Earth</h3>
-            <p>Device is connecting to the earth and completing the registration.</p>
             <p>
-              The status LED will blink fast when it is connected to the internet, slowly once it has connected to the earth, and stay on solid green
-              when the registration is complete.
+              Wifi credentials and configuration data will be written to the device. Then the device connects to the earth and completes the
+              registration.
+            </p>
+            <p>
+              The status LED will blink fast when it is connected to the internet, slowly once it has connected to the earth, and stay on solid when
+              the registration is complete.
             </p>
             <sl-button
               variant="primary"
               @click=${(_) => {
-                this.enrollTabs.show('flash');
+                this.enrollTabs.show('firmware');
                 this.enrollDialog.hide();
-              }}
-              >Done</sl-button
-            >
+              }}>
+              </sl-button>Done</sl-button>
           </sl-tab-panel>
         </sl-tab-group>
       </sl-dialog>
@@ -297,7 +299,7 @@ export class LeafTree extends LeafBase {
     } catch (e) {
       console.log('>>> flash error', e);
       alertDialog('Flash Error', 'Failed to open Serial port. Is the device connected and in bootloader mode?');
-      this.enrollTabs.show('flash');
+      this.enrollTabs.show('firmware');
     }
   }
 

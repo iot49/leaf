@@ -1,3 +1,4 @@
+import json
 import logging
 from datetime import datetime
 
@@ -6,8 +7,6 @@ from cachetools import TTLCache, cached
 from fastapi import HTTPException, Response
 from pydantic import BaseModel
 from pydantic_core import Url
-
-from app.api.api_endpoints.git_releases import RESOURCE
 
 from ...env import env
 from . import router
@@ -67,9 +66,11 @@ async def get_binary(tag: str = "v0.0.8", board: str = "ESP32_S3_N16R8", file="m
 
 @router.get("/vm", response_model=GitReleases)
 async def get_releases() -> GitReleases:
-    # resource = await get_resource("releases")
-    resource = RESOURCE
-    return GitReleases.model_validate({"releases": resource})
+    resource = await get_resource("releases")
+    print(json.dumps(resource, indent=2))
+    model = GitReleases.model_validate({"releases": resource})
+    print(model.model_dump_json(indent=2))
+    return model
 
 
 @router.get("/vm/{tag}/{board}/{file}", response_class=OctetStreamResponse)
