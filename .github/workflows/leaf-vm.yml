@@ -39,12 +39,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: ls ROOT
-        run: |
-          echo github.workspace: ${{ github.workspace }}
-          ls -l
-          ls -l ${{ github.workspace }}
-
       - name: Checkout required submodules
         working-directory: ${{ env.WORKING_DIR }}
         run: |
@@ -75,12 +69,7 @@ jobs:
           options: -v ${{ github.workspace }}:/project -w /project/${{ env.PORT_DIR }} -e BOARD=${{ env.BOARD }} -e USER_C_MODULES=/project/${{ env.USER_C_MODULES }} -e FROZEN=/project/${{ env.FROZEN }}
           run: |
             . $IDF_PATH/export.sh
-            ls -l
-            echo ls /project
-            ls -l /project
-            cd ${{ env.WORKING_DIR }}
-            ls -l
-            ls -l ../
+            cd /project/${{ env.WORKING_DIR }}
             # make sure FROZEN_MANIFEST is not set when running mpy-cross
             make -C micropython/mpy-cross 
             cd ${{ env.PORT_DIR }}
