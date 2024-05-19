@@ -30,7 +30,6 @@ jobs:
 
       - name: Display env
         run: |
-          ls -l
           echo BOARD=${{ env.BOARD }}
           echo BUILD_DIR=${{ env.BUILD_DIR }}
           echo PORT_DIR=${{ env.PORT_DIR }}
@@ -40,6 +39,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: ls ROOT
+        run: |
+          ls -l
       - name: Checkout required submodules
         working-directory: ${{ env.WORKING_DIR }}
         run: |
