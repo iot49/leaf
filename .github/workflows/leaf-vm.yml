@@ -66,7 +66,7 @@ jobs:
         with:
           # https://github.com/espressif/esp-idf/blob/master/tools/docker/Dockerfile
           image: espressif/idf:${{ env.IDF_VERSION }}
-          options: -v ${{ github.workspace }}:/project -w /project/${{ env.PORT_DIR }} -e BOARD=${{ env.BOARD }} -e USER_C_MODULES=/project/${{ env.USER_C_MODULES }} -e FROZEN=/project/${{ env.FROZEN }}
+          options: -v ${{ github.workspace }}:/project -w /project/${{ env.PORT_DIR }} -e BOARD=${{ env.BOARD }} -e USER_C_MODULES=/project/${{ env.WORKING_DIR }}/${{ env.USER_C_MODULES }} -e FROZEN=/project/${{ env.WORKING_DIR }}/${{ env.FROZEN }}
           run: |
             . $IDF_PATH/export.sh
             cd /project/${{ env.WORKING_DIR }}
