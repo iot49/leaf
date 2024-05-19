@@ -94,10 +94,6 @@ def put_config(data: dict, dst: str = "#server"):
     return make_event(event_type.PUT_CONFIG, dst, data=data)
 
 
-def update_config(data: dict, dst: str = "#branches"):
-    return make_event(event_type.UPDATE_CONFIG, dst, data=data)
-
-
 # connection management
 def hello_connected(param: dict):
     return {"type": event_type.HELLO_CONNECTED, "param": param}

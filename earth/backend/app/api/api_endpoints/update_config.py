@@ -93,7 +93,8 @@ async def update_config():
         json.dump(cfg, f, indent=2)
 
     # broadcast the updated config to all connected trees and clients
-    await post(put_config(dst="#all", data=cfg))
+    await post(put_config(dst="#clients", data=cfg))
+    await post(put_config(dst="#branches", data=cfg))
 
     # create backup
     shutil.copytree(os.path.join(CONFIG_DIR, "user-config"), os.path.join(CONFIG_DIR, "backups", VERSION))

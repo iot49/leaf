@@ -11,7 +11,6 @@ GET_STATE = "get_state"
 GET_LOG = "get_log"
 GET_CONFIG = "get_config"
 PUT_CONFIG = "put_config"
-UPDATE_CONFIG = "update_config"
 
 # log message
 LOG = "log"

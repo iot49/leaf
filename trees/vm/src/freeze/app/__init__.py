@@ -8,7 +8,7 @@ from os.path import isfile
 import machine  # type: ignore
 
 from eventbus.bus import Config, CurrentState, Log
-from eventbus.event import get_src_addr, set_src_addr
+from eventbus.event import set_src_addr
 
 from .led import led  # noqa: F401
 

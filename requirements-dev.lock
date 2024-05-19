@@ -44,6 +44,8 @@ async-lru==2.0.4
 async-timeout==4.0.3
     # via asyncpg
     # via leaves
+asyncache==0.3.1
+    # via leaves
 asyncer==0.0.5
     # via leaves
 asyncpg==0.29.0
@@ -69,6 +71,7 @@ bitstring==4.1.4
 bleach==6.1.0
     # via nbconvert
 cachetools==5.3.3
+    # via asyncache
     # via leaves
 certifi==2024.2.2
     # via httpcore

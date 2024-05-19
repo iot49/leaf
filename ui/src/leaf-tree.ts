@@ -258,8 +258,8 @@ export class LeafTree extends LeafBase {
               registration.
             </p>
             <p>
-              The status LED will blink fast when it is connected to the internet, slowly once it has connected to the earth, and stay on solid when
-              the registration is complete.
+              The status LED will blink fast when the app is running, slowly once it is connected to wifi, and stay on solid 
+              after connecting to the earth server.
             </p>
             <sl-button
               variant="primary"
