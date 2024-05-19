@@ -17,6 +17,7 @@ tag := $(shell date +"%Y.%m.%d")
 .PHONY: build dependencies flash
 
 build: dependencies clean
+	@echo "!!! LOCAL BUILD broken - evenbus not mapped !!!"
 	echo "TAG = '${tag}'\nBOARD = '${BOARD}'\nGITHUB_REPOSITORY = '${GITHUB_REPOSITORY}'\nIDF_VERSION = '${IDF_VERSION}'" > ${VERSION_FILE}
 	docker run --rm \
 		-v .:/project -w /project/micropython \

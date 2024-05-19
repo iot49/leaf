@@ -3,7 +3,8 @@ import logging
 from datetime import datetime
 
 import aiohttp
-from cachetools import TTLCache, cached
+from asyncache import cached
+from cachetools import TTLCache
 from fastapi import HTTPException, Response
 from pydantic import BaseModel
 from pydantic_core import Url
@@ -50,7 +51,7 @@ async def get_resource(resource: str = "releases"):
             return await response.json()
 
 
-# @cached(cache=TTLCache(maxsize=32, ttl=24 * 3600))
+@cached(cache=TTLCache(maxsize=32, ttl=24 * 3600))
 async def get_binary(tag: str = "v0.0.8", board: str = "ESP32_S3_N16R8", file="micropython.bin"):
     url = f"https://github.com/{env.GITHUB_OWNER}/{env.GITHUB_REPO}/releases/download/{tag}/{board}-{file}"
     headers = {
