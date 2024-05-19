@@ -72,7 +72,7 @@ jobs:
         with:
           # https://github.com/espressif/esp-idf/blob/master/tools/docker/Dockerfile
           image: espressif/idf:${{ env.IDF_VERSION }}
-          options: -v /home/runner/work/leaf/leaf:/project -w /project/${{ env.PORT_DIR }} -e BOARD=${{ env.BOARD }} -e USER_C_MODULES=/project/${{ env.USER_C_MODULES }} -e FROZEN=/project/${{ env.FROZEN }}
+          options: -v ${{ github.workspace }}:/project -w /project/${{ env.PORT_DIR }} -e BOARD=${{ env.BOARD }} -e USER_C_MODULES=/project/${{ env.USER_C_MODULES }} -e FROZEN=/project/${{ env.FROZEN }}
           run: |
             . $IDF_PATH/export.sh
             ls -l
@@ -82,12 +82,13 @@ jobs:
             ls -l
             ls -l ../
             # make sure FROZEN_MANIFEST is not set when running mpy-cross
-            make -C /project/micropython/mpy-cross 
+            make -C micropython/mpy-cross 
+            cd ${{ env.PORT_DIR }}
             make BOARD=${BOARD} clean
             make V=1 BOARD=${BOARD} FROZEN_MANIFEST=${FROZEN}
             # rename so we can release multiple versions for different boards
-            mv /project/${{ env.BUILD_DIR }}/firmware.bin    /project/${{ env.BUILD_DIR }}/${{ env.BOARD }}-firmware.bin
-            mv /project/${{ env.BUILD_DIR }}/micropython.bin /project/${{ env.BUILD_DIR }}/${{ env.BOARD }}-micropython.bin
+            mv ${{ env.BUILD_DIR }}/firmware.bin    ${{ env.BUILD_DIR }}/${{ env.BOARD }}-firmware.bin
+            mv ${{ env.BUILD_DIR }}/micropython.bin ${{ env.BUILD_DIR }}/${{ env.BOARD }}-micropython.bin
 
       - name: Release
         working-directory: ${{ env.WORKING_DIR }}/${{ env.PORT_DIR }}
