@@ -3,11 +3,19 @@ import json
 import logging
 import time
 
+import esp32  # type: ignore
 import ntptime  # type: ignore
 
 from eventbus import EventBus, event_type, subscribe
 
-from . import branch_id, config, secrets, tree_id
+from . import (
+    branch_id,
+    config,
+    led,
+    ota,  # noqa: F401
+    secrets,
+    tree_id,
+)
 from .gateway import Gateway  # type: ignore
 from .wifi import wifi
 
@@ -32,11 +40,13 @@ class UpdateListener(EventBus):
                 logger.info(f"Updating secrets from {secrets.get('version')} --> {new_version}")
                 f.write(json.dumps(data))
         elif tp == event_type.PUT_CERT:
-            logger.info(f"GOT certs: {event}")
+            logger.info(f"Updating certs: {event}")
 
 
 async def main_task(testing):
     async with wifi:
+        # Printer()
+        led.pattern = led.GREEN_BLINK_FAST
         ntptime.settime()
         t = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time()))
         logger.info(f"Time set to {t}")
@@ -52,25 +62,29 @@ async def main_task(testing):
                 await m.init(**(param or {}))
             logger.info(f"Loaded plugin {mod} with {param}")
 
+        # since we got here, we assume the app is working
+        logger.debug("esp32.Partition.mark_app_valid_cancel_rollback()")
+        esp32.Partition.mark_app_valid_cancel_rollback()
+
         # connect to earth
         gateway = Gateway()
-        reconnect_delay = 10
+        reconnect_delay = 1
         while True:
-            msg = await gateway.connnect(testing)
-            logger.info(f"Disconnected: {msg}")
-            if msg == "server unreachable":
-                await asyncio.sleep(reconnect_delay)
-                reconnect_delay = min(600, reconnect_delay * 2)
-            else:
-                reconnect_delay = 10
+            await gateway.connnect(testing)
+            logger.info("Disconnected")
+            await asyncio.sleep(reconnect_delay)
+            reconnect_delay = min(5, reconnect_delay * 2)
 
 
 async def main(testing):
     logger.info("Starting main")
+    asyncio.create_task(led.run())
+    led.pattern = led.GREEN_BLINK_SLOW
     while True:
         try:
             await main_task(testing)
         except Exception as e:
-            logger.exception(f"??? main: {e}", exc_info=e)
+            print("exception in main", e)
+            logger.exception(f"??? main: {e}")
         finally:
             asyncio.new_event_loop()

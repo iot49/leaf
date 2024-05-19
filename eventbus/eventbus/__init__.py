@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from abc import abstractmethod
 from typing import Awaitable, Callable
 
@@ -35,6 +36,8 @@ Mandatory fields:
 - dst: Addr
 """
 
+logger = logging.getLogger(__name__)
+
 
 class EventBus:
     """EventBus interface."""
@@ -49,6 +52,7 @@ async def post(event: Event) -> None:
     """Post event on all subscribers."""
     global _subscribers
     for subscriber in _subscribers:
+        logger.debug(f"{event.get('type')} -> {subscriber}")
         await subscriber.post(event)
 
 

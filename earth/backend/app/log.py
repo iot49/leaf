@@ -1,11 +1,13 @@
 import json
 import logging
-from logging import Formatter
+import traceback
+from io import StringIO
+from logging import Formatter, Handler
 
-from colored import Fore, Style
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from eventbus import post_sync
+from eventbus.bus.log import Log
 from eventbus.event import log_event
 
 
@@ -40,38 +42,33 @@ class JsonFormatter(Formatter):
         return json.dumps(json_record)
 
 
-class PrintFormatter(Formatter):
+class EventLogHandler(Handler):
     def __init__(self):
-        super(PrintFormatter, self).__init__()
+        super(EventLogHandler, self).__init__()
 
-    def format(self, record):
-        colors = {
-            logging.DEBUG: Fore.blue,
-            logging.INFO: Fore.green,
-            logging.WARNING: Fore.yellow,
-            logging.ERROR: Fore.red,
-            logging.CRITICAL: Fore.magenta,
-        }
-        return f"{colors[record.levelno]}{record.levelname+':':9}{Style.reset} {record.name:12} {record.funcName:12} {record.getMessage()}"
-
-
-class EventLogHandler(logging.Handler):
     def emit(self, record):
         event = log_event(
             levelname=record.levelname,
             levelno=record.levelno,
             timestamp=record.created,
             name=record.name,
+            funcName=record.funcName,
             message=record.getMessage(),
         )
+        if record.exc_info:
+            buf = StringIO()
+            print(traceback.print_tb(record.exc_info[2], file=buf))
+            event["traceback"] = buf.getvalue()
         post_sync(event)
 
 
 logger = logging.root
-handler = logging.StreamHandler()
-# handler.setFormatter(JsonFormatter())
-handler.setFormatter(PrintFormatter())
-logger.handlers = [handler, EventLogHandler()]
+logger.handlers = [EventLogHandler()]
 logger.setLevel(logging.ERROR)
 
 logging.getLogger("uvicorn.access").disabled = True
+
+log_history = Log(size=500)
+
+
+# handler.setFormatter(JsonFormatter())

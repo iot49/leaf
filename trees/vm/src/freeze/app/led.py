@@ -1,6 +1,7 @@
 import asyncio
+import logging
 
-from bsp import LED
+from bsp import LED  # type: ignore
 from machine import Pin  # type: ignore
 from neopixel import NeoPixel  # type: ignore
 
@@ -14,6 +15,8 @@ Example:
     led.pattern = led.BLUE_BLINK_SLOW
 """
 
+logger = logging.getLogger(__name__)
+
 
 class _LED:
     # few colors ...
@@ -25,7 +28,7 @@ class _LED:
 
     # few patterns
     # format: list/tuple of (color, duration_ms)
-    LED_OFF = (OFF, 1000)
+    LED_OFF = ((OFF, 1000),)
 
     RED_BLINK_SLOW = ((RED, 150), (OFF, 1500))
     RED_BLINK_FAST = ((RED, 150), (OFF, 150))
@@ -41,17 +44,30 @@ class _LED:
 
     def __init__(self):
         self._np = NeoPixel(Pin(LED), 1)
-        self.pattern = self.GREEN_BLINK_SLOW
+        self._pattern: tuple = self.RED_BLINK_SLOW
+
+    @property
+    def pattern(self):
+        return self._pattern
+
+    @pattern.setter
+    def pattern(self, value: tuple):
+        if not isinstance(value[0], (list, tuple)):
+            value = ((value, 1000),)
+        self._pattern = value
+        asyncio.create_task(self.run())
 
     async def run(self):
-        print("led.run")
         n = -1
-        while True:
-            n = (n + 1) % len(self.pattern)
-            color, ms = self.pattern[n]
-            self._np[0] = color
-            self._np.write()
-            await asyncio.sleep_ms(ms)
+        try:
+            while True:
+                n = (n + 1) % len(self._pattern)
+                color, ms = self._pattern[n]
+                self._np[0] = color
+                self._np.write()
+                await asyncio.sleep_ms(ms)  # type: ignore
+        except Exception as e:
+            logger.exception(f"{e} n={n} pattern={self._pattern}[{n}] = {self._pattern[n]}")
 
 
 # create led singleton

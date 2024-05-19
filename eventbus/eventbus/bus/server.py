@@ -14,7 +14,14 @@ from eventbus import event_type
 from eventbus.event import get_auth
 
 from .. import Event, EventBus, post, subscribe, unsubscribe
-from ..event import bye_timeout, hello_already_connected, hello_connected, hello_invalid_token, pong, state
+from ..event import (
+    bye_timeout,
+    hello_already_connected,
+    hello_connected,
+    hello_invalid_token,
+    pong,
+    state,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -119,6 +126,10 @@ class Server(EventBus):
             return
         # address filter
         dst = event.get("dst", "")
+        if event["type"] == event_type.LOG:
+            logger.debug(
+                f"LOG src={event.get('src')} dst={dst}, gateway={self.gateway}, addr_filter={self.addr_filter(dst)}"
+            )
         if self.addr_filter(dst):
             try:
                 # TODO: batch send events as lists
@@ -168,7 +179,7 @@ class Server(EventBus):
                 logger.error(f"WebSocketDisconnect {e}")
                 self.closed = True
             except Exception as e:
-                logger.exception(f"{type(e)} receiver_task {e}", exc_info=e)
+                logger.exception(e, exc_info=e)
                 self.closed = True
         try:
             await self.transport.close()

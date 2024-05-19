@@ -6,9 +6,9 @@ import os
 import aiohttp
 
 from eventbus import Event, EventBus, event_type, post, subscribe, unsubscribe
-from eventbus.event import get_cert, get_config, get_log, get_secrets, get_state, ping
+from eventbus.event import get_cert, get_config, get_secrets, get_state, ping
 
-from . import CERT_DIR, DOMAIN, TEST_DOMAIN, config, secrets
+from . import CERT_DIR, DOMAIN, TEST_DOMAIN, config, led, secrets
 from .wifi import wifi
 
 logger = logging.getLogger(__name__)
@@ -64,6 +64,7 @@ class Gateway(EventBus):
             ]
             subscribe(self)
             logger.info(f"Connected - {hello_msg}")
+            led.pattern = led.GREEN
             await asyncio.gather(*tasks, return_exceptions=True)
             return "connection closed"
         else:
@@ -78,9 +79,8 @@ class Gateway(EventBus):
 
     async def _receiver_task(self):
         ws = self._ws
-        # update config & get current state, log
+        # get current state
         await ws.send_json(get_state())
-        await ws.send_json(get_log())
 
         # wait for messages
         async for msg in ws:

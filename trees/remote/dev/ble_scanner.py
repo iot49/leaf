@@ -2,7 +2,7 @@ import aioble  # type: ignore
 
 
 async def init(duration_ms: int = 500, active=True) -> None:
-    from .ble_parser import govee, victron
+    from ...vm.src.freeze.plugins.ble_parser import govee, victron
 
     parsers = [govee.parser, victron.parser]
     while True:

@@ -35,3 +35,9 @@ BYE = "bye"
 BYE_TIMEOUT = "bye_timeout"
 
 CLEAR_COUNTER = "clear_counter"
+
+# ota
+OTA = "ota"  # with params = {tag="v0.1.0", dry_run=True, sha}
+OTA_PROGRESS = "ota_progress"
+OTA_COMPLETE = "ota_complete"
+OTA_FAILED = "ota_failed"

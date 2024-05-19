@@ -16,7 +16,7 @@ tag := $(shell date +"%Y.%m.%d")
 
 .PHONY: build dependencies flash
 
-build: dependencies
+build: dependencies clean
 	echo "TAG = '${tag}'\nBOARD = '${BOARD}'\nGITHUB_REPOSITORY = '${GITHUB_REPOSITORY}'\nIDF_VERSION = '${IDF_VERSION}'" > ${VERSION_FILE}
 	docker run --rm \
 		-v .:/project -w /project/micropython \
@@ -57,3 +57,7 @@ flash-download:
 	@ls /dev/*usb*
 	esptool.py erase_flash
 	esptool.py --chip esp32s3 write_flash -z 0 ~/Downloads/UM_PROS3*.bin
+
+clean:
+	@echo "Removing python cache files..."
+	find ../.. -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete

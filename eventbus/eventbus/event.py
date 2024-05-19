@@ -141,4 +141,4 @@ def state_action(state: dict, action: str, param=None):
 
 # logging
 def log_event(**event):
-    return make_event(event_type.LOG, "#clients", **event)
+    return make_event(event_type.LOG, dst="#clients", **event)

@@ -2,15 +2,11 @@ import { consume } from '@lit/context';
 import { css, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import { Config, configContext, type Log, logContext } from './app/context/contexts';
+import { type Log, logContext } from './app/context/contexts';
 import { LeafBase } from './leaf-base';
 
 @customElement('leaf-log')
 export class LeafLog extends LeafBase {
-  @consume({ context: configContext, subscribe: true })
-  @property({ attribute: false })
-  private config: Config;
-
   @consume({ context: logContext, subscribe: true })
   @property({ attribute: false })
   private log: Log;
@@ -56,10 +52,11 @@ export class LeafLog extends LeafBase {
   ];
 
   entry_template(entry) {
-    //const epoch_offset = this.config.app.epoch_offset || 946684800;
+    const date = new Date(0);
+    date.setUTCSeconds(entry.timestamp);
     return html`
       <div class="entry">
-        <span class="timestamp">${new Date(1000 * entry.ct /* + epoch_offset*/).toISOString().split('.')[0]}</span>
+        <span class="timestamp">${date.toISOString().split('.')[0]}</span>
         <span class="level">${entry.levelname}</span>
         <span class="name">${entry.name}</span>
         <span class="message">${entry.message}</span>

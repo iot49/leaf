@@ -11,12 +11,14 @@ freeze("lib")
 # packages
 package("app")
 package("plugins")
+package("eventbus", base_path="../../eventbus")
 
 # micropython-lib
 require("aioble")
 require("bmi270")
 require("espflash")
 
+# require("aiohttp")  bug in ws
 require("iperf3")
 require("pyjwt")
 
@@ -51,5 +53,6 @@ require("textwrap")
 require("time")
 require("traceback")
 require("unittest-discover")
+# require("urllib.urequest")  no redirects
 require("uu")
 require("zlib")

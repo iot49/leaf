@@ -2,12 +2,15 @@ import json
 import logging
 import sys
 import time
+from io import StringIO
 from os.path import isfile
 
 import machine  # type: ignore
 
 from eventbus.bus import Config, CurrentState, Log
-from eventbus.event import set_src_addr
+from eventbus.event import get_src_addr, set_src_addr
+
+from .led import led  # noqa: F401
 
 EPOCH_OFFSET = 946684800 if time.gmtime(0)[0] == 2000 else 0
 CERT_DIR = "/certs"
@@ -31,8 +34,11 @@ def configure_logging():
                 name=record.name,
                 message=record.message,
             )
+            if False and record.exc_info:
+                buf = StringIO()
+                sys.print_exception(record.exc_info, buf)  # type: ignore
+                event["traceback"] = buf.getvalue()
             post_sync(event)
-            # print(event["levelname"], event["name"], event["message"])
 
     root_logger = logging.getLogger()
     # remove default handler
