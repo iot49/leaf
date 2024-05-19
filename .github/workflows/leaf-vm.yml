@@ -41,14 +41,13 @@ jobs:
 
       - name: ls ROOT
         run: |
+          echo github.workspace: ${{ github.workspace }}
           ls -l
-          pwd
-          pwd -P
+          ls -l ${{ github.workspace }}
+
       - name: Checkout required submodules
         working-directory: ${{ env.WORKING_DIR }}
         run: |
-          pwd
-          ls -l
           git submodule update --init micropython
           cd micropython; git submodule update --init lib/berkeley-db-1.xx lib/micropython-lib
 
@@ -77,6 +76,8 @@ jobs:
           run: |
             . $IDF_PATH/export.sh
             ls -l
+            echo ls /project
+            ls -l /project
             cd ${{ env.WORKING_DIR }}
             ls -l
             ls -l ../
