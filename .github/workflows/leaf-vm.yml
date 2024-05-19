@@ -68,9 +68,12 @@ jobs:
         with:
           # https://github.com/espressif/esp-idf/blob/master/tools/docker/Dockerfile
           image: espressif/idf:${{ env.IDF_VERSION }}
-          options: -v ${{ github.workspace }}/${{ env.WORKING_DIR }}:/project -w /project/${{ env.PORT_DIR }} -e BOARD=${{ env.BOARD }} -e USER_C_MODULES=/project/${{ env.USER_C_MODULES }} -e FROZEN=/project/${{ env.FROZEN }}
+          options: -v ${{ github.workspace }}:/project -w /project/${{ env.PORT_DIR }} -e BOARD=${{ env.BOARD }} -e USER_C_MODULES=/project/${{ env.USER_C_MODULES }} -e FROZEN=/project/${{ env.FROZEN }}
           run: |
             . $IDF_PATH/export.sh
+            cd ${{ env.WORKING_DIR }}
+            ls -l
+            ls -l ../../eventbus
             # make sure FROZEN_MANIFEST is not set when running mpy-cross
             make -C /project/micropython/mpy-cross 
             make BOARD=${BOARD} clean
