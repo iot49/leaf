@@ -3,8 +3,8 @@ import { css, html, PropertyValueMap } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import 'python-format-js';
 
-import { type State, stateContext } from './app/context/contexts';
-import { LeafBase } from './leaf-base';
+import { type State, stateContext } from '../app/context/contexts';
+import { LeafBase } from '../leaf-base';
 
 @customElement('leaf-entity')
 export class LeafEntity extends LeafBase {

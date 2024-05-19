@@ -1,12 +1,12 @@
 import os
 
-from app.env import env as env  # noqa: E402
 from eventbus.bus import Config, CurrentState
 
+from ..env import env as env
 from .certificates import Certificates
 from .secrets import Secrets
 
-config = Config(config_file=os.path.join(env.CONFIG_DIR, "config.json"))  # type: ignore
+config = Config(config_file=os.path.join(env.CONFIG_DIR, "config.json"))
 state = CurrentState()
 Secrets()
 Certificates()

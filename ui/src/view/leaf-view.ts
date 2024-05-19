@@ -2,9 +2,9 @@ import { consume } from '@lit/context';
 import { css, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { choose } from 'lit/directives/choose.js';
-import { Config, configContext } from './app/context/contexts';
-import { alertDialog } from './app/dialog';
-import { LeafBase } from './leaf-base';
+import { Config, configContext } from '../app/context/contexts';
+import { alertDialog } from '../app/dialog';
+import { LeafBase } from '../leaf-base';
 
 @customElement('leaf-view')
 export class LeafView extends LeafBase {

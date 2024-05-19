@@ -8,16 +8,14 @@ export * from './leaf-base';
 export * from './leaf-main';
 
 export * from './leaf-accounts';
+export * from './leaf-config-editor';
 export * from './leaf-log';
 export * from './leaf-page';
 export * from './leaf-tree';
 export * from './leaf-trees';
 
-export * from './leaf-entities';
-export * from './leaf-entity';
-export * from './leaf-view';
-
-export * from './leaf-exec';
-export * from './leaf-flash';
+export * from './view/leaf-entities';
+export * from './view/leaf-entity';
+export * from './view/leaf-view';
 
 // import "@shoelace-style/shoelace/dist/shoelace.js";

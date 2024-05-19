@@ -1,8 +1,8 @@
 import { consume } from '@lit/context';
 import { html, PropertyValueMap } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { State, stateContext } from './app/context/contexts';
-import { LeafBase } from './leaf-base';
+import { State, stateContext } from '../app/context/contexts';
+import { LeafBase } from '../leaf-base';
 
 @customElement('leaf-entities')
 export class LeafEntities extends LeafBase {

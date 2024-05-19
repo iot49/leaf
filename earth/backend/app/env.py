@@ -74,7 +74,7 @@ class Env(BaseSettings):
     @property
     def CONFIG_DIR(self) -> str:
         dir = "/home/config"
-        return dir if os.path.isdir(dir) else env.LOCAL_CONFIG_DIR
+        return env.CONFIG_DIR if os.path.isdir(dir) else env.LOCAL_CONFIG_DIR
 
     @property
     def UI_DIR(self) -> str:

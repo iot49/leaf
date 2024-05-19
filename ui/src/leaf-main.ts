@@ -43,8 +43,7 @@ export class LeafMain extends LeafContext {
       render: ({ view_id }) => html`<leaf-view view_id=${parseInt(view_id)}></leaf-view>`,
     },
     { path: '/ui/log', render: () => html`<leaf-log></leaf-log>` },
-    { path: '/ui/flash', render: () => html`<leaf-flash></leaf-flash>` },
-    { path: '/ui/exec', render: () => html`<leaf-exec></leaf-exec>` },
+    { path: '/ui/config', render: () => html`<leaf-config-editor></leaf-config-editor>` },
     {
       path: '/ui/enter/:params',
       render: (params) => html`<h1>Enter ${JSON.stringify(params)}</h1>`,

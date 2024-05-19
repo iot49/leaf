@@ -15,6 +15,7 @@ export class LeafLog extends LeafBase {
     ...LeafBase.styles,
     css`
       main {
+        width: 100vw;
         display: flex;
         flex-direction: column;
         overflow: auto;
