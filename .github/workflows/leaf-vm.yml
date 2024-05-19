@@ -30,6 +30,7 @@ jobs:
 
       - name: Display env
         run: |
+          ls -l
           echo BOARD=${{ env.BOARD }}
           echo BUILD_DIR=${{ env.BUILD_DIR }}
           echo PORT_DIR=${{ env.PORT_DIR }}
