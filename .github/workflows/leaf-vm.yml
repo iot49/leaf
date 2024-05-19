@@ -42,6 +42,7 @@ jobs:
       - name: ls ROOT
         run: |
           ls -l
+          pwd
       - name: Checkout required submodules
         working-directory: ${{ env.WORKING_DIR }}
         run: |
