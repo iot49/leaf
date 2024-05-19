@@ -115,6 +115,12 @@ export class LeafTrees extends LeafBase {
                       ?disabled=${!this.connected}
                       @click=${(_) => this.goto(`tree/${tree.uuid}`)}
                     ></sl-icon-button>
+                    <sl-icon-button
+                      library="mdi"
+                      name="memory-arrow-down"
+                      ?disabled=${!this.connected}
+                      @click=${async (_) => await this.ota(tree.tree_id)}
+                    ></sl-icon-button>
                     <sl-icon-button library="mdi" name="bluetooth" ?disabled=${tree.disabled} @click=${(_) => console.log('BT')}></sl-icon-button>
                     <sl-icon-button library="mdi" name="wifi" ?disabled=${tree.disabled} @click=${(_) => console.log('Wifi')}></sl-icon-button>
                   </td>
@@ -151,5 +157,11 @@ export class LeafTrees extends LeafBase {
         </main>
       </leaf-page>
     `;
+  }
+
+  async ota(dst: string) {
+    const tag = 'v0.0.30';
+    console.log('TODO: ota - determine tag!', tag);
+    await eventbus.postEvent({ type: 'ota', dst: dst, tag: tag });
   }
 }
