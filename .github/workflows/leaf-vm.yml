@@ -49,8 +49,9 @@ jobs:
           image: espressif/idf:${{ env.IDF_VERSION }}
           options: -v ${{ github.workspace }}:/project -w /project/trees/vm/micropython -e BOARD=${{ env.BOARD }}
           run: |
-            make -C mpy-cross; \
-            make -C ports/esp32 BOARD=${BOARD} clean; \
+            . $IDF_PATH/export.sh
+            make -C mpy-cross
+            make -C ports/esp32 BOARD=${BOARD} clean
             make -C ports/esp32 V=1 \
                 BOARD=${BOARD} \
                 USER_C_MODULES=../../../../src/modules/micropython.cmake \
