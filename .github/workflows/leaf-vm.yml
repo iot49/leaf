@@ -54,7 +54,7 @@ jobs:
             make -C ports/esp32 V=1 \
                 BOARD=${BOARD} \
                 USER_C_MODULES=../../../../src/modules/micropython.cmake \
-                FROZEN_MANIFEST=../../../../../../src/freeze/manifest.py"
+                FROZEN_MANIFEST=../../../../../../src/freeze/manifest.py
 
             # rename so we can release multiple versions for different boards
             cd ports/esp32/build-${BOARD}

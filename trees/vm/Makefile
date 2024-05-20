@@ -3,7 +3,8 @@ BOARD=ESP32_S3_N16R8
 
 TAG := $(shell date +"%Y.%m.%d")
 
-
+PORT_DIR=micropython/ports/esp32
+BUILD_DIR=${PORT_DIR}/build-${BOARD}
 FIRMWARE_DIR=firmware/${BOARD}/${TAG}
 LATEST_FIRMWARE_DIR=firmware/${BOARD}/latest
 GITHUB_REPOSITORY=iot49/leaf
@@ -26,8 +27,16 @@ build: dependencies clean
 				BOARD=${BOARD} \
  				USER_C_MODULES=../../../../src/modules/micropython.cmake \
 				FROZEN_MANIFEST=../../../../../../src/freeze/manifest.py"
-		
-
+				
+	@echo Copy compiled firmware to ${FIRMWARE_DIR}
+	cd trees/vm
+	mkdir -p ${FIRMWARE_DIR}
+	mkdir -p ${LATEST_FIRMWARE_DIR}
+	cp ${BUILD_DIR}/{firmware.bin,micropython.bin} ${FIRMWARE_DIR}
+	cp ${BUILD_DIR}/{firmware.bin,micropython.bin} ${LATEST_FIRMWARE_DIR}
+	@echo Cleaning up
+	rm -rf ${BUILD_DIR}
+	rm -rf ${PORT_DIR}/boards/${BOARD}	
 
 
 dependencies:
