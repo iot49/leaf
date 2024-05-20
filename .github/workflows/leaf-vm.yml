@@ -7,6 +7,7 @@ on:
 
 env:
   BOARD: ESP32_S3_N16R8
+  IDF_VERSION: v5.0.4
 
 permissions:
   contents: write
@@ -16,46 +17,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Define env
-        run: |
-          echo "BOARD=${BOARD}" >> $GITHUB_ENV
-          echo "IDF_VERSION=v5.0.4" >> $GITHUB_ENV
-          echo "FROZEN=src/freeze/manifest.py" >> $GITHUB_ENV
-          echo "VERSION_FILE=src/freeze/version.py" >> $GITHUB_ENV
-          echo "USER_C_MODULES=src/modules/micropython.cmake" >> $GITHUB_ENV
-          echo "BUILD_DIR=micropython/ports/esp32/build-${{ env.BOARD }}" >> $GITHUB_ENV
-          echo "PORT_DIR=micropython/ports/esp32" >> $GITHUB_ENV
-          echo "FIRMWARE_DIR=firmware/${{ env.BOARD }}/$(date +%Y%m%d-%H%M%S)" >> $GITHUB_ENV
-          echo "WORKING_DIR=trees/vm" >> $GITHUB_ENV
-
-      - name: Display env
-        run: |
-          echo BOARD=${{ env.BOARD }}
-          echo BUILD_DIR=${{ env.BUILD_DIR }}
-          echo PORT_DIR=${{ env.PORT_DIR }}
-          echo FIRWARE_DIR=${{ env.FIRMWARE_DIR }}
-          echo VERSION_FILE=${{ env.VERSION_FILE }}
-
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Checkout required submodules
-        working-directory: ${{ env.WORKING_DIR }}
+        working-directory: trees/vm
         run: |
-          pwd
-          ls -l
           git submodule update --init micropython
           cd micropython; git submodule update --init lib/berkeley-db-1.xx lib/micropython-lib
 
       - name: Copy boards to PORT_DIR/boards
-        working-directory: ${{ env.WORKING_DIR }}
+        working-directory: trees/vm
         run: |
-          echo "TAG = '${{ github.ref_name }}'; BOARD = '${{ env.BOARD }}'; GITHUB_REPOSITORY = '${GITHUB_REPOSITORY}'; IDF_VERSION = '${{ env.IDF_VERSION }}'" > ${{ env.VERSION_FILE }}
-          cat ${{ env.VERSION_FILE }}
-          mkdir -p ${{ env.PORT_DIR }}/boards
-          cp -a boards/${{ env.BOARD }} ${{ env.PORT_DIR }}/boards
-          # Hack: sometimes (???) idf looks for custom partition table in PORT_DIR
-          cp ${{ env.PORT_DIR }}/boards/${{ env.BOARD }}/partition* ${{ env.PORT_DIR }}
+          echo "TAG = '${{ github.ref_name }}'; BOARD = '${{ env.BOARD }}'; GITHUB_REPOSITORY = '${GITHUB_REPOSITORY}'; IDF_VERSION = '${{ env.IDF_VERSION }}'" > src/freeze/version.py
+          cat src/freeze/version.py
+          # is there a way for micropython to look for boards in a different directory?
+          # until I find out - just copy the files!
+          mkdir -p micropython/ports/esp32/boards
+          cp -a boards/${{ env.BOARD }} micropython/ports/esp32/boards
 
       # https://github.com/marketplace/actions/docker-cache
       - name: Cache Docker images
@@ -68,23 +47,22 @@ jobs:
         with:
           # https://github.com/espressif/esp-idf/blob/master/tools/docker/Dockerfile
           image: espressif/idf:${{ env.IDF_VERSION }}
-          options: -v ${{ github.workspace }}/${{ env.WORKING_DIR }}:/project -v ${{ github.workspace }}/eventbus/eventbus:/project/${{ env.WORKING_DIR }}/src/feeze/eventbus -w /project/${{ env.PORT_DIR }} -e BOARD=${{ env.BOARD }} -e USER_C_MODULES=/project/${{ env.USER_C_MODULES }} -e FROZEN=/project/${{ env.FROZEN }}
+          options: -v ${{ github.workspace }}:/project -w -w /project/trees/vm/micropython -e BOARD=${{ env.BOARD }}
           run: |
-            . $IDF_PATH/export.sh
-            echo is eventbus mapped?
-            ls -l /project
-            ls -l /project/src/freeze
-            ls -l /project/src/freeze/eventbus
-            # make sure FROZEN_MANIFEST is not set when running mpy-cross
-            make -C /project/micropython/mpy-cross 
-            make BOARD=${BOARD} clean
-            make V=1 BOARD=${BOARD} FROZEN_MANIFEST=${FROZEN}
+            make -C mpy-cross; \
+            make -C ports/esp32 BOARD=${BOARD} clean; \
+            make -C ports/esp32 V=1 \
+                BOARD=${BOARD} \
+                USER_C_MODULES=../../../../src/modules/micropython.cmake \
+                FROZEN_MANIFEST=../../../../../../src/freeze/manifest.py"
+
             # rename so we can release multiple versions for different boards
-            mv /project/${{ env.BUILD_DIR }}/firmware.bin    /project/${{ env.BUILD_DIR }}/${{ env.BOARD }}-firmware.bin
-            mv /project/${{ env.BUILD_DIR }}/micropython.bin /project/${{ env.BUILD_DIR }}/${{ env.BOARD }}-micropython.bin
+            cd ports/esp32/build-${BOARD}
+            mv firmware.bin    ${{ env.BOARD }}-firmware.bin
+            mv micropython.bin ${{ env.BOARD }}-micropython.bin
 
       - name: Release
-        working-directory: ${{ env.WORKING_DIR }}/${{ env.PORT_DIR }}
+        working-directory: trees/vm/micropython/ports/esp32
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.ref_name }}

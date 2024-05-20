@@ -11,7 +11,8 @@ freeze("lib")
 # packages
 package("app")
 package("plugins")
-package("eventbus")  # , base_path="../../eventbus")
+# package("eventbus", base_path="/project/eventbus")
+package("eventbus", base_path="../../../../eventbus")
 
 # micropython-lib
 require("aioble")
