@@ -27,7 +27,7 @@ class Config(EventBus):
         et = event["type"]
         if et == event_type.GET_CONFIG:
             await post(put_config(dst=event["src"], data=self._config))
-        elif et == event_type.UPDATE_CONFIG or et == event_type.PUT_CONFIG:
+        elif et == event_type.PUT_CONFIG:
             self._config = event["data"]
             try:
                 import micropython  # type: ignore  # noqa: F401

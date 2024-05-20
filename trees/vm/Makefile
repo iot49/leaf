@@ -29,11 +29,11 @@ build: dependencies clean
 				FROZEN_MANIFEST=../../../../../../src/freeze/manifest.py"
 				
 	@echo Copy compiled firmware to ${FIRMWARE_DIR}
-	cd trees/vm
 	mkdir -p ${FIRMWARE_DIR}
 	mkdir -p ${LATEST_FIRMWARE_DIR}
 	cp ${BUILD_DIR}/{firmware.bin,micropython.bin} ${FIRMWARE_DIR}
 	cp ${BUILD_DIR}/{firmware.bin,micropython.bin} ${LATEST_FIRMWARE_DIR}
+
 	@echo Cleaning up
 	rm -rf ${BUILD_DIR}
 	rm -rf ${PORT_DIR}/boards/${BOARD}	
