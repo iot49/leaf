@@ -35,6 +35,7 @@ jobs:
           # until I find out - just copy the files!
           mkdir -p micropython/ports/esp32/boards
           cp -a boards/${{ env.BOARD }} micropython/ports/esp32/boards
+          cp micropython/ports/esp32/boards/${{ env.BOARD }}/partition* micropython/ports/esp32
 
       # https://github.com/marketplace/actions/docker-cache
       - name: Cache Docker images
