@@ -1,9 +1,10 @@
 from app import bus
 from tests.util import is_subset
 
-from eventbus import post
+from eventbus import event_type, post
 from eventbus.bus.server import Server
-from eventbus.event import get_config, state, state_action
+from eventbus.eid import eid2addr
+from eventbus.event import State, get_config, make_event
 
 from .conftest import set_src, yield_ws
 
@@ -27,15 +28,22 @@ async def test_bridge_1x1(async_client, async_websocket_client, create_trees, cl
             # state: gateway -> client
             src_addr = f'{tree["tree_id"]}.gateway'
             eid = f"{src_addr}:test.attr"
-            s = set_src(state(eid=eid, value=123), src_addr)
-            await gateway_ws.send_json(s)
-            assert s == await client_ws.receive_json()
+            s = State(eid)
+            s.event["value"] = 123
+            s.event["src"] = src_addr
+            await gateway_ws.send_json(s.event)
+            assert s.event == s._event
+            assert s.event == await client_ws.receive_json()
 
             # action: client -> gateway
-            turn_on = state_action(s, "turn_on", param={"duration": 10})
+            turn_on = make_event(
+                event_type.STATE_ACTION, dst=eid2addr(eid), eid=eid, action="turn_on", param={"duration": 10}
+            )
+            act_event = await s.act("turn_on", {"duration": 10})
+            assert act_event == turn_on
             await client_ws.send_json(turn_on)
             proto = {
-                "lid": f"{src_addr}:test",
+                "eid": eid,
                 "action": "turn_on",
                 "param": {"duration": 10},
                 "type": "action",

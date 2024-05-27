@@ -1,9 +1,11 @@
+# type: ignore
+
 import asyncio
 import logging
 
-from bsp import LED  # type: ignore
-from machine import Pin  # type: ignore
-from neopixel import NeoPixel  # type: ignore
+import machine
+from bsp import LED
+from neopixel import NeoPixel
 
 """
 On-board LED
@@ -15,11 +17,23 @@ Example:
     led.pattern = led.BLUE_BLINK_SLOW
 """
 
+OFF = (0, 0, 0)
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+
 logger = logging.getLogger(__name__)
+np = NeoPixel(machine.Pin(LED), 1)  # noqa: F821
+
+
+def set_color(color: tuple):
+    np[0] = color
+    np.write()
 
 
 class _LED:
-    # few colors ...
+    # few colors ... (repeated here, for convenience)
     OFF = (0, 0, 0)
     WHITE = (255, 255, 255)
     RED = (255, 0, 0)
@@ -43,7 +57,6 @@ class _LED:
     RGB_FAST = ((RED, 150), (GREEN, 150), (BLUE, 150))
 
     def __init__(self):
-        self._np = NeoPixel(Pin(LED), 1)
         self._pattern: tuple = self.RED_BLINK_SLOW
 
     @property
@@ -63,8 +76,7 @@ class _LED:
             while True:
                 n = (n + 1) % len(self._pattern)
                 color, ms = self._pattern[n]
-                self._np[0] = color
-                self._np.write()
+                set_color(color)
                 await asyncio.sleep_ms(ms)  # type: ignore
         except Exception as e:
             logger.exception(f"{e} n={n} pattern={self._pattern}[{n}] = {self._pattern[n]}")

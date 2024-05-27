@@ -1,8 +1,8 @@
 import asyncio
 
-from .. import EventBus, event_type, post, subscribe
+from .. import EventBus, event_type, subscribe
 from ..eid import eid2lid
-from ..event import state, state_update
+from ..event import State
 
 
 class Counter(EventBus):
@@ -24,7 +24,8 @@ class Counter(EventBus):
         super().__init__()
         self.interval = interval
         self.N = N
-        self.state = state(eid=eid, value=0)
+        self.state = State(eid)
+        self.count = 0
         # Subscribe to the bus to receive StateAction events
         subscribe(self)
 
@@ -33,15 +34,14 @@ class Counter(EventBus):
         state = self.state
         n = 0
         while n < N or N == -1:
-            state_update(state, value=state["value"] + 1)
-            # post the event to the bus
-            await post(state)
-            await asyncio.sleep(self.interval)
+            await state.update(self.count)
+            self.count += 1
             n += 1
+            await asyncio.sleep(self.interval)
 
     async def post(self, event):
         # Called by bus when an event is posted
         if event["type"] == event_type.STATE_ACTION:
-            if event["lid"] == eid2lid(self.state["eid"]) and event["action"] == "reset":
-                state_update(self.state, value=0)
-                await post(self.state)
+            if event.get("eid") == eid2lid(self.state.eid) and event["action"] == "reset":
+                self.count = 0
+                await self.state.update(0)

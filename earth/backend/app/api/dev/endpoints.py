@@ -5,8 +5,8 @@ from ...env import env
 router = APIRouter()
 
 
-@router.get("/settings")
-async def settings():
+@router.get("/env")
+async def environment():
     return env.model_dump()
 
 

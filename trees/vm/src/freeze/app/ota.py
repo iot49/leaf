@@ -1,10 +1,12 @@
 import logging
 
 import version  # type: ignore
-from app import wifi  # type: ignore
 from ota32 import OTA as OTA32  # type: ignore
 
+from app import wifi  # type: ignore
 from eventbus import EventBus, event_type, post
+
+from . import DOMAIN
 
 logger = logging.getLogger(__name__)
 
@@ -22,11 +24,12 @@ class OTA(EventBus):
             logger.debug(f"already on release {tag} - no OTA needed")
             await post({"type": event_type.OTA_COMPLETE, "tag": tag})
             return
-        url = f"https://github.com/{version.GITHUB_REPOSITORY}/releases/download/{tag}/{version.BOARD}-firmware.bin"
 
         async with wifi:
             try:
                 ota = OTA32(self.progress_cb, dry_run=dry_run)
+                # url = f"https://github.com/{version.GITHUB_REPOSITORY}/releases/download/{tag}/{version.BOARD}-firmware.bin"
+                url = f"http://{DOMAIN}/api/vm/{tag}/{version.BOARD}/firmware.bin"
                 await ota.ota(url, sha)
                 await post({"type": event_type.OTA_COMPLETE, "tag": tag})
             except OSError as e:

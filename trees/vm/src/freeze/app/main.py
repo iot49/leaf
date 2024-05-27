@@ -9,6 +9,7 @@ import ntptime  # type: ignore
 from eventbus import EventBus, event_type, subscribe
 
 from . import (
+    DOMAIN,
     branch_id,
     config,
     led,
@@ -20,7 +21,6 @@ from .gateway import Gateway  # type: ignore
 from .wifi import wifi
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 class UpdateListener(EventBus):
@@ -43,9 +43,8 @@ class UpdateListener(EventBus):
             logger.info(f"Updating certs: {event}")
 
 
-async def main_task(testing):
+async def main_task(ws_url):
     async with wifi:
-        # Printer()
         led.pattern = led.GREEN_BLINK_FAST
         ntptime.settime()
         t = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time()))
@@ -57,10 +56,16 @@ async def main_task(testing):
         # load plugins
         plugins = config.get(f"trees/{tree_id}/branches/{branch_id}/plugins", {})
         for mod, param in plugins.items():
-            m = __import__(mod, None, None, (), 0)
-            if "init" in m.__dict__:
-                await m.init(**(param or {}))
-            logger.info(f"Loaded plugin {mod} with {param}")
+            try:
+                m = __import__(mod, None, None, (), 0)
+                if "init" in m.__dict__:
+                    if isinstance(m.init, type(main_task)):
+                        asyncio.create_task(m.init(**(param or {})))
+                    else:
+                        m.init(**(param or {}))
+                logger.info(f"Loaded plugin {mod} with {param}")
+            except ImportError as e:
+                logger.error(f"import {mod}: {e}")
 
         # since we got here, we assume the app is working
         logger.debug("esp32.Partition.mark_app_valid_cancel_rollback()")
@@ -70,21 +75,22 @@ async def main_task(testing):
         gateway = Gateway()
         reconnect_delay = 1
         while True:
-            await gateway.connnect(testing)
+            await gateway.connnect(ws_url)
             logger.info("Disconnected")
             await asyncio.sleep(reconnect_delay)
             reconnect_delay = min(5, reconnect_delay * 2)
 
 
-async def main(testing):
+async def main(ws_url=f"wss://{DOMAIN}/gateway/ws", logging_level=logging.INFO):
+    logger.setLevel(logging_level)
     logger.info("Starting main")
     asyncio.create_task(led.run())
     led.pattern = led.GREEN_BLINK_SLOW
     while True:
         try:
-            await main_task(testing)
+            await main_task(ws_url)
         except Exception as e:
             print("exception in main", e)
-            logger.exception(f"??? main: {e}")
+            logger.exception(f"??? main: {e}", exc_info=e)
         finally:
             asyncio.new_event_loop()

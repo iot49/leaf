@@ -1,6 +1,7 @@
 # https://github.com/tom-draper/api-analytics
 
 import logging
+import time
 from collections import deque
 
 from eventbus import Event, EventBus, event_type, post, subscribe
@@ -35,15 +36,11 @@ class Log(EventBus):
                 logging.CRITICAL: MAGENTA,
             }
             color = colors.get(levelno, "")
-            funcName = event.get("funcName")
-            if funcName is None:
-                print(
-                    f"{color}{event.get('levelname'):9}{RESET} {event.get('src'):12} {event.get('name'):20} {'':16} {event.get('message')}"
-                )
-            else:
-                print(
-                    f"{color}{event.get('levelname'):9}{RESET} {event.get('src'):12} {event.get('name'):20} {funcName:16} {event.get('message')}"
-                )
+            funcName = event.get("funcName") or ""
+            t = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(event.get("ct", 0)))  # type: ignore
+            print(
+                f"{t} {color}{event.get('levelname'):9}{RESET} {event.get('src'):12} {event.get('name'):20} {funcName:16} {event.get('message')}"
+            )
             tb = event.get("traceback")
             if tb is not None:
                 print(tb)

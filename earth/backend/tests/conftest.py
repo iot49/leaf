@@ -1,5 +1,6 @@
 # https://sqlmodel.tiangolo.com/tutorial/fastapi/tests/
 
+import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
@@ -18,6 +19,7 @@ async def initialize_db():
 
 @pytest.fixture(scope="session", autouse=True)
 def anyio_backend():
+    logging.disable(logging.CRITICAL)
     return "asyncio"
 
 

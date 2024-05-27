@@ -1,4 +1,5 @@
 import { consume } from '@lit/context';
+import { SlButton, SlSelect } from '@shoelace-style/shoelace';
 import 'lit';
 import { css, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
@@ -160,8 +161,51 @@ export class LeafTrees extends LeafBase {
   }
 
   async ota(dst: string) {
-    const tag = 'v0.0.30';
-    console.log('TODO: ota - determine tag!', tag);
-    await eventbus.postEvent({ type: 'ota', dst: dst, tag: tag });
+    const tag = await this.firmwareChooser();
+    if (tag != undefined) await eventbus.postEvent({ type: 'ota', dst: dst, tag: tag });
+  }
+
+  async firmwareChooser(): Promise<string> {
+    const releases = ((await api_get('vm')) as any).releases;
+    let options = '';
+    for (const [_, value] of releases.entries()) {
+      options += `<sl-option value=${value.tag_name}>${value.tag_name}</sl-option>\n`;
+    }
+    const dialog = Object.assign(document.createElement('sl-dialog'), {
+      variant: 'primary',
+      label: 'Choose Firmware Version',
+      innerHTML: `
+        <div style="overflow: auto">
+          <sl-select id="firmware" hoist value=${releases[0].tag_name}>${options}</sl-select>
+          <div  style="margin-top: 2.5rem">
+            <sl-button class="cancel" slot="footer"}>Cancel</sl-button>
+            <sl-button class="accept" variant="primary" slot="footer" style="margin-left: 2rem">Ok</sl-button>
+          </div>
+        </div>`,
+    });
+    document.body.appendChild(dialog);
+    try {
+      dialog.show();
+    } catch (TypeError) {
+      // throws this error but works correctly (unlike open attribute)
+    }
+    // wait for the user to click a button or close the dialog
+    return new Promise<string>(async (resolve) => {
+      const accept = dialog.querySelector('.accept') as SlButton;
+      const cancel = dialog.querySelector('.cancel') as SlButton;
+      const firmware = dialog.querySelector('#firmware') as SlSelect;
+      accept.addEventListener('click', (_) => {
+        document.body.removeChild(dialog);
+        resolve(firmware.value as string);
+      });
+      cancel.addEventListener('click', (_) => {
+        document.body.removeChild(dialog);
+        resolve(undefined);
+      });
+      dialog.addEventListener('sl-hide', (_) => {
+        document.body.removeChild(dialog);
+        resolve(undefined);
+      });
+    });
   }
 }

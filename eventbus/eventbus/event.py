@@ -1,7 +1,7 @@
 import time
 
-from . import Addr, event_type
-from .eid import eid2addr, eid2eid, eid2lid
+from . import Addr, event_type, post
+from .eid import eid2addr, eid2eid
 
 """
 Events are dicts communicated by EventBus.
@@ -119,22 +119,35 @@ def bye_timeout():
     return {"type": event_type.BYE_TIMEOUT}
 
 
-# state & actions
-def state(eid: str, value, dst="#clients", timestamp: float = time.time() + EPOCH_OFFSET):
-    return make_event(event_type.STATE, dst, eid=eid2eid(eid), value=value, timestamp=timestamp)
-
-
-def state_update(state: dict, value):
-    state["value"] = value
-    state["timestamp"] = time.time() + EPOCH_OFFSET
-    return state
-
-
-def state_action(state: dict, action: str, param=None):
-    eid = state["eid"]
-    return make_event(event_type.STATE_ACTION, dst=eid2addr(eid), lid=eid2lid(eid), action=action, param=param)
-
-
 # logging
 def log_event(**event):
     return make_event(event_type.LOG, dst="#clients", **event)
+
+
+# state & actions
+
+
+class State:
+    def __init__(self, eid: str, dst="#clients"):
+        self._eid = eid2eid(eid)
+        self._event = make_event(event_type.STATE, dst=dst, eid=self._eid, value=None, timestamp=None)
+
+    @property
+    def eid(self):
+        return self._eid
+
+    @property
+    def event(self):
+        return self._event
+
+    async def update(self, value, timestamp: float = time.time() + EPOCH_OFFSET):
+        ev = self._event
+        ev["value"] = value
+        ev["timestamp"] = timestamp
+        await post(ev)
+        return ev
+
+    async def act(self, action: str, param=None):
+        ev = make_event(event_type.STATE_ACTION, dst=eid2addr(self._eid), eid=self._eid, action=action, param=param)
+        await post(ev)
+        return ev

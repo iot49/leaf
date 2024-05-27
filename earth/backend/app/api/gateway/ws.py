@@ -1,24 +1,33 @@
+import logging
+
 from fastapi import HTTPException, WebSocket
 
 from eventbus import serve
 
 from ...bus import certificates, config, secrets
 from ...tokens import verify_gateway_token_
+from ..tree.schema import TreeRead
 from . import router
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 # /gateway/ws  (serve gateway)
 @router.websocket("/ws")
 async def tree_ws(websocket: WebSocket):
     param = {
-        "host": str(websocket.headers.get("host")),
-        "url": str(websocket.url),
+        "client": str(websocket.client.host),  # type: ignore
+        # "host": str(websocket.headers.get("host")),
+        # "url": str(websocket.url),
         "versions": {"config": config.get("version")},
     }
 
     async def authenticate(token: str) -> tuple[bool, str]:
         try:
-            tree = await verify_gateway_token_(token)
+            tree: TreeRead | None = await verify_gateway_token_(token)
+            if tree is None:
+                return (False, "")
             param["versions"]["secrets"] = await secrets.get_version(tree.tree_id)
             # TODO: increase timeout except for testing
             param["versions"]["certificate"] = certificates.get_version(tree.tree_id, timeout=0.1)
@@ -28,4 +37,7 @@ async def tree_ws(websocket: WebSocket):
 
     await websocket.accept()
     # won't return until the connection is closed
+
+    logger.debug(f"accepted connection {param}")
     await serve(websocket, authenticate, param)  # type: ignore
+    logger.debug(f"closed connection {param}")

@@ -11,6 +11,7 @@ export * from './leaf-accounts';
 export * from './leaf-config-editor';
 export * from './leaf-log';
 export * from './leaf-page';
+export * from './leaf-settings';
 export * from './leaf-tree';
 export * from './leaf-trees';
 

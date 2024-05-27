@@ -1,5 +1,5 @@
-from .. import Event, EventBus, event_type, post
-from ..event import state
+from .. import Event, EventBus, event_type
+from ..event import State
 
 
 class CurrentState(EventBus):
@@ -20,7 +20,7 @@ class CurrentState(EventBus):
         - get_state
         - put_state (outgoing)
         """
-        et = event["type"]
+        et = event.get("type")
         if et == event_type.STATE:
             # update current state
             self._state[event["eid"]] = (event["value"], event["timestamp"])
@@ -28,8 +28,11 @@ class CurrentState(EventBus):
             # send current state values
             dst = event["src"]
             assert dst is not None
-            for eid, (value, ts) in self._state.items():
-                await post(state(eid, value, dst=dst, timestamp=ts))
+            # make copy of keys to protect against co-modification
+            for eid in list(self._state.keys()):
+                value, ts = self._state[eid]
+                state = State(eid, dst=dst)
+                await state.update(value, timestamp=ts)
 
     @property
     def state(self) -> dict:

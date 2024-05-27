@@ -2,7 +2,6 @@ import json
 import logging
 import sys
 import time
-from io import StringIO
 from os.path import isfile
 
 import machine  # type: ignore
@@ -10,13 +9,18 @@ import machine  # type: ignore
 from eventbus.bus import Config, CurrentState, Log
 from eventbus.event import set_src_addr
 
-from .led import led  # noqa: F401
+from .led import led, set_color  # noqa: F401
 
 EPOCH_OFFSET = 946684800 if time.gmtime(0)[0] == 2000 else 0
 CERT_DIR = "/certs"
 
+
 # bail if branch is not yet provisioned
 if not isfile("/secrets.json") or not isfile("/config.json"):
+    from .led import RED
+
+    set_color(RED)
+    print("EXIT: no secrets.json or config.json")
     sys.exit(-1)
 
 
@@ -34,10 +38,6 @@ def configure_logging():
                 name=record.name,
                 message=record.message,
             )
-            if False and record.exc_info:
-                buf = StringIO()
-                sys.print_exception(record.exc_info, buf)  # type: ignore
-                event["traceback"] = buf.getvalue()
             post_sync(event)
 
     root_logger = logging.getLogger()
@@ -69,14 +69,14 @@ for branch in secrets["tree"]["branches"]:
         branch_id = branch["branch_id"]
         break
 
-set_src_addr(f"{tree_id}:{branch_id}")
+set_src_addr(f"{tree_id}.{branch_id}")
 
 # load config and current state
 config = Config(config_file="/config.json")
 state = CurrentState()
 
 DOMAIN = config.get("domain")
-TEST_DOMAIN = "192.168.8.138:8001"
+
 
 # after loading config
 from .main import main  # noqa: E402, F401

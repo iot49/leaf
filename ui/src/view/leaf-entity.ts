@@ -29,6 +29,10 @@ export class LeafEntity extends LeafBase {
       .icon {
         font-size: 24px;
       }
+      .src {
+        width: 10rem;
+        margin-left: 1rem;
+      }
       .name {
         width: 10rem;
         margin-left: 1rem;
@@ -64,9 +68,11 @@ export class LeafEntity extends LeafBase {
     const state: any = this.state.get(this.entity_id);
     this.value = state.value;
     const entity: any = new Proxy({ spec: this.spec, state: state }, proxy_handler);
+    const src = this.entity_id.split(':')[0];
 
     return html`
       <sl-icon library="mdi" class="icon" name=${entity.icon}></sl-icon>
+      <span class="src">${src}</span>
       <span class="name">${entity.name}</span>
       <span class="value">${this.format(this.value, entity.format)}</span>
       <span class="unit">${entity.unit}</span>
@@ -94,7 +100,7 @@ export class LeafEntity extends LeafBase {
       }
       // dev:gateway:status:connected: fmt = true, value = on throws exception:
       // Replacement index on out of range for positional args tuple
-      console.log('1 leaf-entity.format', value, fmt, this.entity_id, this.spec);
+      // console.log('1 leaf-entity.format', value, fmt, this.entity_id, this.spec);
       // console.log('2 leaf-entity.format', (`{${fmt}}` as any).format(value));
       return JSON.stringify(value);
       // return (`{${fmt}}` as any).format(value);

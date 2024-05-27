@@ -22,7 +22,5 @@ async def no_cf_auth():
 @pytest.fixture
 async def create_api_key(async_client: AsyncClient) -> dict:
     async with override_user():
-        print("create_api_key")
         response = await async_client.post("/api/api_key", json={})
-        print("create_api_key response", response)
         return response.json()

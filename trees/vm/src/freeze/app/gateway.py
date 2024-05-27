@@ -6,9 +6,9 @@ import os
 import aiohttp
 
 from eventbus import Event, EventBus, event_type, post, subscribe, unsubscribe
-from eventbus.event import get_cert, get_config, get_secrets, get_state, ping
+from eventbus.event import get_cert, get_config, get_secrets, ping
 
-from . import CERT_DIR, DOMAIN, TEST_DOMAIN, config, led, secrets
+from . import CERT_DIR, config, led, secrets
 from .wifi import wifi
 
 logger = logging.getLogger(__name__)
@@ -19,28 +19,26 @@ class Gateway(EventBus):
     def __init__(self):
         self.connected = False
 
-    async def connnect(self, testing) -> str:
+    async def connnect(self, ws_url) -> str:
         """Connect to earth. Returns when the connection is closed.
 
         Returns:
             str: disconnect reason.
         """
         async with wifi:
-            scheme = "ws" if testing else "wss"
-            url = f"{scheme}://{TEST_DOMAIN if testing else DOMAIN}/gateway/ws"
-            logger.info(f"Connecting to earth @ {url}")
+            logger.info(f"Connecting to earth @ {ws_url}")
             try:
                 async with aiohttp.ClientSession() as session:
                     # connect to websocket
                     gateway_token = secrets["gateway-token"]
-                    async with session.ws_connect(url) as ws:
+                    async with session.ws_connect(ws_url) as ws:
                         self.connected = True
                         msg = await self._connection(ws, gateway_token)
                     unsubscribe(self)
                     return msg
             except Exception as e:
                 logger.error(f"connect error: {e}")
-                return f"unreachable: {url}"
+                return f"unreachable: {ws_url}"
             finally:
                 self.connected = False
 
@@ -78,12 +76,9 @@ class Gateway(EventBus):
             await asyncio.sleep(interval)
 
     async def _receiver_task(self):
-        ws = self._ws
-        # get current state
-        await ws.send_json(get_state())
-
-        # wait for messages
-        async for msg in ws:
+        async for msg in self._ws:
+            if not self.connected:
+                return
             if msg.type == aiohttp.WSMsgType.TEXT:
                 logger.debug(f"received msg-type={msg.type}: {str(msg.data)}")
                 await post(json.loads(msg.data))
@@ -110,7 +105,13 @@ class Gateway(EventBus):
             await self.post(get_cert())
 
     async def post(self, event: Event) -> None:
+        if not self.connected:
+            return
         dst = event.get("dst", "")
         if dst in ("#clients", "#earth") or dst.startswith("@"):
             logger.debug(f"sending {event}")
-            await self._ws.send_json(event)
+            try:
+                await self._ws.send_json(event)
+            except OSError as e:
+                self.connected = False
+                logger.exception("failed send_json", exc_info=e)

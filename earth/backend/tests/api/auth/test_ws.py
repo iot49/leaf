@@ -2,8 +2,7 @@ from app import bus
 from httpx_ws import aconnect_ws
 from tests.util import is_subset
 
-import eventbus
-from eventbus.event import bye, get_cert, get_config, get_secrets, state, state_update
+from eventbus.event import State, bye, get_cert, get_config, get_secrets
 from eventbus.event_type import GET_AUTH, HELLO_INVALID_TOKEN, PUT_AUTH
 
 from .conftest import EventQueue, set_src, yield_ws
@@ -12,13 +11,13 @@ from .conftest import EventQueue, set_src, yield_ws
 async def test_ws_client(async_websocket_client, client_token):
     async for ws in yield_ws(async_websocket_client, client_token, "ws"):
         # send a state update from earth to client
-        s = state(eid="test.attr", value=123)
-        await eventbus.post(s)
-        assert s == await ws.receive_json()
-        # update the state
-        s = state_update(s, value=456)
-        await eventbus.post(s)
-        assert s == await ws.receive_json()
+        # s = state(eid="test.attr", value=123)
+        eid = "test.attr"
+        s = State(eid)
+        await s.update(123)
+        assert s.event == await ws.receive_json()
+        await s.update(456)
+        assert s.event == await ws.receive_json()
 
 
 async def test_ws_client_invalid_token(async_websocket_client):
@@ -54,10 +53,11 @@ async def test_ws_gateway(async_client, async_websocket_client, create_trees):
             # send state update from gateway to clients
             src_addr = f'{tree["tree_id"]}.gateway'
             eid = f"{src_addr}:test.attr"
-            s = state(eid=eid, value=123)
-            s["src"] = src_addr
-            await ws.send_json(s)
-            assert s == await eq.get()
+            s = State(eid=eid)
+            s.event["value"] = 123
+            s.event["src"] = src_addr
+            await ws.send_json(s.event)
+            assert s.event == await eq.get()
         connection_status_proto["value"] = False
         assert is_subset(connection_status_proto, await eq.get())
 

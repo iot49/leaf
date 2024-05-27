@@ -43,4 +43,4 @@ async def yield_ws(async_websocket_client, token, url="ws"):
         assert hello["type"] == HELLO_CONNECTED
         yield ws
         await ws.send_json(bye())
-        dprint(f"<<<<< bye {hello['param']['url']}\n")
+        dprint(f"<<<<< bye {hello['param']['client']}\n")

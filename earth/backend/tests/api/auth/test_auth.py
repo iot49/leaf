@@ -88,7 +88,7 @@ async def test_superuser_role(async_client: AsyncClient, create_users):
             response = await async_client.get("/api/api_key")
             assert response.status_code == expected_status
 
-            response = await async_client.get("/api/dev/settings")
+            response = await async_client.get("/api/dev/env")
             assert response.status_code == expected_status
 
 

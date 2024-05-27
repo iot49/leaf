@@ -1,0 +1,292 @@
+{
+  "entities": {
+    "dev.soc.temperature": {
+      "name": "SOC temperature"
+    },
+    "temperature": {
+      "unit": "\u00b0C",
+      "format": ".1f",
+      "icon": "thermometer",
+      "filter": [
+        {
+          "abstol": 0.3
+        }
+      ]
+    },
+    "humidity": {
+      "unit": "%",
+      "icon": "water-percent",
+      "format": ".0f",
+      "filter": [
+        {
+          "lpf": 5
+        },
+        {
+          "abstol": 0.3
+        }
+      ]
+    },
+    "rssi": {
+      "icon": "signal-cellular-2",
+      "unit": "dBm",
+      "format": ".1f"
+    },
+    "longitude": {
+      "icon": "longitude",
+      "filter": [
+        {
+          "abstol": 0.0001
+        }
+      ]
+    },
+    "latitude": {
+      "icon": "latitude",
+      "filter": [
+        {
+          "abstol": 0.0001
+        }
+      ]
+    },
+    "altitude": {
+      "filter": [
+        {
+          "abstol": 3
+        }
+      ]
+    },
+    "*.wifi.channel": {
+      "name": "Wifi Channel",
+      "icon": "cellphone-wireless"
+    },
+    "farenheit": {
+      "filter": [
+        {
+          "scale": 1.8
+        },
+        {
+          "offset": 32
+        },
+        {
+          "abstol": 1
+        }
+      ]
+    },
+    "*.latency.*": {
+      "unit": "%",
+      "format": ".0f",
+      "icon": "timer-stop-outline",
+      "filter": [
+        {
+          "abstol": 0.5
+        }
+      ]
+    },
+    "*.ram.*": {
+      "unit": "kB",
+      "icon": "memory",
+      "format": ".0f",
+      "filter": [
+        {
+          "scale": 0.001
+        },
+        {
+          "abstol": 10
+        }
+      ]
+    },
+    "*": {
+      "icon": "help-circle-outline",
+      "unit": "",
+      "filter": [
+        "duplicate"
+      ]
+    }
+  },
+  "trees": {
+    "dev": {
+      "branches": {
+        "branch_0": {
+          "plugins": {
+            "plugins.counter": {
+              "eid": "counter.count",
+              "interval": 1
+            },
+            "plugins.printer": null,
+            "dev.debugger": null,
+            "dev.ble_scanner": {
+              "duration_ms": 500,
+              "active": true,
+              "devices": {
+                "a4:c1:38:ff:64:24": {
+                  "id": "fridge_top"
+                },
+                "a4:c1:38:18:a6:fe": {
+                  "id": "fridge_bot"
+                },
+                "a4:c1:38:c8:cf:3d": {
+                  "id": "freezer"
+                },
+                "a4:c1:38:97:7c:88": {
+                  "id": "utility_bay"
+                },
+                "f4:d8:cb:f5:70:75": {
+                  "id": "soc",
+                  "key": "8aa525733cee8edcacd31eade2a6efa7"
+                },
+                "fb:f9:ca:9e:30:bd": {
+                  "id": "mppt",
+                  "key": "919c8da4bb4e59d801e22efd13ba78ee"
+                },
+                "a4:c1:38:7f:05:15": {
+                  "id": "bv_freezer"
+                },
+                "f5:78:d2:09:01:de": {
+                  "id": "bv_soc"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "secrets": {
+    "wifi": {
+      "hostname": "dev.ws.leaf49.org",
+      "ssid": "TPA-2.4",
+      "pwd": "TurbenThal"
+    }
+  },
+  "devices": {
+    "fridge_top": {
+      "name": "RV Fridge Top"
+    },
+    "fridge_bot": {
+      "name": "RV Fridge Bottom"
+    },
+    "freezer": {
+      "name": "RV Freezer"
+    },
+    "utility_bay": {
+      "name": "Utility Bay"
+    },
+    "soc": {
+      "name": "RV SOC"
+    },
+    "mppt": {
+      "name": "Solar Charger"
+    },
+    "bv_freezer": {
+      "name": "BV Freezer"
+    },
+    "bv_soc": {
+      "name": "BV SOC"
+    }
+  },
+  "views": [
+    {
+      "title": "Climate",
+      "icon": "lightbulb",
+      "cards": [
+        {
+          "title": "Stats",
+          "type": "entities",
+          "entities": [
+            {
+              "entity_id": "dev.stats.count",
+              "name": "1-second Counter",
+              "icon": "plus"
+            },
+            {
+              "entity_id": "dev.ram.*"
+            },
+            {
+              "entity_id": "*latency*",
+              "icon": "timer-stop-outline"
+            }
+          ]
+        },
+        {
+          "title": "Temperature",
+          "type": "entities",
+          "entities": [
+            {
+              "entity_id": "*.temperature"
+            }
+          ]
+        },
+        {
+          "title": "Humidity",
+          "type": "entities",
+          "entities": [
+            {
+              "entity_id": "*.humidity",
+              "filter": [
+                {
+                  "state": ">80"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Select",
+      "icon": "home",
+      "cards": [
+        {
+          "title": "Wildcard",
+          "type": "entities",
+          "entities": [
+            {
+              "entity_id": "dev.stats.count"
+            },
+            {
+              "entity_id": "dev.ram.free",
+              "name": "Free RAM"
+            }
+          ],
+          "filter": [
+            {
+              "state": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "All",
+      "icon": "home-thermometer-outline",
+      "cards": [
+        {
+          "title": "All",
+          "type": "entities",
+          "entities": [
+            {
+              "entity_id": "*"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "wifi": [
+    {
+      "ssid": "R",
+      "pwd": "jdqwn4x84iouc"
+    },
+    {
+      "ssid": "TPA-2.4",
+      "pwd": "TurbenThal"
+    },
+    {
+      "ssid": "TPA",
+      "pwd": "TurbenThal"
+    }
+  ],
+  "domain": "leaf49.org",
+  "project_name": "leaf",
+  "environment": "prod",
+  "version": "2024-05-25T21:46:35"
+}

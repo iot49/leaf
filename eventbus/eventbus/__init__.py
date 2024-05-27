@@ -3,6 +3,8 @@ import logging
 from abc import abstractmethod
 from typing import Awaitable, Callable
 
+from . import event_type
+
 """
 EventBus - a simple interface for routing events (dicts).
 
@@ -37,6 +39,7 @@ Mandatory fields:
 """
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class EventBus:
@@ -52,7 +55,6 @@ async def post(event: Event) -> None:
     """Post event on all subscribers."""
     global _subscribers
     for subscriber in _subscribers:
-        logger.debug(f"{event.get('type')} -> {subscriber}")
         await subscriber.post(event)
 
 
@@ -62,7 +64,8 @@ def post_sync(event: Event) -> None:
     async def poster():
         await post(event)
 
-    asyncio.create_task(poster())
+    loop = asyncio.get_event_loop()
+    loop.create_task(poster())
 
 
 # list of subscribers - call subscribe/unsubscribe to add/remove

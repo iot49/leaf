@@ -15,7 +15,6 @@ IDF_VERSION=v5.0.4
 .PHONY: build dependencies flash
 
 build: dependencies clean
-	echo "TAG = '${tag}'; BOARD = '${BOARD}'; GITHUB_REPOSITORY = '${GITHUB_REPOSITORY}'; IDF_VERSION = '${IDF_VERSION}'" > src/freeze/version.py
 	cd ../..; \
 	docker run --rm \
 		-v .:/project -w /project/trees/vm/micropython \
@@ -44,9 +43,15 @@ dependencies:
 	cd micropython; git submodule update --init lib/berkeley-db-1.xx lib/micropython-lib
 	make -C micropython/ports/esp32 submodules
 
+	# is there a way for micropython to look for boards in a different directory?
+	# until I find out - just copy the files!
+	mkdir -p micropython/ports/esp32/boards
+	cp -a boards/${BOARD} micropython/ports/esp32/boards
+	cp micropython/ports/esp32/boards/${BOARD}/partition* micropython/ports/esp32
+
 flash:
 	@ls /dev/*usb*
-	esptool.py erase_flash
+	# esptool.py erase_flash
 	esptool.py --chip esp32s3 write_flash -z 0 firmware/${BOARD}/latest/firmware.bin
 
 flash-download:

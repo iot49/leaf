@@ -10,6 +10,8 @@ from eventbus import post_sync
 from eventbus.bus.log import Log
 from eventbus.event import log_event
 
+from .env import Environment, env
+
 
 class LogMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
@@ -59,7 +61,8 @@ class EventLogHandler(Handler):
             buf = StringIO()
             print(traceback.print_tb(record.exc_info[2], file=buf))
             event["traceback"] = buf.getvalue()
-        post_sync(event)
+        if env.ENVIRONMENT != Environment.test:
+            post_sync(event)
 
 
 logger = logging.root

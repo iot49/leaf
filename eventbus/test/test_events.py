@@ -8,8 +8,6 @@ from eventbus.event import (
     ping,
     pong,
     put_config,
-    state_action,
-    state_update,
 )
 from eventbus.event_type import GET_AUTH, GET_STATE, HELLO_CONNECTED, PING, PONG, PUT_CONFIG, STATE, STATE_ACTION
 
@@ -47,35 +45,37 @@ def test_events():
     assert is_subset({"type": GET_AUTH}, get_auth())
 
 
-def test_state():
-    from eventbus.event import state
+async def test_state():
+    from eventbus.event import State
 
     leaf_id = "leaf_id"
     attr_id = "attr_id"
     entity = f"{leaf_id}.{attr_id}"
     value = 123
-    state_event = state(entity, value)
+    state_event = State(entity)
+    await state_event.update(value)
     proto = {
         "type": STATE,
         "value": value,
         "src": get_src_addr(),
         "dst": "#clients",
     }
-    assert is_subset(proto, state_event)
+    assert is_subset(proto, state_event.event)
 
-    ts = state_event["timestamp"]
-    state_event = state_update(state_event, value + 1)
+    ts = state_event.event["timestamp"]
+    await state_event.update(value + 1)
     proto["value"] = value + 1
-    assert is_subset(proto, state_event)
-    assert state_event["timestamp"] >= ts
+    assert is_subset(proto, state_event.event)
+    assert state_event.event["timestamp"] >= ts
 
-    action = state_action(state_event, "action", "param")
+    act_event = await state_event.act("action", "param")
+
     proto = {
         "type": STATE_ACTION,
         "action": "action",
         "param": "param",
-        "lid": eid2lid(state_event["eid"]),
+        "eid": state_event.eid,
         "src": get_src_addr(),
-        "dst": eid2addr(state_event["eid"]),
+        "dst": eid2addr(state_event.eid),
     }
-    assert is_subset(proto, action)
+    assert is_subset(proto, act_event)

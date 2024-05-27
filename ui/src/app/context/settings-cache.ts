@@ -45,9 +45,10 @@ export class SettingsCache {
     const obj = await getMany(Object.keys(this.cache));
     // update cache with data loaded from indexedDB
     for (const [i, key] of Object.keys(this.cache).entries()) {
-      if (obj[i]) this.cache[key] = obj[i];
+      if (obj[i] != undefined) this.cache[key] = obj[i];
     }
     this._settingsProvider.setValue(this.settings, true);
+    document.querySelector('body').setAttribute('theme', this.settings.dark_theme ? 'dark' : 'light');
     this._settingsLoaded = true;
   }
 }

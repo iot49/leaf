@@ -15,15 +15,16 @@ from eventbus.event import get_auth
 
 from .. import Event, EventBus, post, subscribe, unsubscribe
 from ..event import (
+    State,
     bye_timeout,
     hello_already_connected,
     hello_connected,
     hello_invalid_token,
     pong,
-    state,
 )
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 BUS_TIMEOUT = 5  # disconnect if no message received [seconds]
 
@@ -71,32 +72,36 @@ class Server(EventBus):
             event = await asyncio.wait_for(self.transport.receive_json(), timeout=self.timeout + 1)
             authenticated, client_addr = await self.authenticate(event.get("token"))
             if not authenticated:
+                logger.debug(f"{self.param.get('client')}: authentication failed")
                 await self.transport.send_json(hello_invalid_token())
                 return
             self.client_addr = client_addr
             self.gateway = not client_addr.startswith("@")
         except (RuntimeError, asyncio.TimeoutError):
+            logger.debug("handshake failed")
             await self.transport.send_json(bye_timeout())
             return
 
+        connect_event = State(eid=f"{client_addr}.gateway:status.connected")
         try:
             # update connections registry
-            connection = Server.CONNECTIONS.get(self.client_addr)
+            connection = Server.CONNECTIONS.get(client_addr)
             if connection and connection.get("connected"):
                 await self.transport.send_json(hello_already_connected())
                 return
-            Server.CONNECTIONS[self.client_addr] = {
+            Server.CONNECTIONS[client_addr] = {
                 "param": self.param,
                 "connected_at": time.time(),
                 "connected": True,
             }
             # ready for events
+            logger.debug(f"listening  for events from {client_addr}")
             subscribe(self)
             # send greeting
             await self.transport.send_json(hello_connected(self.param))
             # update gateway connection state
             if self.gateway:
-                await post(state(eid=f"{self.client_addr}.gateway:status.connected", value=True))
+                await connect_event.update(True)
             # won't return until the connection is closed
             await self.receiver_task()
         except RuntimeError:
@@ -104,11 +109,11 @@ class Server(EventBus):
             self.closed = True
         finally:
             unsubscribe(self)
-            connection = Server.CONNECTIONS.get(self.client_addr) or {}
+            connection = Server.CONNECTIONS.get(client_addr) or {}
             connection["connected"] = False
             connection["disconnected_at"] = time.time()
             if self.gateway:
-                await post(state(eid=f"{self.client_addr}.gateway:status.connected", value=False))
+                await connect_event.update(False)
             else:
                 # del Server.CONNECTIONS[self.client_addr]
                 pass
@@ -126,7 +131,7 @@ class Server(EventBus):
             return
         # address filter
         dst = event.get("dst", "")
-        if event["type"] == event_type.LOG:
+        if False and event["type"] != event_type.LOG:
             logger.debug(
                 f"LOG src={event.get('src')} dst={dst}, gateway={self.gateway}, addr_filter={self.addr_filter(dst)}"
             )
@@ -138,7 +143,8 @@ class Server(EventBus):
                 logger.error(f"Server.post: Transport error {e}")
                 self.closed = True
         else:
-            logger.debug(f"addr_filter skip type={event.get('type')} dst={dst} (client_addr={self.client_addr})")
+            pass
+            # logger.debug(f"addr_filter not posted: type={event.get('type')} dst={dst} (client_addr={self.client_addr})")
 
     async def process_event(self, event: Event) -> None:
         et = event.get("type")
@@ -148,6 +154,7 @@ class Server(EventBus):
         if et == event_type.PING:
             await self.transport.send_json(pong)
         elif et == event_type.BYE:
+            logger.debug("got bye, closing connection")
             self.closed = True
         else:
             logger.debug(f"eventbus.bus.server got {event}")
@@ -162,6 +169,8 @@ class Server(EventBus):
     async def receiver_task(self):
         while not self.closed:
             try:
+                # msg = await asyncio.wait_for(self.transport.receive_text(), timeout=self.timeout + 1)
+                # event = json.loads(msg)
                 event = await asyncio.wait_for(self.transport.receive_json(), timeout=self.timeout + 1)
                 if isinstance(event, list):
                     for e in event:
@@ -174,9 +183,8 @@ class Server(EventBus):
                 self.closed = True
             except json.JSONDecodeError as e:
                 logger.error(f"Invalid JSON {e}")
-                self.closed = True
             except WebSocketDisconnect as e:
-                logger.error(f"WebSocketDisconnect {e}")
+                logger.debug(f"WebSocketDisconnect {e}")
                 self.closed = True
             except Exception as e:
                 logger.exception(e, exc_info=e)
@@ -184,7 +192,6 @@ class Server(EventBus):
         try:
             await self.transport.close()
         except RuntimeError:
-            # logger.error("RuntimeError closing transport")
-            pass
+            logger.debug("RuntimeError closing transport")
         except Exception as e:
-            logger.exception("Server Error closing transport", e)
+            logger.exception("Server Error closing transport", exc_info=e)

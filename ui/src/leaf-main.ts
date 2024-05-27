@@ -35,6 +35,10 @@ export class LeafMain extends LeafContext {
       render: ({ uuid }) => html`<leaf-tree uuid=${uuid}></leaf-tree>`,
     },
     {
+      path: '/ui/settings',
+      render: () => html`<leaf-settings></leaf-settings>`,
+    },
+    {
       path: '/ui/accounts',
       render: () => html`<leaf-accounts></leaf-accounts>`,
     },
