@@ -44,6 +44,8 @@ async def _get_public_keys():
             for key_dict in jwk_set["keys"]:
                 public_key = jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(key_dict))  # type: ignore
                 public_keys.append(public_key)
+    logger.debug("CF._get_public_keys: got {} keys".format(len(public_keys)))
+    logger.debug("CF.keys: {}".format(public_keys))
     return public_keys
 
 
