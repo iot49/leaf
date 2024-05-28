@@ -47,7 +47,7 @@ export class LeafContext extends LeafBase {
 
     window.addEventListener('leaf-event', async (_event: CustomEvent) => {
       const event = _event.detail;
-      if (event.type != 'pong') console.log('leaf-context got event', event);
+      // if (event.type != 'pong') console.log('leaf-context got event', event);
       switch (event.type) {
         case 'hello_connected':
           await eventbus.postEvent({ type: 'get_config', dst: '#server' });

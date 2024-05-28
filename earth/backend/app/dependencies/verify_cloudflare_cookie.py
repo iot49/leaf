@@ -23,7 +23,7 @@ Test skipped for config.ENVIRONMENT != config.Environment.production.
 """
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.ERROR)
 
 # CF Access team domain
 CERTS_URL = "{}/cdn-cgi/access/certs".format(env.CF_TEAM_DOMAIN)

@@ -13,4 +13,5 @@ Secrets()
 Certificates()
 
 counter = Counter(eid="counter.count", interval=1)
-asyncio.create_task(counter.counter_task())
+loop = asyncio.get_event_loop()
+loop.create_task(counter.counter_task())

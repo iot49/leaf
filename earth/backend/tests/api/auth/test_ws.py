@@ -1,8 +1,10 @@
+import jwt
+import pytest
 from app import bus
 from httpx_ws import aconnect_ws
 from tests.util import is_subset
 
-from eventbus.event import State, bye, get_cert, get_config, get_secrets
+from eventbus.event import State, get_cert, get_config, get_secrets
 from eventbus.event_type import GET_AUTH, HELLO_INVALID_TOKEN, PUT_AUTH
 
 from .conftest import EventQueue, set_src, yield_ws
@@ -23,13 +25,21 @@ async def test_ws_client(async_websocket_client, client_token):
 async def test_ws_client_invalid_token(async_websocket_client):
     # client connection
     async with aconnect_ws("ws", async_websocket_client) as ws:
-        # authenticate
+        # invalid token
         auth = await ws.receive_json()
         assert auth["type"] == GET_AUTH
-        await ws.send_json({"type": PUT_AUTH, "token": "invalid_token"})
+        await ws.send_json({"type": PUT_AUTH, "token": jwt.encode({"token": "invalid"}, "secret", algorithm="HS256")})
         # get the hello message
         hello = await ws.receive_json()
         assert hello["type"] == HELLO_INVALID_TOKEN
+
+    async with aconnect_ws("ws", async_websocket_client) as ws:
+        # bogus token
+        auth = await ws.receive_json()
+        assert auth["type"] == GET_AUTH
+        await ws.send_json({"type": PUT_AUTH, "token": "bogus token"})
+        with pytest.raises(Exception):
+            hello = await ws.receive_json()
 
 
 async def test_ws_gateway(async_client, async_websocket_client, create_trees):
@@ -69,11 +79,12 @@ async def test_ws_gateway_invalid_token(async_websocket_client, create_trees):
             # authenticate
             auth = await ws.receive_json()
             assert auth["type"] == GET_AUTH
-            await ws.send_json({"type": PUT_AUTH, "token": "invalid_token"})
+            await ws.send_json(
+                {"type": PUT_AUTH, "token": jwt.encode({"token": "invalid"}, "secret", algorithm="HS256")}
+            )
             # get the hello message
             hello = await ws.receive_json()
             assert hello["type"] == HELLO_INVALID_TOKEN
-            await ws.send_json(bye())
 
 
 async def test_get_config(async_websocket_client, client_token):

@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from .api.user.schema import UserRead
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.ERROR)
 
 
 async def new_client_token(*, user_uuid, tree=None, api_key=None, validity: timedelta = env.CLIENT_TOKEN_VALIDITY):
