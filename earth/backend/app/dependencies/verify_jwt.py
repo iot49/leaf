@@ -3,6 +3,7 @@ from fastapi.requests import HTTPConnection
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from .. import api, db
+from ..api.user.schema import UserRead
 from ..env import Environment, env
 
 
@@ -47,7 +48,7 @@ async def verify_client_token(
             return superuser  # type: ignore
 
     token = credentials.credentials
-    user_ = await tokens.verify_client_token_(token=token)
+    user_: UserRead = await tokens.verify_client_token_(token=token)  # type: ignore
     request.state.user_email = user_.email
     request.state.user = user_
     return user_

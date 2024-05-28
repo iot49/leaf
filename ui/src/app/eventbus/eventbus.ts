@@ -16,7 +16,7 @@ export interface Bus {
 }
 
 class _EventBus implements EventBus {
-  private ping_interval: number = 1000;
+  private ping_interval: number = 5000;
   private _bus: Bus;
   private _wdtId: ReturnType<typeof setInterval>;
 

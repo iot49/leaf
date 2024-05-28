@@ -1,5 +1,4 @@
 import logging
-from datetime import timedelta
 
 from fastapi import Depends
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -23,7 +22,7 @@ async def get_client_token(
     # used only for login to websocket connections to earth
     # short validity requires getting a new token for each connection
     key: api_key.ApiKeyRead | None = await api_key.get_key(db_session=session)
-    return await new_client_token(user_uuid=user.uuid, api_key=key, validity=timedelta(minutes=1))
+    return await new_client_token(user_uuid=user.uuid, api_key=key)
 
 
 @router.get("/gateway_token/{tree_uuid}")
@@ -39,4 +38,4 @@ async def get_gateway_token(
 
 @router.get("/gateway_secrets/{tree_uuid}")
 async def get_gateway_secrets(tree_uuid: str) -> dict:
-    return await get_secrets(tree_uuid=tree_uuid)
+    return await get_secrets(tree_uuid=tree_uuid) or {}

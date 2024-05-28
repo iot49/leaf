@@ -14,6 +14,7 @@ asyncio.new_event_loop()
 TEST_WS = "ws://192.168.8.138:8001/gateway/ws"
 TEST_WS = "ws://10.39.40.104:8001/gateway/ws"
 
-asyncio.run(main(ws_url=TEST_WS))  # type: ignore
+# asyncio.run(main(ws_url=TEST_WS))
+asyncio.run(main())
 
 print("exiting to REPL")

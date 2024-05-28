@@ -47,7 +47,7 @@ export class LeafContext extends LeafBase {
 
     window.addEventListener('leaf-event', async (_event: CustomEvent) => {
       const event = _event.detail;
-      // if (event.type != 'pong') console.log('leaf-context got event', event);
+      if (event.type != 'pong') console.log('leaf-context got event', event);
       switch (event.type) {
         case 'hello_connected':
           await eventbus.postEvent({ type: 'get_config', dst: '#server' });
@@ -66,8 +66,6 @@ export class LeafContext extends LeafBase {
           // state update message
           const proxy = new Proxy(event, state_handler);
           const state = this._stateProvider.value;
-          //this.state.set(event.eid, proxy);
-          //this._stateProvider.setValue(this.state, true);
           state.set(event.eid, proxy);
           this._stateProvider.setValue(state, true);
           break;

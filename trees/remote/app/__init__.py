@@ -39,6 +39,7 @@ def configure_logging():
                 message=record.message,
             )
             post_sync(event)
+            print("app.__init__ LOG", event)
 
     root_logger = logging.getLogger()
     # remove default handler

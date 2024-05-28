@@ -151,3 +151,6 @@ class State:
         ev = make_event(event_type.STATE_ACTION, dst=eid2addr(self._eid), eid=self._eid, action=action, param=param)
         await post(ev)
         return ev
+
+    def __repr__(self) -> str:
+        return f"State({self._eid})"

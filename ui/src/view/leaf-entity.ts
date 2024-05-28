@@ -34,7 +34,7 @@ export class LeafEntity extends LeafBase {
         margin-left: 1rem;
       }
       .name {
-        width: 10rem;
+        width: 14rem;
         margin-left: 1rem;
       }
       .value {

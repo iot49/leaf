@@ -2,10 +2,11 @@ import logging
 
 from fastapi import HTTPException, WebSocket
 
-from app.tokens import verify_client_token_
 from eventbus import serve
 
 from ...bus import config
+from ...tokens import verify_client_token_
+from ..user.schema import UserRead
 from . import router
 
 logger = logging.getLogger(__name__)
@@ -27,14 +28,13 @@ async def client_ws(websocket: WebSocket):
     async def authenticate(token: str) -> tuple[bool, str]:
         global _CLIENT_ADDR
         try:
-            user = await verify_client_token_(token)
-            if user is None:
-                return (False, "")
+            user: UserRead = await verify_client_token_(token)  # type: ignore
             param["user"] = user.email
             _CLIENT_ADDR += 1
             client_addr = f"@{_CLIENT_ADDR}"
             return (True, client_addr)
-        except HTTPException:
+        except HTTPException as e:
+            logger.error(f"client authentication failed: {e}")
             return (False, "")
 
     await websocket.accept()

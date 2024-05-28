@@ -77,8 +77,8 @@ class Server(EventBus):
                 return
             self.client_addr = client_addr
             self.gateway = not client_addr.startswith("@")
-        except (RuntimeError, asyncio.TimeoutError):
-            logger.debug("handshake failed")
+        except (WebSocketDisconnect, RuntimeError, asyncio.TimeoutError) as e:
+            logger.debug(f"handshake failed: {e}")
             await self.transport.send_json(bye_timeout())
             return
 

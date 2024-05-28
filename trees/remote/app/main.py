@@ -75,8 +75,8 @@ async def main_task(ws_url):
         gateway = Gateway()
         reconnect_delay = 1
         while True:
-            await gateway.connnect(ws_url)
-            logger.info("Disconnected")
+            msg = await gateway.connnect(ws_url)
+            logger.info(f"Disconnected from {ws_url}: {msg}, reconnecting in {reconnect_delay} seconds")
             await asyncio.sleep(reconnect_delay)
             reconnect_delay = min(5, reconnect_delay * 2)
 

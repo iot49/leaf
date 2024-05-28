@@ -40,6 +40,8 @@ export class LeafView extends LeafBase {
       cards = views[this.view_id].cards;
     } catch (e) {
       alertDialog(`View ${this.view_id} not found`, e.message);
+      console.log('views', views);
+      console.log('config', this.config);
       return html`view/${this.view_id} not found in <code>${JSON.stringify(this.config, null, 2)}</code>`;
     }
     return html` <leaf-page mobile>

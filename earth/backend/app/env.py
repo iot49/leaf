@@ -36,9 +36,9 @@ class Env(BaseSettings):
     CF_POLICY_AUD: str
     CF_TEAM_DOMAIN: str = "https://leaf49.cloudflareaccess.com"
 
-    # api keys
+    # api keys (beware of slow networks)
     API_KEY_VALIDITY: timedelta = timedelta(days=100 * 365)
-    CLIENT_TOKEN_VALIDITY: timedelta = timedelta(days=30)
+    CLIENT_TOKEN_VALIDITY: timedelta = timedelta(minutes=3)
     GATEWAY_TOKEN_VALIDITY: timedelta = timedelta(days=90)
 
     # analytics
@@ -79,9 +79,7 @@ class Env(BaseSettings):
     @property
     def UI_DIR(self) -> str:
         dir = "/home/ui"
-        if not os.path.isdir(dir):
-            dir = "../../ui/dist"
-        return dir
+        return dir if os.path.isdir(dir) else "../../ui/dist"
 
 
 @lru_cache()

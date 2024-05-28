@@ -37,7 +37,7 @@ class Log(EventBus):
             }
             color = colors.get(levelno, "")
             funcName = event.get("funcName") or ""
-            t = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(event.get("ct", 0)))  # type: ignore
+            t = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(event.get("timestamp", 0)))  # type: ignore
             print(
                 f"{t} {color}{event.get('levelname'):9}{RESET} {event.get('src'):12} {event.get('name'):20} {funcName:16} {event.get('message')}"
             )
