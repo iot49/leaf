@@ -41,6 +41,10 @@ class Env(BaseSettings):
     CLIENT_TOKEN_VALIDITY: timedelta = timedelta(minutes=10)
     GATEWAY_TOKEN_VALIDITY: timedelta = timedelta(days=90)
 
+    # websocket timeouts
+    CLIENT_WS_TIMEOUT: int = 10  # server disconnects if no message received (seconds)
+    GATEWAY_WS_TIMEOUT: int = 10  # server disconnects if no message received (seconds)
+
     # analytics
     ANALYTICS_API_KEY: str | None = None
 

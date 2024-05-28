@@ -3,7 +3,9 @@ import logging
 from abc import abstractmethod
 from typing import Awaitable, Callable
 
-from . import event_type
+from . import event_type  # noqa: F401
+
+WS_TIMEOUT = 5  # disconnect if no message received [seconds]
 
 """
 EventBus - a simple interface for routing events (dicts).
@@ -88,9 +90,11 @@ def unsubscribe(bus: EventBus) -> None:
 from .bus import Server, Transport  # noqa: E402
 
 
-async def serve(transport: Transport, authenticate: Callable[[str], Awaitable[tuple[bool, str]]], param) -> None:
+async def serve(
+    transport: Transport, authenticate: Callable[[str], Awaitable[tuple[bool, str]]], param, timeout=WS_TIMEOUT
+) -> None:
     # won't return until the connection is closed
-    server = Server(transport=transport, authenticate=authenticate, param=param)
+    server = Server(transport=transport, authenticate=authenticate, param=param, timeout=timeout)
     await server.run()
 
 

@@ -5,6 +5,7 @@ from fastapi import HTTPException, WebSocket
 from eventbus import serve
 
 from ...bus import certificates, config, secrets
+from ...env import env
 from ...tokens import verify_gateway_token
 from ..tree.schema import TreeRead
 from . import router
@@ -37,5 +38,5 @@ async def tree_ws(websocket: WebSocket):
     # won't return until the connection is closed
 
     logger.debug(f"accepted connection {param}")
-    await serve(websocket, authenticate, param)  # type: ignore
+    await serve(websocket, authenticate, param, timeout=env.GATEWAY_WS_TIMEOUT)  # type: ignore
     logger.debug(f"closed connection {param}")

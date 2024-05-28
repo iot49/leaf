@@ -26,7 +26,7 @@ from ..event import (
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-BUS_TIMEOUT = 5  # disconnect if no message received [seconds]
+WS_TIMEOUT = 5  # disconnect if no message received [seconds]
 
 
 class Transport:
@@ -47,7 +47,7 @@ class Server(EventBus):
     CONNECTIONS = {}
 
     def __init__(
-        self, *, transport: Transport, authenticate: Callable[[str], Awaitable[tuple[bool, str]]], param: dict
+        self, *, transport: Transport, authenticate: Callable[[str], Awaitable[tuple[bool, str]]], param: dict, timeout
     ):
         """Create a Server instance.
 
@@ -59,7 +59,7 @@ class Server(EventBus):
 
         self.closed = False
         self.transport = transport
-        self.timeout = BUS_TIMEOUT
+        self.timeout = timeout
         self.authenticate = authenticate
         self.param = param
         self.param["timeout_interval"] = self.timeout

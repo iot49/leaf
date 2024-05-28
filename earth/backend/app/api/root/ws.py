@@ -5,6 +5,7 @@ from fastapi import HTTPException, WebSocket
 from eventbus import serve
 
 from ...bus import config
+from ...env import env
 from ...tokens import verify_client_token
 from ..user.schema import UserRead
 from . import router
@@ -40,5 +41,5 @@ async def client_ws(websocket: WebSocket):
     await websocket.accept()
     # won't return until the connection is closed
     logger.debug(f"accepted connection {param}")
-    await serve(websocket, authenticate, param)  # type: ignore
+    await serve(websocket, authenticate, param, timeout=env.CLIENT_WS_TIMEOUT)  # type: ignore
     logger.debug(f"closed connection {param}")
