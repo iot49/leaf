@@ -24,7 +24,7 @@ class TreeBase(TreeCredentials, SQLModel):
     tree_id: Id = Field(unique=True, index=True, regex=r"^[a-z0-9_]+$")
     title: str
     description: str = ""
-    gateway: UUID | None = None  # default gatway for this tree
+    # gateway: UUID | None = None  # default gatway for this tree
 
     model_config = {
         "json_schema_extra": {

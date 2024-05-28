@@ -23,7 +23,6 @@ class CRUDMe(CRUDBase[User, UserCreate, UserRead, UserUpdate]):
 
         # filter trees based on permissions
         for tree in trees:
-            # if tree.disabled: continue
             # tokens for local tree websocket access
             # only admin and user roles can connect to trees
             if set(["admin", "user"]).isdisjoint(user.roles):

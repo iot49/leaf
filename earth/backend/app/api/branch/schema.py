@@ -21,7 +21,7 @@ class BranchRead(BaseRead):
 
 # all fields are optional
 class BranchUpdate(SQLModel):
-    # comment next line to prevent update of branch_id (requires configuration changes)
+    # CONSIDER: remove next line to prevent update of branch_id (requires configuration changes)
     branch_id: str | None = None
     description: str | None = None
     disabled: bool | None = None

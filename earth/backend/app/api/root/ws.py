@@ -5,7 +5,7 @@ from fastapi import HTTPException, WebSocket
 from eventbus import serve
 
 from ...bus import config
-from ...tokens import verify_client_token_
+from ...tokens import verify_client_token
 from ..user.schema import UserRead
 from . import router
 
@@ -28,7 +28,7 @@ async def client_ws(websocket: WebSocket):
     async def authenticate(token: str) -> tuple[bool, str]:
         global _CLIENT_ADDR
         try:
-            user: UserRead = await verify_client_token_(token)  # type: ignore
+            user: UserRead = await verify_client_token(token)  # type: ignore
             param["user"] = user.email
             _CLIENT_ADDR += 1
             client_addr = f"@{_CLIENT_ADDR}"

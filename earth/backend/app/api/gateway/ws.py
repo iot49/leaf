@@ -5,7 +5,7 @@ from fastapi import HTTPException, WebSocket
 from eventbus import serve
 
 from ...bus import certificates, config, secrets
-from ...tokens import verify_gateway_token_
+from ...tokens import verify_gateway_token
 from ..tree.schema import TreeRead
 from . import router
 
@@ -18,14 +18,12 @@ logger.setLevel(logging.DEBUG)
 async def tree_ws(websocket: WebSocket):
     param = {
         "client": str(websocket.client.host),  # type: ignore
-        # "host": str(websocket.headers.get("host")),
-        # "url": str(websocket.url),
         "versions": {"config": config.get("version")},
     }
 
     async def authenticate(token: str) -> tuple[bool, str]:
         try:
-            tree: TreeRead | None = await verify_gateway_token_(token)
+            tree: TreeRead | None = await verify_gateway_token(token)
             if tree is None:
                 return (False, "")
             param["versions"]["secrets"] = await secrets.get_version(tree.tree_id)

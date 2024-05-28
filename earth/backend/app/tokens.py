@@ -35,7 +35,7 @@ async def new_client_token(*, user_uuid, tree=None, api_key=None, validity: time
     return jwt.encode(payload, str(key), algorithm="HS256", headers=headers)
 
 
-async def verify_client_token_(token) -> "UserRead":  # type: ignore
+async def verify_client_token(token) -> "UserRead":  # type: ignore
     """Verifies the client token checking its validity and expiration.
 
     Args:
@@ -89,7 +89,7 @@ async def new_gateway_token(tree, api_key, validity: timedelta = env.GATEWAY_TOK
     return jwt.encode(payload, api_key.key, algorithm="HS256", headers={"kid": str(api_key.uuid)})
 
 
-async def verify_gateway_token_(token) -> "TreeReadWithBraches":  # type: ignore
+async def verify_gateway_token(token) -> "TreeReadWithBraches":  # type: ignore
     """
     Verify the authenticity and validity of a gateway token.
 

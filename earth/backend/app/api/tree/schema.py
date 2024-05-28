@@ -1,13 +1,9 @@
-from typing import Any
-from uuid import UUID
-
 from sqlmodel import SQLModel
 
 from ...types import Id
 from ..base.schema import BaseRead
+from ..branch.schema import BranchRead
 from .model import TreeBase
-
-# from ..branch import BranchRead
 
 
 class TreeCreate(TreeBase):
@@ -19,12 +15,11 @@ class TreeRead(BaseRead):
     tree_id: Id
     title: str
     description: str
-    gateway: UUID | None
+    # gateway: UUID | None
 
 
 class TreeReadWithBraches(TreeRead):
-    # branches: list[BranchRead]
-    branches: list[Any]  # type: ignore # noqa: F821
+    branches: list[BranchRead]
 
 
 # all fields are optional

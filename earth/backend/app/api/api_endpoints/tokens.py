@@ -7,7 +7,7 @@ from ...api import api_key, tree
 from ...bus.secrets import get_secrets
 from ...db import get_session
 from ...dependencies.get_current_user import get_current_user
-from ...tokens import new_client_token, new_gateway_token, verify_client_token_
+from ...tokens import new_client_token, new_gateway_token
 from ..user.model import User
 from . import router
 
@@ -23,14 +23,7 @@ async def get_client_token(
     # used only for login to websocket connections to earth
     # short validity requires getting a new token for each connection
     key: api_key.ApiKeyRead = await api_key.get_key(db_session=session)
-    token = await new_client_token(user_uuid=user.uuid, api_key=key)
-
-    # DEBUG: verify the token (TODO: remove these 3 lines ...)
-    user_ = await verify_client_token_(token=token)
-    assert user_.uuid == user.uuid  # type: ignore
-    logger.debug(f"Token verified for user {user_.uuid}: {token}")  # type: ignore
-
-    return token
+    return await new_client_token(user_uuid=user.uuid, api_key=key)
 
 
 @router.get("/gateway_token/{tree_uuid}")

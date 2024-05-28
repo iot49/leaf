@@ -2,6 +2,7 @@
 # https://developers.cloudflare.com/cloudflare-one/tutorials/fastapi/
 
 import json
+import logging
 
 import aiohttp
 import jwt
@@ -21,10 +22,13 @@ Raises: HTTPException with status 400 if the token is missing or invalid.
 Test skipped for config.ENVIRONMENT != config.Environment.production.
 """
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
 # CF Access team domain
 CERTS_URL = "{}/cdn-cgi/access/certs".format(env.CF_TEAM_DOMAIN)
 
-CHECK_USER_DISABLED = True
+CHECK_USER_DISABLED = False
 
 
 @alru_cache
@@ -60,13 +64,14 @@ async def verify_cloudflare_cookie(request: HTTPConnection, session: str = Depen
         return env.FIRST_SUPERUSER_EMAIL
 
     if "CF_Authorization" not in request.cookies:
-        print(f"Missing required Cloudflare cookie; host={host}, env={env.ENVIRONMENT}")
+        logger.debug(f"Missing required Cloudflare cookie; host={host}, env={env.ENVIRONMENT}")
         raise HTTPException(
             status_code=400,
             detail="Missing required Cloudflare authorization token",
         )
 
     token = request.cookies["CF_Authorization"]
+    logger.debug(f"Got CF token '{token}'")
     keys = await _get_public_keys()  # type: ignore
 
     # Loop through the keys since we can't pass the key set to the decoder
@@ -89,7 +94,15 @@ async def verify_cloudflare_cookie(request: HTTPConnection, session: str = Depen
                 if user.disabled:
                     raise HTTPException(status_code=403, detail="Account suspended")
                 # we just return the email to keep compatibility with situations where user data is not retrieved
+                logger.debug(f"Verified CF token, user = {user.email}")
             return claims["email"]
         except jwt.DecodeError as e:
+            logger.debug(f"""Error decoding CF token -> {jwt.decode(
+                token,
+                key=key,
+                audience=env.CF_POLICY_AUD,
+                algorithms=["RS256"],
+                options={"verify_signature": False},
+            )}: {e}""")
             raise HTTPException(status_code=400, detail=f"Error decoding token: {e}")
     raise HTTPException(status_code=400, detail="Invalid Cloudflare token")

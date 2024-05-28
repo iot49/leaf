@@ -19,22 +19,22 @@ class JWTAuth(HTTPBearer):
         return await super().__call__(request)  # type: ignore
 
 
-async def verify_gateway_token(
+async def verify_gateway_token_dependency(
     request: HTTPConnection,
     credentials: HTTPAuthorizationCredentials = Depends(JWTAuth()),
-):  # -> api.tree.schema.TreeReadWithBraches:
+) -> api.tree.schema.TreeReadWithBraches:
     from .. import tokens
 
     token = credentials.credentials
-    tree_ = await tokens.verify_gateway_token_(token=token)
+    tree_ = await tokens.verify_gateway_token(token=token)
     request.state.tree = tree_
     return tree_
 
 
-async def verify_client_token(
+async def verify_client_token_dependency(
     request: HTTPConnection,
     credentials: HTTPAuthorizationCredentials = Depends(JWTAuth()),
-):  # -> api.user.schema.UserRead:
+) -> api.user.schema.UserRead:
     from .. import tokens
 
     # skip verification for dev environment and localhost
@@ -48,7 +48,7 @@ async def verify_client_token(
             return superuser  # type: ignore
 
     token = credentials.credentials
-    user_: UserRead = await tokens.verify_client_token_(token=token)  # type: ignore
+    user_: UserRead = await tokens.verify_client_token(token=token)  # type: ignore
     request.state.user_email = user_.email
     request.state.user = user_
     return user_
