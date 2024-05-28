@@ -22,9 +22,11 @@ async def get_client_token(
 ) -> str:
     # used only for login to websocket connections to earth
     # short validity requires getting a new token for each connection
+    logger.debug(f"/api/client_token: user = {user}")
     key: api_key.ApiKeyRead = await api_key.get_key(db_session=session)
+    logger.debug(f"/api/client_token: key = {key}")
     token = await new_client_token(user_uuid=user.uuid, api_key=key)
-    logger.debug(f"/api/client_token: {token}")
+    logger.debug(f"/api/client_token: token = {token}")
     return token
 
 
