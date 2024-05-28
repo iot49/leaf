@@ -18,12 +18,13 @@ async def get_current_user(request: HTTPConnection) -> "User":  # type: ignore
 
     Returns (UserRead): The user object, also assigned to request.state.user.
     """
+    from ..api.user.model import User
 
     # check if we already retrieved it
     try:
-        user = request.state.user
-        if user is not None:
-            return user
+        u = request.state.user
+        if u is not None:
+            return u
     except AttributeError:
         pass
 
@@ -35,8 +36,8 @@ async def get_current_user(request: HTTPConnection) -> "User":  # type: ignore
 
     # lookup user in the database or create if not found
     async for session in get_session():
-        user = await session.execute(select(User).where(User.email == email))
-        user = user.scalars().first()
+        res = await session.execute(select(User).where(User.email == email))
+        user = res.scalars().first()
         if user is None:
             # user does not exist - create
             # guest permission: edit user profile, view trees and branches but no connection to websockets
