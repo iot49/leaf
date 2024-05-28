@@ -72,7 +72,7 @@ async def verify_cloudflare_cookie(request: HTTPConnection, session: str = Depen
             detail="Missing required Cloudflare authorization token",
         )
 
-    token = request.cookies["CF_Authorization"]
+    token = request.cookies["CF_Authorization"].encode()
     logger.debug(f"Got CF token '{token}'")
     keys = await _get_public_keys()  # type: ignore
 
@@ -107,4 +107,5 @@ async def verify_cloudflare_cookie(request: HTTPConnection, session: str = Depen
                 options={"verify_signature": False},
             )}: {e}""")
             raise HTTPException(status_code=400, detail=f"Error decoding token: {e}")
+    logger.debug(f"Cloudflare token not validated by any of {len(keys)}")
     raise HTTPException(status_code=400, detail="Invalid Cloudflare token")
