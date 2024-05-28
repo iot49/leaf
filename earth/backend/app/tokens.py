@@ -66,12 +66,12 @@ async def verify_client_token(token) -> "UserRead":  # type: ignore
             # verify that the token is valid and not expired (raises DecodeError if invalid)
             payload = jwt.decode(token, key=str(key), algorithms=["HS256"], audience="client->earth")
             logger.debug(f"Token payload: {payload}")
-            user_ = await api.user.crud.get_by_uuid(db_session=session, uuid=payload.get("user_uuid"))
-            logger.debug(f"User: {user_}")
-            if user_.disabled:
+            user = await api.user.crud.get_by_uuid(db_session=session, uuid=payload.get("user_uuid"))
+            logger.debug(f"User: {user}")
+            if user.disabled:
                 raise HTTPException(status_code=403, detail="User suspended")
 
-            return user_
+            return user
 
         except jwt.DecodeError as e:
             logger.error(f"Invalid token: {e}")

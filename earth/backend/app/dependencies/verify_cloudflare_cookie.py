@@ -100,10 +100,8 @@ async def verify_cloudflare_cookie(request: HTTPConnection, session: str = Depen
         except jwt.DecodeError:
             # try another key
             pass
-    logger.debug(f"Cloudflare token not validated by any of {len(keys)}: {jwt.decode(
-        token,
-        audience=env.CF_POLICY_AUD,
-        algorithms=['RS256'],
-        options={'verify_signature': False},
-    )}")
+    logger.debug(
+        f"Cloudflare token not validated by any of {len(keys)}: {jwt.decode(token,audience=env.CF_POLICY_AUD,algorithms=['RS256'],options={'verify_signature': False})}"
+    )
+
     raise HTTPException(status_code=400, detail="Invalid Cloudflare token")
