@@ -247,7 +247,8 @@ export class LeafTree extends LeafBase {
               @click=${async (_) => {
                 if (await this.registerDevice()) this.enrollTabs.show('register');
               }}
-              >Connect</sl-button>
+              >Connect</sl-button
+            >
           </sl-tab-panel>
 
           <!-- REGISTER: read mac, write config to device, device will contact server and complete registration -->
@@ -258,16 +259,17 @@ export class LeafTree extends LeafBase {
               registration.
             </p>
             <p>
-              The status LED will blink fast when the app is running, slowly once it is connected to wifi, and stay on solid 
-              after connecting to the earth server.
+              The status LED will blink fast when the app is running, slowly once it is connected to wifi, and stay on solid after connecting to the
+              earth server.
             </p>
             <sl-button
               variant="primary"
               @click=${(_) => {
                 this.enrollTabs.show('firmware');
                 this.enrollDialog.hide();
-              }}>
-              </sl-button>Done</sl-button>
+              }}
+              >Done</sl-button
+            >
           </sl-tab-panel>
         </sl-tab-group>
       </sl-dialog>

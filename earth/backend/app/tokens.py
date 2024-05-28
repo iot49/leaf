@@ -60,8 +60,9 @@ async def verify_client_token_(token) -> "UserRead":  # type: ignore
 
         try:
             logger.debug(f"Token: {token}")
-            logger.debug(f"Decoded: {jwt.decode(token, key=str(key), algorithms=['HS256'], audience='client->earth',
-                options={'verify_signature': False})}")
+            logger.debug(
+                f"Decoded: {jwt.decode(token, key=str(key), algorithms=['HS256'], audience='client->earth', options={'verify_signature': False})}"
+            )
             # verify that the token is valid and not expired (raises DecodeError if invalid)
             payload = jwt.decode(token, key=str(key), algorithms=["HS256"], audience="client->earth")
             logger.debug(f"Token payload: {payload}")
