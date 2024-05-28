@@ -44,8 +44,7 @@ async def _get_public_keys():
             for key_dict in jwk_set["keys"]:
                 public_key = jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(key_dict))  # type: ignore
                 public_keys.append(public_key)
-    logger.debug("CF._get_public_keys: got {} keys".format(len(public_keys)))
-    logger.debug("CF.keys: {}".format(public_keys))
+    logger.debug(f"CF._get_public_keys: got {len(public_keys)} keys")
     return public_keys
 
 
@@ -98,14 +97,13 @@ async def verify_cloudflare_cookie(request: HTTPConnection, session: str = Depen
                 # we just return the email to keep compatibility with situations where user data is not retrieved
                 logger.debug(f"Verified CF token, user = {user.email}")
             return claims["email"]
-        except jwt.DecodeError as e:
-            logger.debug(f"""Error decoding CF token -> {jwt.decode(
-                token,
-                key=key,
-                audience=env.CF_POLICY_AUD,
-                algorithms=["RS256"],
-                options={"verify_signature": False},
-            )}: {e}""")
-            # raise HTTPException(status_code=400, detail=f"Error decoding token: {e}")
-    logger.debug(f"Cloudflare token not validated by any of {len(keys)}")
+        except jwt.DecodeError:
+            # try another key
+            pass
+    logger.debug(f"Cloudflare token not validated by any of {len(keys)}: {jwt.decode(
+        token,
+        audience=env.CF_POLICY_AUD,
+        algorithms=['RS256'],
+        options={'verify_signature': False},
+    )}")
     raise HTTPException(status_code=400, detail="Invalid Cloudflare token")

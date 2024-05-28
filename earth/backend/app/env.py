@@ -38,7 +38,8 @@ class Env(BaseSettings):
 
     # api keys (beware of slow networks)
     API_KEY_VALIDITY: timedelta = timedelta(days=100 * 365)
-    CLIENT_TOKEN_VALIDITY: timedelta = timedelta(minutes=3)
+    # TODO: reduce client_token_validity
+    CLIENT_TOKEN_VALIDITY: timedelta = timedelta(minutes=300)
     GATEWAY_TOKEN_VALIDITY: timedelta = timedelta(days=90)
 
     # analytics

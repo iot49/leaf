@@ -49,11 +49,13 @@ async def verify_client_token(token) -> "UserRead":  # type: ignore
     """
 
     logger.debug(f"verify_client_token: {token}")
+    logger.debug(f"Decoded: {jwt.decode(token, algorithms=['HS256'], options={'verify_signature': False})}")
+
     try:
         header = jwt.get_unverified_header(token)
-        logger.debug(f"Token header: {header}")
+        # logger.debug(f"Token header: {header}")
     except jwt.DecodeError as e:
-        logger.error(f"Corrupt token: {e} {type(token)} {token}")
+        # logger.error(f"Corrupt token: {e} {type(token)} {token}")
         raise HTTPException(status_code=401, detail=f"Corrupt token: {e}")
 
     async for session in get_session():
@@ -61,10 +63,6 @@ async def verify_client_token(token) -> "UserRead":  # type: ignore
         logger.debug(f"Key: {key}")
 
         try:
-            logger.debug(f"Token: {token}")
-            logger.debug(
-                f"Decoded: {jwt.decode(token, key=str(key), algorithms=['HS256'], audience='client->earth', options={'verify_signature': False})}"
-            )
             # verify that the token is valid and not expired (raises DecodeError if invalid)
             payload = jwt.decode(token, key=str(key), algorithms=["HS256"], audience="client->earth")
             logger.debug(f"Token payload: {payload}")
