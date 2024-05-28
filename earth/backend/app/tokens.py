@@ -47,11 +47,13 @@ async def verify_client_token(token) -> "UserRead":  # type: ignore
     Raises:
         HTTPException: If the token is invalid, expired, or the user is not known or suspended.
     """
+
+    logger.debug(f"verify_client_token: {token}")
     try:
         header = jwt.get_unverified_header(token)
         logger.debug(f"Token header: {header}")
     except jwt.DecodeError as e:
-        logger.error(f"Corrupt token: {e}")
+        logger.error(f"Corrupt token: {e} {type(token)} {token}")
         raise HTTPException(status_code=401, detail=f"Corrupt token: {e}")
 
     async for session in get_session():
