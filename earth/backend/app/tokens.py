@@ -1,4 +1,6 @@
+import logging
 from datetime import datetime, timedelta, timezone
+from typing import TYPE_CHECKING
 
 import jwt
 from fastapi import HTTPException
@@ -6,6 +8,13 @@ from fastapi import HTTPException
 from . import api
 from .db import get_session
 from .env import Environment, env
+
+if TYPE_CHECKING:
+    from .api.tree.schema import TreeReadWithBraches
+    from .api.user.schema import UserRead
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 async def new_client_token(*, user_uuid, tree=None, api_key=None, validity: timedelta = env.CLIENT_TOKEN_VALIDITY):
@@ -26,7 +35,7 @@ async def new_client_token(*, user_uuid, tree=None, api_key=None, validity: time
     return jwt.encode(payload, str(key), algorithm="HS256", headers=headers)
 
 
-async def verify_client_token_(token):  # -> api.user.schema.UserRead:
+async def verify_client_token_(token) -> "UserRead":  # type: ignore
     """Verifies the client token checking its validity and expiration.
 
     Args:
@@ -40,22 +49,28 @@ async def verify_client_token_(token):  # -> api.user.schema.UserRead:
     """
     try:
         header = jwt.get_unverified_header(token)
+        logger.debug(f"Token header: {header}")
     except jwt.DecodeError as e:
+        logger.error(f"Corrupt token: {e}")
         raise HTTPException(status_code=401, detail=f"Corrupt token: {e}")
 
     async for session in get_session():
         key = await api.api_key.get_key(db_session=session, kid=header.get("kid"))
+        logger.debug(f"Key: {key}")
 
         try:
             # verify that the token is valid and not expired (raises DecodeError if invalid)
             payload = jwt.decode(token, key=str(key), algorithms=["HS256"], audience="client->earth")
+            logger.debug(f"Token payload: {payload}")
             user_ = await api.user.crud.get_by_uuid(db_session=session, uuid=payload.get("user_uuid"))
+            logger.debug(f"User: {user_}")
             if user_.disabled:
                 raise HTTPException(status_code=403, detail="User suspended")
 
             return user_
 
         except jwt.DecodeError as e:
+            logger.error(f"Invalid token: {e}")
             raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
 
 
@@ -70,7 +85,7 @@ async def new_gateway_token(tree, api_key, validity: timedelta = env.GATEWAY_TOK
     return jwt.encode(payload, api_key.key, algorithm="HS256", headers={"kid": str(api_key.uuid)})
 
 
-async def verify_gateway_token_(token):  # -> api.tree.schema.TreeReadWithBraches:
+async def verify_gateway_token_(token) -> "TreeReadWithBraches":  # type: ignore
     """
     Verify the authenticity and validity of a gateway token.
 
