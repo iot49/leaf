@@ -212,10 +212,12 @@ export class LeafSettings extends LeafBase {
   superuserTemplate() {
     return html` <sl-tab-group placement="start">
       <sl-tab slot="nav" panel="me">Me</sl-tab>
+      <sl-tab slot="nav" panel="users">Users</sl-tab>
       <sl-tab slot="nav" panel="api_key">Api Keys</sl-tab>
       <sl-tab slot="nav" panel="env">Env</sl-tab>
 
-      <sl-tab-panel name="me">${this.usersTemplate()}</sl-tab-panel>
+      <sl-tab-panel name="me">${this.meSettingsTemplate()}</sl-tab-panel>
+      <sl-tab-panel name="users">${this.usersTemplate()}</sl-tab-panel>
       <sl-tab-panel name="api_key">${this.apikeyTemplate()}</sl-tab-panel>
       <sl-tab-panel name="env">${this.envTemplate()}</sl-tab-panel>
     </sl-tab-group>`;

@@ -1,3 +1,4 @@
+import { LeafMain } from '../../leaf-main.ts';
 import { api_get } from '../api.ts';
 import { BleBus } from './ble-bus.ts';
 import { WsBus } from './ws-bus.ts';
@@ -85,6 +86,8 @@ class _EventBus implements EventBus {
   async wdt_timeout() {
     console.log('eventbus.wdt_timeout');
     this.disconnect();
+    const main: LeafMain = document.querySelector('leaf-main');
+    await main.router.goto(`/ui`);
   }
 }
 

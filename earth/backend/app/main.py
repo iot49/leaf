@@ -75,7 +75,7 @@ if env.BACKEND_CORS_ORIGINS:
 # Logging
 app.add_middleware(LogMiddleware)
 
-# Analytics
+# Analytics https://www.apianalytics.dev/dashboard
 app.add_middleware(Analytics, api_key=env.ANALYTICS_API_KEY)  # type: ignore
 
 # Add Routers

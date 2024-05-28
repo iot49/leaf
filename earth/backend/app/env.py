@@ -45,7 +45,7 @@ class Env(BaseSettings):
     CLIENT_WS_TIMEOUT: int = 10  # server disconnects if no message received (seconds)
     GATEWAY_WS_TIMEOUT: int = 10  # server disconnects if no message received (seconds)
 
-    # analytics
+    # analytics https://www.apianalytics.dev/dashboard
     ANALYTICS_API_KEY: str | None = None
 
     # github repo

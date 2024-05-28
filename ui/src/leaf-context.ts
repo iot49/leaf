@@ -89,6 +89,7 @@ export class LeafContext extends LeafBase {
     this.settings_cache = new SettingsCache(this._settingsProvider);
     await this.settings_cache.load().then(() => {
       this.settings = this.settings_cache.settings;
+      globalThis.leaf.settings = this.settings;
       this.requestUpdate();
     });
 

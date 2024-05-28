@@ -3,7 +3,7 @@ import os
 
 from eventbus.bus import Config, Counter, CurrentState
 
-from ..env import env as env
+from ..env import env
 from .certificates import Certificates
 from .secrets import Secrets
 
