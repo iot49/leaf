@@ -42,13 +42,19 @@ export class SettingsCache {
   ) as any;
 
   public async load() {
+    console.log('SettingsCache.load');
     const obj = await getMany(Object.keys(this.cache));
+    console.log('SettingsCache.load obj', obj);
     // update cache with data loaded from indexedDB
     for (const [i, key] of Object.keys(this.cache).entries()) {
-      if (obj[i] != undefined) this.cache[key] = obj[i];
+      if (obj[i] != undefined) {
+        console.log(key, '=', obj[i]);
+        this.cache[key] = obj[i];
+      }
     }
     this._settingsProvider.setValue(this.settings, true);
     document.querySelector('body').setAttribute('theme', this.settings.dark_theme ? 'dark' : 'light');
     this._settingsLoaded = true;
+    console.log('settigns loaded');
   }
 }

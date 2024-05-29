@@ -3,8 +3,23 @@ import { css, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { choose } from 'lit/directives/choose.js';
 import { Config, configContext } from '../app/context/contexts';
-import { alertDialog } from '../app/dialog';
 import { LeafBase } from '../leaf-base';
+
+const default_view = {
+  title: 'All',
+  icon: 'home-thermometer-outline',
+  cards: [
+    {
+      title: 'All',
+      type: 'entities',
+      entities: [
+        {
+          entity_id: '*',
+        },
+      ],
+    },
+  ],
+};
 
 @customElement('leaf-view')
 export class LeafView extends LeafBase {
@@ -39,10 +54,13 @@ export class LeafView extends LeafBase {
       views = this.config.views;
       cards = views[this.view_id].cards;
     } catch (e) {
+      cards = default_view.cards;
+      /*
       alertDialog(`View ${this.view_id} not found`, e.message);
       console.log('views', views);
       console.log('config', this.config);
       return html`view/${this.view_id} not found in <code>${JSON.stringify(this.config, null, 2)}</code>`;
+      */
     }
     return html` <leaf-page mobile>
       <nav slot="nav">

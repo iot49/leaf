@@ -12,7 +12,7 @@ from ..user.model import User
 from . import router
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.DEBUG)
 
 
 @router.get("/client_token")

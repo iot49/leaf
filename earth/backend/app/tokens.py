@@ -55,6 +55,9 @@ async def verify_client_token(token) -> "UserRead":  # type: ignore
     logger.debug(f"verify_client_token: {token}")
     logger.debug(f"Decoded: {jwt.decode(token, algorithms=['HS256'], options={'verify_signature': False})}")
 
+    if token is None:
+        raise HTTPException(status_code=401, detail="No token provided")
+
     try:
         header = jwt.get_unverified_header(token)
     except jwt.DecodeError as e:

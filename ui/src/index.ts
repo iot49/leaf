@@ -7,7 +7,6 @@ import './index.css';
 export * from './leaf-base';
 export * from './leaf-main';
 
-export * from './leaf-accounts';
 export * from './leaf-config-editor';
 export * from './leaf-log';
 export * from './leaf-page';

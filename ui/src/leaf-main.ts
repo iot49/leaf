@@ -39,10 +39,6 @@ export class LeafMain extends LeafContext {
       render: () => html`<leaf-settings></leaf-settings>`,
     },
     {
-      path: '/ui/accounts',
-      render: () => html`<leaf-accounts></leaf-accounts>`,
-    },
-    {
       path: '/ui/view/:view_id',
       render: ({ view_id }) => html`<leaf-view view_id=${parseInt(view_id)}></leaf-view>`,
     },
@@ -76,6 +72,7 @@ export class LeafMain extends LeafContext {
 
   render() {
     console.log(`main.render currentRoute='${this.currentRoute}'`);
+    //if (1 === 1) return html`<leaf-view view_id="0"></leaf-view>`;
 
     // settings are needed by all pages
     if (!this.settings) return this.spinner('Loading settings from cache...');

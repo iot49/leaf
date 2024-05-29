@@ -132,10 +132,6 @@ class Server(EventBus):
             return
         # address filter
         dst = event.get("dst", "")
-        if False and event["type"] != event_type.LOG:
-            logger.debug(
-                f"LOG src={event.get('src')} dst={dst}, gateway={self.gateway}, addr_filter={self.addr_filter(dst)}"
-            )
         if self.addr_filter(dst):
             try:
                 # TODO: batch send events as lists
@@ -158,9 +154,8 @@ class Server(EventBus):
             logger.debug("got bye, closing connection")
             self.closed = True
         else:
-            logger.debug(f"eventbus.bus.server got {event}")
+            # logger.debug(f"eventbus.bus.server got {event}")
             if "dst" in event:
-                # TODO: firewall
                 if not self.gateway:
                     event["src"] = self.client_addr
                 await post(event)
@@ -170,8 +165,6 @@ class Server(EventBus):
     async def receiver_task(self):
         while not self.closed:
             try:
-                # msg = await asyncio.wait_for(self.transport.receive_text(), timeout=self.timeout + 1)
-                # event = json.loads(msg)
                 event = await asyncio.wait_for(self.transport.receive_json(), timeout=self.timeout + 1)
                 if isinstance(event, list):
                     for e in event:

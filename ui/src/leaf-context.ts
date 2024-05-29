@@ -87,11 +87,16 @@ export class LeafContext extends LeafBase {
   async connectedCallback(): Promise<void> {
     super.connectedCallback();
     this.settings_cache = new SettingsCache(this._settingsProvider);
-    await this.settings_cache.load().then(() => {
-      this.settings = this.settings_cache.settings;
-      globalThis.leaf.settings = this.settings;
-      this.requestUpdate();
-    });
+    await this.settings_cache
+      .load()
+      .then(() => {
+        this.settings = this.settings_cache.settings;
+        globalThis.leaf.settings = this.settings;
+        this.requestUpdate();
+      })
+      .catch((error) => {
+        console.log('error fetching settings_cache', error);
+      });
 
     // fetch most recent "api/me"
     const me = await api_get('me');
