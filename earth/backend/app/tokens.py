@@ -34,7 +34,8 @@ async def new_client_token(*, user_uuid, tree=None, api_key=None, validity: time
         key = tree.tree_key
         headers = {"kid": str(tree.kid)}
     token = jwt.encode(payload, str(key), headers=headers, algorithm="HS256")
-    logger.debug(f"new_client_token: {token}\n   key: {key}")
+    logger.debug(f"new_client_token: {token}")
+    logger.debug(f"             key: {key}")
     return token
 
 
@@ -61,7 +62,8 @@ async def verify_client_token(token) -> "UserRead":  # type: ignore
 
     async for session in get_session():
         key = await api.api_key.get_key(db_session=session, kid=header.get("kid"))
-        logger.debug(f"verify_client_token: {token}\n   key: {key}")
+        logger.debug(f"verify_client_token: {token}")
+        logger.debug(f"                key: {key}")
 
         try:
             # verify that the token is valid and not expired (raises DecodeError if invalid)
@@ -85,7 +87,8 @@ async def new_gateway_token(tree, api_key, validity: timedelta = env.GATEWAY_TOK
         "tree_id": tree.tree_id,
     }
     token = jwt.encode(payload, api_key.key, headers={"kid": str(api_key.uuid)}, algorithm="HS256")
-    logger.debug(f"new_gateway_token: {token}\n   key: {api_key.key}")
+    logger.debug(f"new_gateway_token: {token}")
+    logger.debug(f"              key: {api_key.key}")
     return token
 
 
@@ -113,7 +116,8 @@ async def verify_gateway_token(token) -> "TreeReadWithBraches":  # type: ignore
 
     async for session in get_session():
         key = (await api.api_key.get_key(db_session=session, kid=header.get("kid"))).key if verify else ""
-        logger.debug(f"verify_gateway_token: {token}\n   key: {key}")
+        logger.debug(f"verify_gateway_token: {token}")
+        logger.debug(f"                 key: {key}")
         try:
             # verify that the token is valid and not expired
             payload = jwt.decode(
