@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from .api.user.schema import UserRead
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.DEBUG)
 
 
 async def new_client_token(*, user_uuid, tree=None, api_key=None, validity: timedelta = env.CLIENT_TOKEN_VALIDITY):
@@ -60,6 +60,7 @@ async def verify_client_token(token) -> "UserRead":  # type: ignore
 
     async for session in get_session():
         key = await api.api_key.get_key(db_session=session, kid=header.get("kid"))
+        logger.debug(f"key: {key}")
 
         try:
             # verify that the token is valid and not expired (raises DecodeError if invalid)
@@ -109,6 +110,8 @@ async def verify_gateway_token(token) -> "TreeReadWithBraches":  # type: ignore
 
     async for session in get_session():
         key = (await api.api_key.get_key(db_session=session, kid=header.get("kid"))).key if verify else ""
+        logger.debug(f"verify_gateway_token: {token}")
+        logger.debug(f"key: {key}")
         try:
             # verify that the token is valid and not expired
             payload = jwt.decode(
