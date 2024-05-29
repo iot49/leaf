@@ -41,6 +41,6 @@ async def client_ws(websocket: WebSocket):
 
     await websocket.accept()
     # won't return until the connection is closed
-    logger.debug(f"accepted connection {param}")
+    logger.debug(f"accepted client connection {param}")
     await serve(websocket, authenticate, param, timeout=env.CLIENT_WS_TIMEOUT)  # type: ignore
-    logger.debug(f"closed connection {param}")
+    logger.debug(f"closed client connection {param}")

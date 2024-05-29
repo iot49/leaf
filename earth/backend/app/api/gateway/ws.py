@@ -37,6 +37,6 @@ async def tree_ws(websocket: WebSocket):
     await websocket.accept()
     # won't return until the connection is closed
 
-    logger.debug(f"accepted connection {param}")
+    logger.debug(f"accepted gateway connection {param}")
     await serve(websocket, authenticate, param, timeout=env.GATEWAY_WS_TIMEOUT)  # type: ignore
-    logger.debug(f"closed connection {param}")
+    logger.debug(f"closed gateway connection {param}")
