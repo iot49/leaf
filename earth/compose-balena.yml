@@ -46,7 +46,6 @@ services:
       - PROJECT_NAME=${PROJECT_NAME}
       - DOMAIN=${DOMAIN}
       - FIRST_SUPERUSER_EMAIL=${FIRST_SUPERUSER_EMAIL}
-      - DATABASE_URL=sqlite+aiosqlite:///sqlite-prod.db
       - DATABASE_ECHO=False
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_USERNAME=${POSTGRES_USERNAME}
@@ -56,13 +55,13 @@ services:
       - CF_TEAM_DOMAIN=${CF_TEAM_DOMAIN}
       - CF_API_TOKEN=${CF_API_TOKEN}
       - CF_EMAIL=${CF_EMAIL}
-      - ANALYTICS_API_KEY=183adfe2-3976-42c9-8fe0-6310099d0afc
+      - ANALYTICS_API_KEY=${ANALYTICS_API_KEY}
     restart: unless-stopped
     expose:
       - 8000
     volumes:
       - ui:/home/ui # static files (lit webapp)
-      - config:/home/config # ui configuration
+      - config:/home/config # config.json, config.yaml & backups
       - homeassistant:/home/homeassistant # to set permissions (in start.sh)
       - letsencrypt:/home/letsencrypt # certificates
       - cloudflare:/home/cloudflare # certbot credentials
