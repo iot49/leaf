@@ -28,7 +28,8 @@ class CRUDMe(CRUDBase[User, UserCreate, UserRead, UserUpdate]):
                 jwt_ = "no access"
             else:
                 jwt_ = await new_client2gateway(tree=tree)  # type: ignore
-            user.trees.append(TreeReadWithToken(**tree.model_dump(), client_token=jwt_))
+            branches = await _tree.crud.get_tree_branches(uuid=tree.uuid, db_session=db_session)
+            user.trees.append(TreeReadWithToken(**tree.model_dump(), client_token=jwt_, branches=branches))
         return UserRead(**user.model_dump())
 
     async def update_me(

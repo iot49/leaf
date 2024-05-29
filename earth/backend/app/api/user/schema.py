@@ -1,6 +1,7 @@
 from sqlmodel import SQLModel
 
 from ..base.schema import BaseRead
+from ..branch.model import Branch
 from ..tree.schema import TreeRead
 from .model import Name, Profile, Role, UserBase
 
@@ -11,6 +12,7 @@ class UserCreate(UserBase):
 
 class TreeReadWithToken(TreeRead):
     client_token: str
+    branches: list[Branch] = []
 
 
 class UserRead(BaseRead, UserBase):

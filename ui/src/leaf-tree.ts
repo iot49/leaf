@@ -68,17 +68,17 @@ export class LeafTree extends LeafBase {
 
   async connectedCallback() {
     super.connectedCallback();
-    this.tree = await api_get(`tree/${this.uuid}`);
     this.releases = ((await api_get('vm')) as any).releases;
   }
 
   render() {
-    if (!this.tree || !this.releases) {
+    if (!this.releases) {
       return html`<sl-spinner style="font-size: 50px; --track-width: 10px;"></sl-spinner>`;
     } else {
       const me = this.settings.me;
       const admin = me.roles.includes('admin');
-      const tree = this.tree;
+      const tree = me.trees.filter((tree) => tree.uuid === this.uuid)[0];
+      this.tree = tree;
 
       return html`<script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.js"></script>
         ${this.enrollTemplate()}
@@ -108,7 +108,6 @@ export class LeafTree extends LeafBase {
                     ?checked=${tree.disabled}
                     @sl-change=${async (e) => {
                       await api_put(`tree/${tree.uuid}`, { disabled: e.target.checked });
-                      this.tree = await api_get(`tree/${this.uuid}`);
                       this.settings.me = await api_get('me');
                     }}
                     >Disabled</sl-checkbox
@@ -122,7 +121,7 @@ export class LeafTree extends LeafBase {
                 ? html``
                 : html` <h1 class="branches-title">Branches</h1>
                     <table class="zebra-table">
-                      ${this.tree.branches.map(
+                      ${tree.branches.map(
                         (branch: any) =>
                           html` <tr class=${branch.disabled ? 'disabled' : ''}>
                             <td>
@@ -132,7 +131,7 @@ export class LeafTree extends LeafBase {
                                 ?readonly=${!admin}
                                 @sl-change=${async (e) => {
                                   await api_put(`branch/${branch.uuid}`, { branch_id: e.target.value });
-                                  this.tree = await api_get(`tree/${this.uuid}`);
+                                  this.settings.me = await api_get('me');
                                 }}
                               ></sl-input>
                             </td>
@@ -143,7 +142,7 @@ export class LeafTree extends LeafBase {
                                 ?readonly=${!admin}
                                 @sl-change=${async (e) => {
                                   await api_put(`branch/${branch.uuid}`, { title: e.target.value });
-                                  this.tree = await api_get(`tree/${this.uuid}`);
+                                  this.settings.me = await api_get('me');
                                 }}
                               ></sl-input>
                             </td>
@@ -153,7 +152,7 @@ export class LeafTree extends LeafBase {
                                 ?checked=${branch.disabled}
                                 @sl-change=${async (e) => {
                                   await api_put(`branch/${branch.uuid}`, { disabled: e.target.checked });
-                                  this.tree = await api_get(`tree/${this.uuid}`);
+                                  this.settings.me = await api_get('me');
                                 }}
                                 >Disabled</sl-checkbox
                               >
@@ -166,7 +165,7 @@ export class LeafTree extends LeafBase {
                                 @click=${async (_) => {
                                   if (await confirmDialog(`Delete ${branch.branch_id}`, 'This operation cannot be undone.', 'Delete', 'danger')) {
                                     await api_delete(`branch/${branch.uuid}`);
-                                    this.tree = await api_get(`tree/${this.uuid}`);
+                                    this.settings.me = await api_get('me');
                                   }
                                 }}
                               ></sl-icon-button>
@@ -328,7 +327,7 @@ print(":".join("{:02x}".format(x) for x in mac))`);
       title: `Branch ${branch_id}`,
       mac: mac,
     });
-    this.tree = await api_get(`tree/${this.uuid}`);
+    this.settings.me = await api_get('me');
     // get gateway_secrets and write to branch
     const secrets = await api_get(`gateway_secrets/${this.tree.uuid}`);
     let code = `

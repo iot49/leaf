@@ -1,4 +1,3 @@
-import json
 import logging
 from datetime import datetime
 
@@ -47,7 +46,6 @@ async def get_resource(resource: str = "releases"):
         async with session.get(url) as response:
             if response.status != 200:
                 raise HTTPException(status_code=response.status, detail=f"Failed fetching {url}")
-            print(response.status)
             return await response.json()
 
 
@@ -68,9 +66,7 @@ async def get_binary(tag: str = "v0.0.8", board: str = "ESP32_S3_N16R8", file="m
 @router.get("/vm", response_model=GitReleases)
 async def get_releases() -> GitReleases:
     resource = await get_resource("releases")
-    print(json.dumps(resource, indent=2))
     model = GitReleases.model_validate({"releases": resource})
-    print(model.model_dump_json(indent=2))
     return model
 
 

@@ -23,17 +23,26 @@ async def get_version(tree_id: str) -> str:
     return ""
 
 
+async def _get_secrets(tree, session: AsyncSession) -> dict:
+    api_key = await api.api_key.get_key(db_session=session)
+    gateway_token = await tokens.new_gateway2earth(tree=tree, api_key=api_key)
+    branches = await api.tree.crud.get_tree_branches(uuid=tree.uuid, db_session=session)
+
+    tree_ = jsonable_encoder(tree)
+    tree_["branches"] = [jsonable_encoder(branch) for branch in branches]
+
+    return {
+        "domain": f"{tree.tree_id}.ws.{env.get_env().DOMAIN}",
+        "tree": tree_,
+        "gateway-token": gateway_token,
+        "version": await _get_version(tree, session),
+    }
+
+
 async def get_secrets_uuid(*, tree_uuid: str) -> dict:
     async for session in db.get_session():
-        api_key = await api.api_key.get_key(db_session=session)
         tree = await api.tree.crud.get_by_uuid(uuid=tree_uuid, db_session=session)
-        gateway_token = await tokens.new_gateway2earth(tree=tree, api_key=api_key)
-        return {
-            "domain": f"{tree.tree_id}.ws.{env.get_env().DOMAIN}",
-            "tree": jsonable_encoder(tree),
-            "gateway-token": gateway_token,
-            "version": await _get_version(tree, session),
-        }
+        return await _get_secrets(tree, session)
     return {}
 
 
@@ -42,15 +51,8 @@ async def get_secrets_tree_id(
     tree_id: str,
 ) -> dict:
     async for session in db.get_session():
-        api_key = await api.api_key.get_key(db_session=session)
         tree = await api.tree.crud.get_by_tree_id(tree_id=tree_id, db_session=session)
-        gateway_token = await tokens.new_gateway2earth(tree=tree, api_key=api_key)
-        return {
-            "domain": f"{tree.tree_id}.ws.{env.get_env().DOMAIN}",
-            "tree": jsonable_encoder(tree),
-            "gateway-token": gateway_token,
-            "version": await _get_version(tree, session),
-        }
+        return await _get_secrets(tree, session)
     return {}
 
 
