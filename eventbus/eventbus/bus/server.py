@@ -24,7 +24,7 @@ from ..event import (
 )
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 WS_TIMEOUT = 5  # disconnect if no message received [seconds]
 
@@ -70,6 +70,7 @@ class Server(EventBus):
         try:
             await self.transport.send_json(get_auth())
             event = await asyncio.wait_for(self.transport.receive_json(), timeout=self.timeout + 1)
+            logger.debug(f"server.run, authenticate with {event}")
             authenticated, client_addr = await self.authenticate(event.get("token"))
             if not authenticated:
                 logger.debug(f"{self.param.get('client')}: authentication failed")

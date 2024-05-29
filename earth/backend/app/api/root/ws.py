@@ -29,6 +29,7 @@ async def client_ws(websocket: WebSocket):
     async def authenticate(token: str) -> tuple[bool, str]:
         global _CLIENT_ADDR
         try:
+            logger.debug(f"client authentication: {token}")
             user: UserRead = await verify_client_token(token)  # type: ignore
             param["user"] = user.email
             _CLIENT_ADDR += 1
