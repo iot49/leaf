@@ -31,15 +31,17 @@ async def test_get_put_me(async_client: AsyncClient, create_users, create_trees)
 async def test_admin_role(async_client: AsyncClient, create_users, create_trees, client_token):
     # only admin can access /tree, /branch
     for user in create_users.values():
+        is_admin = "admin" in user["roles"]
         async with override_user(user["email"]):
             response = await async_client.get("/api/me")
-            assert response.status_code == 200 if user["roles"] else 403
+
+            assert response.status_code == 200 if user["roles"] else 404
             if response.status_code != 200:
                 continue
             me = response.json()
             assert is_subset(user, me)
             has_roles = len(user["roles"]) > 0
-            expected_status = 200 if "admin" in user["roles"] else 403
+            expected_status = 200 if is_admin else 403
 
             # all users (except no role) can fetch trees by uuid
             for tree in me["trees"]:
@@ -56,12 +58,12 @@ async def test_admin_role(async_client: AsyncClient, create_users, create_trees,
             # only admin can fetch all trees
             response = await async_client.get("/api/tree")
             assert response.status_code == expected_status
-            assert len(response.json()) == 2 if "admin" in user["roles"] else 1
+            assert len(response.json()) == 2 if is_admin else 1
 
             # only admin can fetch branches
             response = await async_client.get("/api/branch")
             assert response.status_code == expected_status
-            assert len(response.json()) == 6 if "admin" in user["roles"] else 1
+            assert len(response.json()) == 6 if is_admin else 1
 
             # ditto for put, post, delete
 

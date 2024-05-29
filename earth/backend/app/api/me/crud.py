@@ -2,7 +2,7 @@ from uuid import UUID
 
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from ...tokens import new_client_token
+from ...tokens import new_client2gateway
 from .. import tree as _tree
 from ..base import CRUDBase
 from ..user.model import User
@@ -17,7 +17,6 @@ class CRUDMe(CRUDBase[User, UserCreate, UserRead, UserUpdate]):
         db_session: AsyncSession,
     ) -> UserRead:
         user = await super().get_by_uuid(uuid=uuid, db_session=db_session)
-
         user = UserRead(**user.model_dump())
         trees = await _tree.crud.get_list(db_session=db_session)
 
@@ -26,9 +25,9 @@ class CRUDMe(CRUDBase[User, UserCreate, UserRead, UserUpdate]):
             # tokens for local tree websocket access
             # only admin and user roles can connect to trees
             if set(["admin", "user"]).isdisjoint(user.roles):
-                jwt_ = ""
+                jwt_ = "no access"
             else:
-                jwt_ = await new_client_token(user_uuid=user.uuid, tree=tree)
+                jwt_ = await new_client2gateway(tree=tree)  # type: ignore
             user.trees.append(TreeReadWithToken(**tree.model_dump(), client_token=jwt_))
         return UserRead(**user.model_dump())
 

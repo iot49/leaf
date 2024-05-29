@@ -13,6 +13,12 @@ from eventbus.event import log_event
 
 from .env import Environment, env
 
+"""
+Log handler for Earth.
+
+Forwards logging messages to eventbus.bus.log.
+"""
+
 
 class LogMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
@@ -90,8 +96,8 @@ class EventLogHandler(Handler):
             print(traceback.print_tb(record.exc_info[2], file=buf))
             event["traceback"] = buf.getvalue()
         if env.ENVIRONMENT != Environment.test:
-            # TODO: remove debugging
-            print_log_message(event)
+            # very taxing on balena cloud api
+            # print_log_message(event)
             post_sync(event)
 
 

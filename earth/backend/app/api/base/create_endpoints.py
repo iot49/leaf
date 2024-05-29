@@ -31,7 +31,7 @@ def create_endpoints(crud, CreateSchema, ReadSchema, UpdateSchema, *, router: AP
         uuid: UUID,
         session: AsyncSession = Depends(get_session),
     ):
-        return await crud.get_by_uuid(id=uuid, db_session=session)
+        return await crud.get_by_uuid(uuid=uuid, db_session=session)
 
     @router.post("", status_code=status.HTTP_201_CREATED, response_model=ReadSchema)
     async def create(

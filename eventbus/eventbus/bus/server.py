@@ -24,7 +24,7 @@ from ..event import (
 )
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.ERROR)
 
 WS_TIMEOUT = 5  # disconnect if no message received [seconds]
 
@@ -47,13 +47,14 @@ class Server(EventBus):
     CONNECTIONS = {}
 
     def __init__(
-        self, *, transport: Transport, authenticate: Callable[[str], Awaitable[tuple[bool, str]]], param: dict, timeout
+        self, *, transport: Transport, authenticate: Callable[[str], Awaitable[str | None]], param: dict, timeout
     ):
         """Create a Server instance.
 
         Args:
             transport (Transport): The transport object (e.g. websocket) used for communication.
-            authenticate (Callable[[str], Awaitable[bool]]): The authentication function.
+            authenticate (Callable[[str], Awaitable[str | None]]): The authentication function.
+                Returns client address or None if authentication fails.
             param (dict, optional): The parameters to pass to the client. Defaults to {}.
         """
 
@@ -71,16 +72,17 @@ class Server(EventBus):
             await self.transport.send_json(get_auth())
             event = await asyncio.wait_for(self.transport.receive_json(), timeout=self.timeout + 1)
             logger.debug(f"server.run, authenticate with {event}")
-            authenticated, client_addr = await self.authenticate(event.get("token"))
-            if not authenticated:
+            self.param["client_addr"] = client_addr = await self.authenticate(event.get("token"))
+            if not client_addr:
                 logger.debug(f"{self.param.get('client')}: authentication failed")
                 await self.transport.send_json(hello_invalid_token())
+                await self.transport.close()
                 return
-            self.client_addr = client_addr
             self.gateway = not client_addr.startswith("@")
         except (WebSocketDisconnect, RuntimeError, asyncio.TimeoutError) as e:
-            logger.debug(f"handshake failed: {e}")
+            logger.error(f"handshake failed: {e}")
             await self.transport.send_json(bye_timeout())
+            await self.transport.close()
             return
 
         connect_event = State(eid=f"{client_addr}.gateway:status.connected")
@@ -89,6 +91,7 @@ class Server(EventBus):
             connection = Server.CONNECTIONS.get(client_addr)
             if connection and connection.get("connected"):
                 await self.transport.send_json(hello_already_connected())
+                await self.transport.close()
                 return
             Server.CONNECTIONS[client_addr] = {
                 "param": self.param,
@@ -116,14 +119,15 @@ class Server(EventBus):
             if self.gateway:
                 await connect_event.update(False)
             else:
-                # del Server.CONNECTIONS[self.client_addr]
+                # del Server.CONNECTIONS[self.param.get("client_addr")]
                 pass
 
     def addr_filter(self, dst: str) -> bool:
+        client_addr = self.param["client_addr"]
         if self.gateway:
-            return dst == "#branches" or dst.startswith(self.client_addr)
+            return dst == "#branches" or dst.startswith(client_addr)
         else:
-            return dst in ("#clients", self.client_addr)
+            return dst in ("#clients", client_addr)
 
     async def post(self, event: Event) -> None:
         # forward event to client
@@ -141,7 +145,7 @@ class Server(EventBus):
                 self.closed = True
         else:
             pass
-            # logger.debug(f"addr_filter not posted: type={event.get('type')} dst={dst} (client_addr={self.client_addr})")
+            # logger.debug(f"addr_filter not posted: type={event.get('type')} dst={dst} (client_addr={self.param.get("client_addr")})")
 
     async def process_event(self, event: Event) -> None:
         et = event.get("type")
@@ -157,7 +161,7 @@ class Server(EventBus):
             # logger.debug(f"eventbus.bus.server got {event}")
             if "dst" in event:
                 if not self.gateway:
-                    event["src"] = self.client_addr
+                    event["src"] = self.param["client_addr"]
                 await post(event)
             else:
                 logger.error(f"Invalid event - no dst (ignored) {event}")

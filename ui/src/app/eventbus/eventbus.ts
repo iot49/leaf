@@ -1,5 +1,6 @@
 import { LeafMain } from '../../leaf-main.ts';
 import { api_get } from '../api.ts';
+import { alertDialog } from '../dialog.ts';
 import { BleBus } from './ble-bus.ts';
 import { WsBus } from './ws-bus.ts';
 
@@ -53,15 +54,20 @@ class _EventBus implements EventBus {
       // if (event.type !== 'pong') console.log('eventbus: leaf-event', event);
       switch (event.type) {
         case 'get_auth':
-          const client_token = await api_get('client_token');
-          await this.postEvent({ type: 'post_auth', token: client_token });
+          try {
+            const client_token = await api_get('client_token');
+            await this.postEvent({ type: 'post_auth', token: client_token });
+          } catch (error) {
+            alertDialog('Authentication Failed', error.message);
+          }
           break;
         case 'hello_connected':
+          console.log('connected:', event);
           this.ping_interval = 1000 * event.param.timeout_interval;
           break;
         case 'hello_no_token':
         case 'hello_invalid_token':
-          console.log(`connection attempt failed: ${event}`);
+          console.log('connection attempt failed:', event);
           break;
         case 'bye_timeout':
           console.log('server disconnect', event);
@@ -86,7 +92,7 @@ class _EventBus implements EventBus {
   }
 
   async postEvent(event: any) {
-    if (event.type != 'ping') console.log('eventbus.postEvent', event);
+    // if (event.type != 'ping') console.log('eventbus.postEvent', event);
     return this._bus.postEvent(event);
   }
 

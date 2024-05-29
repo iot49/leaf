@@ -1,44 +1,39 @@
 import logging
+from uuid import UUID
 
 from fastapi import Depends
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from ...api import api_key, tree
-from ...bus.secrets import get_secrets
-from ...db import get_session
+from ... import db
+from ...bus.secrets import get_secrets_uuid
 from ...dependencies.get_current_user import get_current_user
-from ...tokens import new_client_token, new_gateway_token
+from ...tokens import new_client2earth, new_gateway2earth
+from .. import tree
+from ..api_key import get_key
 from ..user.model import User
 from . import router
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.ERROR)
 
 
 @router.get("/client_token")
 async def get_client_token(
-    user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
+    user: User = Depends(get_current_user), session: AsyncSession = Depends(db.get_session)
 ) -> str:
-    # used only for login to websocket connections to earth
-    # short validity requires getting a new token for each connection
-    key: api_key.ApiKeyRead = await api_key.get_key(db_session=session)
-    token = await new_client_token(user_uuid=user.uuid, api_key=key)
-    logger.debug(f"/api/client_token for {user.email}: {token}")
-    return token
+    # Note: no verification if user exists (checked anyways on token verification)
+    api_key = await get_key(db_session=session)
+    return await new_client2earth(user_uuid=user.uuid, api_key=api_key)
 
 
 @router.get("/gateway_token/{tree_uuid}")
-async def get_gateway_token(
-    tree_uuid: str,
-    session: AsyncSession = Depends(get_session),
-) -> str:
+async def get_gateway_token(tree_uuid: UUID, session: AsyncSession = Depends(db.get_session)) -> str:
     # used for branch on-barding
-    _tree: tree.schema.TreeRead = await tree.crud.get_by_uuid(uuid=tree_uuid, db_session=session)
-    key: api_key.ApiKeyRead = await api_key.get_key(db_session=session)
-    return await new_gateway_token(tree=_tree, api_key=key)
+    api_key = await get_key(db_session=session)
+    _tree = await tree.crud.get_by_uuid(uuid=tree_uuid, db_session=session)
+    return await new_gateway2earth(tree=_tree, api_key=api_key)
 
 
 @router.get("/gateway_secrets/{tree_uuid}")
 async def get_gateway_secrets(tree_uuid: str) -> dict:
-    return await get_secrets(tree_uuid=tree_uuid) or {}
+    return await get_secrets_uuid(tree_uuid=tree_uuid) or {}

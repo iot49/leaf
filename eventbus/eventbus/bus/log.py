@@ -23,6 +23,8 @@ class Log(EventBus):
         subscribe(self)
 
     async def post(self, event: Event) -> None:
+        # receive log message
+        # append to history and print to console
         tp = event.get("type")
         if tp == event_type.LOG:
             levelno = event.get("levelno", 0)
@@ -45,6 +47,7 @@ class Log(EventBus):
             if tb is not None:
                 print(tb)
         elif tp == event_type.GET_LOG:
+            # send logging history
             history = self.history
             dst = event["src"]
             for i in range(len(history)):

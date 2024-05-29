@@ -71,27 +71,22 @@ export class LeafMain extends LeafContext {
   }
 
   render() {
-    console.log(`main.render currentRoute='${this.currentRoute}'`);
-    //if (1 === 1) return html`<leaf-view view_id="0"></leaf-view>`;
+    // console.log(`main.render currentRoute='${this.currentRoute}'`);
 
     // settings are needed by all pages
     if (!this.settings) return this.spinner('Loading settings from cache...');
-    console.log('settings', this.settings);
 
     // some pages require a connection
     if (!this.connected) {
       if (this.settings.auto_connect) eventbus.connect('#earth');
       const requires_connection = ['view', 'log'];
       if (requires_connection.includes(this.currentRoute.split('/')[0])) {
-        console.log('requires connection, goto /');
         this.router.goto('/');
       }
     } else if (!this.config) {
       // wait for config, if we are connected
-      console.log('Fetching configuration from server...');
       return this.spinner('Fetching configuration from server...');
     }
-    console.log('main, this.router.outlet()');
     return html`<main>${this.router.outlet()}</main>`;
   }
 }

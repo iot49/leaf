@@ -2,7 +2,6 @@ from sqlmodel import SQLModel
 
 from ...types import Id
 from ..base.schema import BaseRead
-from ..branch.schema import BranchRead
 from .model import TreeBase
 
 
@@ -11,15 +10,11 @@ class TreeCreate(TreeBase):
 
 
 class TreeRead(BaseRead):
-    # do not include credentials
+    # no branches
     tree_id: Id
     title: str
     description: str
-    # gateway: UUID | None
-
-
-class TreeReadWithBraches(TreeRead):
-    branches: list[BranchRead]
+    tree_key: str
 
 
 # all fields are optional

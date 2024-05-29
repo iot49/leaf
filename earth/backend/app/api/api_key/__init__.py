@@ -24,6 +24,9 @@ async def get_key(db_session, kid: str | None = None) -> ApiKeyRead:
     Returns:
         Corresponding key if `kid` is provided, None otherwise.
         If `kid` not provided, returns the most recent key from the database.
+
+    Raises:
+        HTTPException: If the key for supplied kid is not found.
     """
     api_keys = await crud.get_list(db_session=db_session)
     if api_keys == []:

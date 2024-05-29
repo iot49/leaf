@@ -6,12 +6,12 @@ from eventbus import serve
 
 from ...bus import config
 from ...env import env
-from ...tokens import verify_client_token
+from ...tokens import verify_client2earth
 from ..user.schema import UserRead
 from . import router
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.ERROR)
 
 _CLIENT_ADDR = 1
 
@@ -21,26 +21,35 @@ _CLIENT_ADDR = 1
 async def client_ws(websocket: WebSocket):
     param = {
         "client": str(websocket.client.host),  # type: ignore
-        # "host": str(websocket.headers.get("host")),
-        # "url": str(websocket.url),
         "versions": {"config": config.get("version")},
     }
 
-    async def authenticate(token: str) -> tuple[bool, str]:
+    async def authenticate(token: str) -> str | None:
+        """
+        Authenticates the client connection using the provided token.
+
+        Args:
+            token (str): The token submitted for client authentication.
+
+        Returns:
+            client address or None if client is not authenticated
+        """
+        if token is None:
+            logger.error(f"no token submitted for client connection {param}")
+            return None
         global _CLIENT_ADDR
         try:
             logger.debug(f"client authentication: {token}")
-            user: UserRead = await verify_client_token(token)  # type: ignore
+            user: UserRead = await verify_client2earth(token)
             param["user"] = user.email
             _CLIENT_ADDR += 1
             client_addr = f"@{_CLIENT_ADDR}"
-            return (True, client_addr)
+            return client_addr
         except HTTPException as e:
             logger.error(f"client authentication failed: {e} token = {token}")
-            return (False, "")
+            return None
 
     await websocket.accept()
+
     # won't return until the connection is closed
-    logger.debug(f"accepted client connection {param}")
-    await serve(websocket, authenticate, param, timeout=env.CLIENT_WS_TIMEOUT)  # type: ignore
-    logger.debug(f"closed client connection {param}")
+    await serve(websocket, authenticate, param=param, timeout=env.CLIENT_WS_TIMEOUT)  # type: ignore

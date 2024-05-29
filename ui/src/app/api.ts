@@ -19,7 +19,7 @@ export async function api_get(resource: string = '', requestOptions = {}, path =
       // {"detail":"Missing required Cloudflare authorization token"}
       // force browser to reauthenticate with Cloudflare
       console.log('force reauthenticate', resource);
-      // window.open('/ui', '_self');
+      window.open('/ui', '_self');
     } else {
       const text = await response.text();
       console.log('api_get error', response.status, text);

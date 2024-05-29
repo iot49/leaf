@@ -41,7 +41,7 @@ Mandatory fields:
 """
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 
 class EventBus:
@@ -91,11 +91,13 @@ from .bus import Server, Transport  # noqa: E402
 
 
 async def serve(
-    transport: Transport, authenticate: Callable[[str], Awaitable[tuple[bool, str]]], param, timeout=WS_TIMEOUT
+    transport: Transport, authenticate: Callable[[str], Awaitable[str | None]], param, timeout=WS_TIMEOUT
 ) -> None:
     # won't return until the connection is closed
     server = Server(transport=transport, authenticate=authenticate, param=param, timeout=timeout)
+    logger.info(f"+++++ client connection {param.get('client')}")
     await server.run()
+    logger.info(f"----- client connection {param.get('client_addr') or param.get('client')}")
 
 
 def tree_id(addr: Addr) -> str:

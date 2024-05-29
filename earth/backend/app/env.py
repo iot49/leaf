@@ -38,8 +38,9 @@ class Env(BaseSettings):
 
     # api keys (beware of slow networks)
     API_KEY_VALIDITY: timedelta = timedelta(days=100 * 365)
-    CLIENT_TOKEN_VALIDITY: timedelta = timedelta(minutes=5)
-    GATEWAY_TOKEN_VALIDITY: timedelta = timedelta(days=90)
+    CLIENT_EARTH_VALIDITY: timedelta = timedelta(minutes=5)
+    CLIENT_GATEWAY_VALIDITY: timedelta = timedelta(days=30)
+    GATEWAY_EARTH_VALIDITY: timedelta = timedelta(days=90)
 
     # websocket timeouts
     CLIENT_WS_TIMEOUT: int = 10  # server disconnects if no message received (seconds)
