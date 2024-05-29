@@ -24,14 +24,12 @@ async def tree_ws(websocket: WebSocket):
 
     async def authenticate(token: str) -> tuple[bool, str]:
         try:
-            tree: TreeRead | None = await verify_gateway_token(token)
-            if tree is None:
-                return (False, "")
+            tree: TreeRead = await verify_gateway_token(token)
             param["versions"]["secrets"] = await secrets.get_version(tree.tree_id)
-            # TODO: increase timeout except for testing
-            param["versions"]["certificate"] = certificates.get_version(tree.tree_id, timeout=0.1)
+            param["versions"]["certificate"] = certificates.get_version(tree.tree_id)
             return (True, tree.tree_id)
         except HTTPException:
+            logger.debug(f"authentication failed, token = {token}")
             return (False, "")
 
     await websocket.accept()

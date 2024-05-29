@@ -36,7 +36,7 @@ async def client_ws(websocket: WebSocket):
             client_addr = f"@{_CLIENT_ADDR}"
             return (True, client_addr)
         except HTTPException as e:
-            logger.error(f"client authentication failed: {e}")
+            logger.error(f"client authentication failed: {e} token = {token}")
             return (False, "")
 
     await websocket.accept()

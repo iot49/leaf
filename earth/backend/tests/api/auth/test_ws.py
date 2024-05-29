@@ -1,5 +1,3 @@
-import jwt
-import pytest
 from app import bus
 from httpx_ws import aconnect_ws
 from tests.util import is_subset
@@ -28,18 +26,10 @@ async def test_ws_client_invalid_token(async_websocket_client):
         # invalid token
         auth = await ws.receive_json()
         assert auth["type"] == GET_AUTH
-        await ws.send_json({"type": PUT_AUTH, "token": jwt.encode({"token": "invalid"}, "secret", algorithm="HS256")})
+        await ws.send_json({"type": PUT_AUTH, "token": "invalid token"})
         # get the hello message
         hello = await ws.receive_json()
         assert hello["type"] == HELLO_INVALID_TOKEN
-
-    async with aconnect_ws("ws", async_websocket_client) as ws:
-        # bogus token
-        auth = await ws.receive_json()
-        assert auth["type"] == GET_AUTH
-        await ws.send_json({"type": PUT_AUTH, "token": "bogus token"})
-        with pytest.raises(Exception):
-            hello = await ws.receive_json()
 
 
 async def test_ws_gateway(async_client, async_websocket_client, create_trees):
@@ -79,9 +69,7 @@ async def test_ws_gateway_invalid_token(async_websocket_client, create_trees):
             # authenticate
             auth = await ws.receive_json()
             assert auth["type"] == GET_AUTH
-            await ws.send_json(
-                {"type": PUT_AUTH, "token": jwt.encode({"token": "invalid"}, "secret", algorithm="HS256")}
-            )
+            await ws.send_json({"type": PUT_AUTH, "token": "invalid token"})
             # get the hello message
             hello = await ws.receive_json()
             assert hello["type"] == HELLO_INVALID_TOKEN

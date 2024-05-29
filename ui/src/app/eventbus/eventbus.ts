@@ -59,6 +59,13 @@ class _EventBus implements EventBus {
         case 'hello_connected':
           this.ping_interval = 1000 * event.param.timeout_interval;
           break;
+        case 'hello_no_token':
+        case 'hello_invalid_token':
+          console.log(`connection attempt failed: ${event}`);
+          break;
+        case 'bye_timeout':
+          console.log('server disconnect', event);
+          break;
         default:
           break;
       }
