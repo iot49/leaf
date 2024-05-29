@@ -50,6 +50,6 @@ class Log(EventBus):
             for i in range(len(history)):
                 ev = history.popleft()
                 history.append(ev)
-                # retarget even to requester
+                # retarget event to requester
                 ev["dst"] = dst
                 await post(ev)

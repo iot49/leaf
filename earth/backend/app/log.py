@@ -1,5 +1,6 @@
 import json
 import logging
+import time
 import traceback
 from io import StringIO
 from logging import Formatter, Handler
@@ -44,6 +45,33 @@ class JsonFormatter(Formatter):
         return json.dumps(json_record)
 
 
+def print_log_message(event):
+    BLUE = "\x1b[38;5;4m"
+    GREEN = "\x1b[38;5;2m"
+    YELLOW = "\x1b[38;5;3m"
+    RED = "\x1b[38;5;1m"
+    MAGENTA = "\x1b[38;5;5m"
+
+    RESET = "\x1b[0m"
+    levelno = event.get("levelno", 0)
+    colors = {
+        logging.DEBUG: BLUE,
+        logging.INFO: GREEN,
+        logging.WARNING: YELLOW,
+        logging.ERROR: RED,
+        logging.CRITICAL: MAGENTA,
+    }
+    color = colors.get(levelno, "")
+    funcName = event.get("funcName") or ""
+    t = time.strftime("app/log.py %Y-%m-%d %H:%M:%S", time.gmtime(event.get("timestamp", 0)))  # type: ignore
+    print(
+        f"{t} {color}{event.get('levelname'):9}{RESET} {event.get('src'):12} {event.get('name'):20} {funcName:16} {event.get('message')}"
+    )
+    tb = event.get("traceback")
+    if tb is not None:
+        print(tb)
+
+
 class EventLogHandler(Handler):
     def __init__(self):
         super(EventLogHandler, self).__init__()
@@ -62,6 +90,8 @@ class EventLogHandler(Handler):
             print(traceback.print_tb(record.exc_info[2], file=buf))
             event["traceback"] = buf.getvalue()
         if env.ENVIRONMENT != Environment.test:
+            # TODO: remove debugging
+            print_log_message(event)
             post_sync(event)
 
 
