@@ -74,13 +74,14 @@ class Server(EventBus):
             logger.debug(f"server.run, authenticate with {event}")
             self.param["client_addr"] = client_addr = await self.authenticate(event.get("token"))
             if not client_addr:
-                logger.debug(f"{self.param.get('client')}: authentication failed")
+                logger.error(f"{self.param.get('client')}: authentication failed with {event}")
                 await self.transport.send_json(hello_invalid_token())
                 await self.transport.close()
                 return
             self.gateway = not client_addr.startswith("@")
         except (WebSocketDisconnect, RuntimeError, asyncio.TimeoutError) as e:
             logger.error(f"handshake failed: {e}")
+            self.closed = True
             await self.transport.send_json(bye_timeout())
             await self.transport.close()
             return
@@ -119,7 +120,7 @@ class Server(EventBus):
             if self.gateway:
                 await connect_event.update(False)
             else:
-                # del Server.CONNECTIONS[self.param.get("client_addr")]
+                del Server.CONNECTIONS[self.param.get("client_addr")]
                 pass
 
     def addr_filter(self, dst: str) -> bool:

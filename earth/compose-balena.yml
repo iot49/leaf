@@ -49,8 +49,8 @@ services:
       - DATABASE_ECHO=False
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_USERNAME=${POSTGRES_USERNAME}
+      - CONFIG_DIR=/home/config
       - UI_DIR=/home/ui
-      - LOCAL_CONFIG_DIR=/home/config
       - CF_POLICY_AUD=${CF_POLICY_AUD}
       - CF_TEAM_DOMAIN=${CF_TEAM_DOMAIN}
       - CF_API_TOKEN=${CF_API_TOKEN}

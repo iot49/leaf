@@ -45,12 +45,18 @@ export class LeafSettings extends LeafBase {
   @state()
   private env: any = {};
 
+  @state()
+  private connections: any = {};
+
   async connectedCallback() {
     super.connectedCallback();
     if (this.settings.me.superuser) {
-      this.users = await api_get(`user`);
-      this.keys = await api_get(`api_key`);
-      this.env = await api_get(`dev/env`);
+      this.users = await api_get('user');
+      this.keys = await api_get('api_key');
+      this.env = await api_get('dev/env');
+      window.setInterval(async () => {
+        this.connections = await api_get('connections');
+      }, 10000);
     }
   }
 
@@ -209,16 +215,39 @@ export class LeafSettings extends LeafBase {
     `;
   }
 
+  connectionsTemplate() {
+    const connections = this.connections;
+    return html`
+      <table class="zebra-table">
+        <tr>
+          <td>Client Address</td>
+          <td>Connected</td>
+          <td>User / Tree</td>
+        </tr>
+        ${Object.values(connections).map(
+          (key: any) =>
+            html`<tr>
+              <td>${key.param.client_addr}</td>
+              <td align="center"><sl-checkbox readonly ?checked=${key.connected}></sl-checkbox></td>
+              <td>${key.param.user || key.param.client_addr}</td>
+            </tr>`
+        )}
+      </table>
+    `;
+  }
+
   superuserTemplate() {
     return html` <sl-tab-group placement="start">
       <sl-tab slot="nav" panel="me">Me</sl-tab>
       <sl-tab slot="nav" panel="users">Users</sl-tab>
       <sl-tab slot="nav" panel="api_key">Api Keys</sl-tab>
+      <sl-tab slot="nav" panel="connections">Connections</sl-tab>
       <sl-tab slot="nav" panel="env">Env</sl-tab>
 
       <sl-tab-panel name="me">${this.meSettingsTemplate()}</sl-tab-panel>
       <sl-tab-panel name="users">${this.usersTemplate()}</sl-tab-panel>
       <sl-tab-panel name="api_key">${this.apikeyTemplate()}</sl-tab-panel>
+      <sl-tab-panel name="connections">${this.connectionsTemplate()}</sl-tab-panel>
       <sl-tab-panel name="env">${this.envTemplate()}</sl-tab-panel>
     </sl-tab-group>`;
   }

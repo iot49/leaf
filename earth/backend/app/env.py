@@ -30,7 +30,7 @@ class Env(BaseSettings):
     POSTGRES_PASSWORD: str = "postgres"
     DATABASE_ECHO: bool = False
 
-    LOCAL_CONFIG_DIR: str = ""
+    CONFIG_DIR: str = "/home/config"
 
     # cloudflare tunnel
     CF_POLICY_AUD: str
@@ -75,11 +75,6 @@ class Env(BaseSettings):
         if self.ENVIRONMENT == Environment.development:
             return ["http://localhost:5173", "http://localhost:4173"]
         return []
-
-    @property
-    def CONFIG_DIR(self) -> str:
-        dir = "/home/config"
-        return dir if os.path.isdir(dir) else env.LOCAL_CONFIG_DIR
 
     @property
     def UI_DIR(self) -> str:
