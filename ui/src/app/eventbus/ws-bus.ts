@@ -2,6 +2,8 @@ import { alertDialog } from '../dialog';
 import { ws_url } from '../env';
 import { Bus } from './eventbus';
 
+const CONNECTION_RETRY_MS = 5000;
+
 export class WsBus implements Bus {
   public tree_id: string;
   private _ws: WebSocket;
@@ -16,8 +18,8 @@ export class WsBus implements Bus {
     try {
       this._ws.send(JSON.stringify(event));
     } catch {
-      alertDialog('WsBus', `ws-bus.send failed for ${event}`);
-      console.log('ws-bus.postEvent - failed to send event');
+      alertDialog('WsBus', `ws-bus.send failed for ${JSON.stringify(event, null, 2)}`);
+      console.log('ws-bus.postEvent - failed to send event', event);
     }
   }
 
@@ -57,7 +59,7 @@ export class WsBus implements Bus {
         // create a new websocket
         this.connect();
       }
-    }, 5000);
+    }, CONNECTION_RETRY_MS);
 
     // eventbus
     this._ws.addEventListener('message', this.message_event.bind(this));

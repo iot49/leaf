@@ -60,6 +60,7 @@ export class LeafContext extends LeafBase {
           this.config = event.data;
           this._configProvider.setValue(this.config, true);
           globalThis.leaf.config = this.config;
+          this.requestUpdate();
           break;
 
         case 'state':

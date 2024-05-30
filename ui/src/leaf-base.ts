@@ -28,12 +28,12 @@ export class LeafBase extends LitElement {
     `,
   ];
 
-  private main: LeafMain;
-  public currentRoute: string = '';
+  private static main: LeafMain;
+  public static currentRoute: string = '';
 
   async goto(path: string = '') {
-    if (!this.main) this.main = document.querySelector('leaf-main');
-    this.currentRoute = path;
-    await this.main.router.goto(`/ui/${path}`);
+    if (!LeafBase.main) LeafBase.main = document.querySelector('leaf-main');
+    LeafBase.currentRoute = path;
+    await LeafBase.main.router.goto(`/ui/${path}`);
   }
 }

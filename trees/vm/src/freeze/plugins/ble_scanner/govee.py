@@ -11,7 +11,6 @@ async def parser(dev, manufacturer, data, info):
     if dev.name() is None or manufacturer != 0xEC88:
         return
     _, temp, humi, batt = unpack("<BhHB", data)
-    print(f"Govee {info} T={temp/100}C H={humi/100}% batt={batt}% {dev.rssi}dBm {dev.name()}")
     if info is None:
         logger.info(f"DISCOVER: Govee TH Sensor {temp/100} C @ {dev.device.addr_hex()}")
     else:
@@ -32,4 +31,3 @@ async def parser(dev, manufacturer, data, info):
         await H.update(humi / 100)
         await bat.update(batt)
         await rssi.update(dev.rssi)
-        print(f"Govee T={temp/100}C H={humi/100}% batt={batt}% {dev.rssi}dBm {dev.name()}")

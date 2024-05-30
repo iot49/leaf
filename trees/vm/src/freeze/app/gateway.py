@@ -114,4 +114,4 @@ class Gateway(EventBus):
                 await self._ws.send_json(event)
             except OSError as e:
                 self.connected = False
-                logger.exception("failed send_json", exc_info=e)
+                logger.info(f"failed send_json: {e}")

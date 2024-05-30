@@ -56,7 +56,7 @@ class _EventBus implements EventBus {
         case 'get_auth':
           try {
             const client_token = await api_get('client_token');
-            await this.postEvent({ type: 'post_auth', token: client_token });
+            await this.postEvent({ type: 'put_auth', token: client_token });
           } catch (error) {
             alertDialog('Authentication Failed', error.message);
           }

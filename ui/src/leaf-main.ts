@@ -25,7 +25,6 @@ export class LeafMain extends LeafContext {
   ];
 
   public router = new Router(this, [
-    { path: '/ui/home', render: () => html`<h1>Home again!</h1>` },
     {
       path: '/ui/trees',
       render: () => html`<leaf-trees></leaf-trees>`,
@@ -44,15 +43,7 @@ export class LeafMain extends LeafContext {
     },
     { path: '/ui/log', render: () => html`<leaf-log></leaf-log>` },
     { path: '/ui/config', render: () => html`<leaf-config-editor></leaf-config-editor>` },
-    {
-      path: '/ui/enter/:params',
-      render: (params) => html`<h1>Enter ${JSON.stringify(params)}</h1>`,
-      enter: async (params) => {
-        console.log('enter', params);
-        return true;
-      },
-    },
-    { path: '/*', render: () => html`<leaf-trees></leaf-trees>` },
+    { path: '/*', render: () => (this.connected ? html`<leaf-view view_id="0"></leaf-view>` : html`<leaf-trees></leaf-trees>`) },
   ]);
 
   async connectedCallback(): Promise<void> {
@@ -71,21 +62,19 @@ export class LeafMain extends LeafContext {
   }
 
   render() {
-    // console.log(`main.render currentRoute='${this.currentRoute}'`);
-
     // settings are needed by all pages
     if (!this.settings) return this.spinner('Loading settings from cache...');
 
     // some pages require a connection
     if (!this.connected) {
       if (this.settings.auto_connect) eventbus.connect('#earth');
-      const requires_connection = ['view', 'log'];
-      if (requires_connection.includes(this.currentRoute.split('/')[0])) {
+      const requires_connection = ['view', 'config', 'log'];
+      if (requires_connection.includes(LeafBase.currentRoute.split('/')[0])) {
         this.router.goto('/');
       }
     } else if (!this.config) {
       // wait for config, if we are connected
-      return this.spinner('Fetching configuration from server...');
+      return this.spinner(`Fetching configuration from server...`);
     }
     return html`<main>${this.router.outlet()}</main>`;
   }

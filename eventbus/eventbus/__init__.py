@@ -60,14 +60,29 @@ async def post(event: Event) -> None:
         await subscriber.post(event)
 
 
+_event_queue = None
+
+
 def post_sync(event: Event) -> None:
     """Post event 'eventually'"""
+    global _event_queue
 
-    async def poster():
-        await post(event)
+    async def post_task():
+        while True:
+            event = await _event_queue.get()  # type: ignore
+            await post(event)
+            # rate limiting
+            await asyncio.sleep(0.1)
 
-    loop = asyncio.get_event_loop()
-    loop.create_task(poster())
+    if _event_queue is None:
+        _event_queue = asyncio.Queue(maxsize=10)
+        loop = asyncio.get_event_loop()
+        loop.create_task(post_task())
+
+    try:
+        _event_queue.put_nowait(event)
+    except asyncio.QueueFull:
+        print("post_sync: queue full")
 
 
 # list of subscribers - call subscribe/unsubscribe to add/remove
@@ -95,9 +110,7 @@ async def serve(
 ) -> None:
     # won't return until the connection is closed
     server = Server(transport=transport, authenticate=authenticate, param=param, timeout=timeout)
-    logger.info(f"+++++ client connection {param.get('client')}")
     await server.run()
-    logger.info(f"----- client connection {param.get('client_addr') or param.get('client')}")
 
 
 def tree_id(addr: Addr) -> str:

@@ -34,7 +34,6 @@ export async function api_get(resource: string = '', requestOptions = {}, path =
     // alertDialog('Offline?', 'Cannot connect to earth. Is the server running? Internet working?');
     throw new FetchError(error.message);
   }
-  // or should we return errors, status, ...?
   return undefined;
 }
 

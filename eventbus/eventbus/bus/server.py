@@ -24,7 +24,7 @@ from ..event import (
 )
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.INFO)
 
 WS_TIMEOUT = 5  # disconnect if no message received [seconds]
 
@@ -71,7 +71,9 @@ class Server(EventBus):
         try:
             await self.transport.send_json(get_auth())
             event = await asyncio.wait_for(self.transport.receive_json(), timeout=self.timeout + 1)
-            logger.debug(f"server.run, authenticate with {event}")
+            if event is None or event.get("type") != event_type.PUT_AUTH:
+                logger.error(f"??? get_auth received invalid response: {event}")
+                return
             self.param["client_addr"] = client_addr = await self.authenticate(event.get("token"))
             if not client_addr:
                 logger.error(f"{self.param.get('client')}: authentication failed with {event}")
@@ -86,6 +88,7 @@ class Server(EventBus):
             await self.transport.close()
             return
 
+        logger.info(f"+++++ client connection {self.param.get('client')}")
         connect_event = State(eid=f"{client_addr}.gateway:status.connected")
         try:
             # update connections registry
@@ -122,6 +125,7 @@ class Server(EventBus):
             else:
                 del Server.CONNECTIONS[self.param.get("client_addr")]
                 pass
+            logger.info(f"----- client connection {self.param.get('client_addr') or self.param.get('client')}")
 
     def addr_filter(self, dst: str) -> bool:
         client_addr = self.param["client_addr"]
@@ -170,7 +174,7 @@ class Server(EventBus):
     async def receiver_task(self):
         while not self.closed:
             try:
-                event = await asyncio.wait_for(self.transport.receive_json(), timeout=self.timeout + 1)
+                event = await asyncio.wait_for(self.transport.receive_json(), timeout=self.timeout + 100)
                 if isinstance(event, list):
                     for e in event:
                         await self.process_event(e)

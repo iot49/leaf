@@ -47,20 +47,6 @@ async def update_charger(dev, info, decrypted):
     await current.update(i / 10)
     await energy.update(y * 10.0)
     await power.update(p)
-    print(
-        "Victron MPPT: rssi",
-        dev.rssi,
-        "state",
-        state,
-        "voltage",
-        v / 100,
-        "current",
-        i / 10,
-        "energy",
-        y * 10.0,
-        "power",
-        p,
-    )
 
 
 async def update_soc(dev, info, decrypted):
@@ -86,7 +72,6 @@ async def update_soc(dev, info, decrypted):
     T = aux / 100 - 273.15 if c & 0b11 == 2 else None
     soc = ((soc & 0x3FFF) >> 4) / 10
     rssi, time_to_go, voltage, current, energy, soc_, temperature = entities
-    print("VICTRON SOC: ttg", ttg, "v", v / 100, "alarm", alarm, "aux", aux, "i", i, "consumed", consumed, "soc", soc)
     await rssi.update(dev.rssi)
     await time_to_go.update(ttg)
     await voltage.update(v / 100)

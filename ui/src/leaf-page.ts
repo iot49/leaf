@@ -151,11 +151,10 @@ export class LeafPage extends LeafBase {
   nav_menu() {
     // we use the html element id to specify the path (see action, above)
     const nav = [
-      { id: 'connect', icon: 'forest-outline', text: 'Trees' },
+      { id: 'trees', icon: 'forest-outline', text: 'Trees' },
       { id: 'log', icon: 'math-log', text: 'Log', disabled: !this.connected },
-      { id: 'accounts', icon: 'account-cog', text: 'Accounts', hide: !this.settings.me.superuser },
       { id: 'settings', icon: 'cog', text: 'Settings', hide: !this.settings.me.superuser },
-      { id: 'config', icon: 'microsoft-visual-studio-code', text: 'Configuration' },
+      { id: 'config', icon: 'microsoft-visual-studio-code', text: 'Configuration', disabled: !this.connected },
       // { id: '!editor', icon: 'microsoft-visual-studio-code', text: 'Editor' },
       { id: '!jupyter', icon: 'code-block-braces', text: 'Jupyter' },
       { id: '!homeassistant', icon: 'home-lightbulb-outline', text: 'Homeassistant' },
