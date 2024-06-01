@@ -12,7 +12,7 @@ from . import CERT_DIR, config, led, secrets
 from .wifi import wifi
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.ERROR)
 
 
 class Gateway(EventBus):
@@ -48,7 +48,7 @@ class Gateway(EventBus):
             str: disconnect reason.
         """
         auth_msg = await ws.receive_json()
-        logger.debug(f"Authenticated - {auth_msg}")
+        logger.debug(f"Received auth request - {auth_msg}")
         if auth_msg["type"] == event_type.GET_AUTH:
             await ws.send_json({"type": event_type.PUT_AUTH, "token": gateway_token})
         hello_msg = await ws.receive_json()

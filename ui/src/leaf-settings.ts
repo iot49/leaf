@@ -56,7 +56,7 @@ export class LeafSettings extends LeafBase {
       this.env = await api_get('dev/env');
       window.setInterval(async () => {
         this.connections = await api_get('connections');
-      }, 10000);
+      }, 2000);
     }
   }
 

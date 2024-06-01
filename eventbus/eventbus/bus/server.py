@@ -17,6 +17,8 @@ from .. import Event, EventBus, post, subscribe, unsubscribe
 from ..event import (
     State,
     bye_timeout,
+    get_log,
+    get_state,
     hello_already_connected,
     hello_connected,
     hello_invalid_token,
@@ -36,10 +38,6 @@ class Transport:
 
     @abstractmethod
     async def receive_json(self) -> Any:
-        pass
-
-    @abstractmethod
-    async def close(self) -> Any:
         pass
 
 
@@ -78,24 +76,20 @@ class Server(EventBus):
             if not client_addr:
                 logger.error(f"{self.param.get('client')}: authentication failed with {event}")
                 await self.transport.send_json(hello_invalid_token())
-                await self.transport.close()
                 return
             self.gateway = not client_addr.startswith("@")
         except (WebSocketDisconnect, RuntimeError, asyncio.TimeoutError) as e:
             logger.error(f"handshake failed: {e}")
             self.closed = True
             await self.transport.send_json(bye_timeout())
-            await self.transport.close()
             return
 
-        logger.info(f"+++++ client connection {self.param.get('client')}")
         connect_event = State(eid=f"{client_addr}.gateway:status.connected")
         try:
             # update connections registry
             connection = Server.CONNECTIONS.get(client_addr)
             if connection and connection.get("connected"):
                 await self.transport.send_json(hello_already_connected())
-                await self.transport.close()
                 return
             Server.CONNECTIONS[client_addr] = {
                 "param": self.param,
@@ -103,13 +97,15 @@ class Server(EventBus):
                 "connected": True,
             }
             # ready for events
-            logger.debug(f"listening  for events from {client_addr}")
+            logger.debug(f"listening for events from {client_addr}")
             subscribe(self)
             # send greeting
             await self.transport.send_json(hello_connected(self.param))
             # update gateway connection state
             if self.gateway:
                 await connect_event.update(True)
+                await post(get_state())
+                await post(get_log())
             # won't return until the connection is closed
             await self.receiver_task()
         except RuntimeError:
@@ -125,7 +121,6 @@ class Server(EventBus):
             else:
                 del Server.CONNECTIONS[self.param.get("client_addr")]
                 pass
-            logger.info(f"----- client connection {self.param.get('client_addr') or self.param.get('client')}")
 
     def addr_filter(self, dst: str) -> bool:
         client_addr = self.param["client_addr"]
@@ -192,9 +187,3 @@ class Server(EventBus):
             except Exception as e:
                 logger.exception(e, exc_info=e)
                 self.closed = True
-        try:
-            await self.transport.close()
-        except RuntimeError:
-            logger.debug("RuntimeError closing transport")
-        except Exception as e:
-            logger.exception("Server Error closing transport", exc_info=e)

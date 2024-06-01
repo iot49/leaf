@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import sys
 import time
 
 import esp32  # type: ignore
@@ -21,6 +22,7 @@ from .gateway import Gateway  # type: ignore
 from .wifi import wifi
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class UpdateListener(EventBus):
@@ -91,6 +93,8 @@ async def main(ws_url=f"wss://{DOMAIN}/gateway/ws", logging_level=logging.INFO):
             await main_task(ws_url)
         except Exception as e:
             print("exception in main", e)
+
+            sys.print_exception(e)  # type: ignore
             logger.exception(f"??? main: {e}", exc_info=e)
         finally:
             asyncio.new_event_loop()

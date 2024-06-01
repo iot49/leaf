@@ -101,18 +101,24 @@ async def parser(dev, manufacturer, data, info):
 
     try:
         key = bytes.fromhex(info.get("key"))
-        if key[0] != key0:
-            logger.error(f"Victron key mismatch {key[0]:02x} != {key0:02x} for {dev_id}")
-            return
+    except (TypeError, ValueError) as e:
+        logger.error(f"Victron key missing or invalid key for {dev_id}: {e}")
+        return
+
+    if key[0] != key0:
+        logger.error(f"Victron key mismatch {key[0]:02x} != {key0:02x} for {dev_id}")
+        return
+
+    try:
         cipher = aes(key, 6, iv.to_bytes(16, "little"))
     except TypeError as e:
-        logger.error(f"Victron {model} {dev_id}: {e}")
+        logger.error(f"Victron cipher {model} {dev_id}: {e}")
         return
 
     try:
         decrypted = cipher.decrypt(pad(data[8:]))  # type: ignore
     except ValueError as e:
-        logger.error(f"Victron {model} {dev_id}: {e}")
+        logger.error(f"Victron decrypt {model} {dev_id}: {e}")
         return
 
     if _model == 0x1:

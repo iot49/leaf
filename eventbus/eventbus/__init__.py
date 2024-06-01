@@ -3,6 +3,12 @@ import logging
 from abc import abstractmethod
 from typing import Awaitable, Callable
 
+try:
+    from asyncio import Queue, QueueFull
+except AttributeError:
+    # MicroPython asyncio misses Queue
+    from asyncio_extra import Queue, QueueFull  # type: ignore # noqa: F401
+
 from . import event_type  # noqa: F401
 
 WS_TIMEOUT = 5  # disconnect if no message received [seconds]
@@ -75,14 +81,14 @@ def post_sync(event: Event) -> None:
             await asyncio.sleep(0.1)
 
     if _event_queue is None:
-        _event_queue = asyncio.Queue(maxsize=10)
+        _event_queue = Queue(maxsize=20)
         loop = asyncio.get_event_loop()
         loop.create_task(post_task())
 
     try:
         _event_queue.put_nowait(event)
-    except asyncio.QueueFull:
-        print("post_sync: queue full")
+    except QueueFull:
+        pass
 
 
 # list of subscribers - call subscribe/unsubscribe to add/remove
@@ -110,7 +116,9 @@ async def serve(
 ) -> None:
     # won't return until the connection is closed
     server = Server(transport=transport, authenticate=authenticate, param=param, timeout=timeout)
+    logger.info(f"+++++ client connection {param.get('client')}")
     await server.run()
+    logger.info(f"----- client connection {param.get('client_addr') or param.get('client')}")
 
 
 def tree_id(addr: Addr) -> str:

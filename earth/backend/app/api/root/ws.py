@@ -11,7 +11,7 @@ from ..user.schema import UserRead
 from . import router
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.INFO)
 
 _CLIENT_ADDR = 1
 
@@ -53,3 +53,9 @@ async def client_ws(websocket: WebSocket):
 
     # won't return until the connection is closed
     await serve(websocket, authenticate, param=param, timeout=env.CLIENT_WS_TIMEOUT)  # type: ignore
+    logger.info(f"client connection closed {param}")
+
+    try:
+        await websocket.close()
+    except Exception as e:
+        logger.error(f"ws close failed: {e}")
