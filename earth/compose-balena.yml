@@ -191,17 +191,6 @@ services:
       - tunnel
 
   # https://github.com/rbonghi/docker-dropbox-app
-  backup-config:
-    image: rbonghi/dropbox:latest
-    command: ['--folder', 'config', '--fromLocal', '--verbose', '--interval', '120']
-    environment:
-      - PYTHONUNBUFFERED=1
-      - DROPBOX_APP_KEY=${DROPBOX_APP_KEY}
-      - DROPBOX_APP_SECRET=${DROPBOX_APP_SECRET}
-      - DROPBOX_REFRESH_TOKEN=${DROPBOX_REFRESH_TOKEN}
-    volumes:
-      - config:/dropbox
-
   backup-homeassistant:
     image: rbonghi/dropbox:latest
     command: ['--rootdir', '/dropbox/backups', '--folder', 'homeassistant', '--fromLocal', '--verbose', '--interval', '120']

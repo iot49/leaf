@@ -24,6 +24,8 @@ async def client_ws(websocket: WebSocket):
         "versions": {"config": config.get("version")},
     }
 
+    print("client_ws ENTER", param)
+
     async def authenticate(token: str) -> str | None:
         """
         Authenticates the client connection using the provided token.
@@ -58,4 +60,6 @@ async def client_ws(websocket: WebSocket):
     try:
         await websocket.close()
     except Exception as e:
-        logger.error(f"ws close failed: {e}")
+        print(f"ws close failed: {e}")
+
+    print("client_ws EXIT", param)

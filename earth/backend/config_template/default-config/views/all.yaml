@@ -1,7 +1,0 @@
-- title: All
-  icon: home-thermometer-outline
-  cards:
-    - title: All
-      type: entities
-      entities:
-        - entity_id: "*"
