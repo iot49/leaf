@@ -64,7 +64,7 @@ async def post(event: Event) -> None:
     global _subscribers
     for subscriber in _subscribers:
         if event.get("type") == event_type.PUT_CONFIG:
-            print("PUT", event)
+            print("PUT_CONFIG", event.get("dst"), subscriber)
         await subscriber.post(event)
 
 
@@ -100,6 +100,7 @@ _subscribers = []
 def subscribe(bus: EventBus) -> None:
     """Subscribe to this eventbus."""
     global _subscribers
+    assert bus not in _subscribers, "already subscribed"
     _subscribers.append(bus)
 
 
