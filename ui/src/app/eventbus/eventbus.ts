@@ -21,10 +21,13 @@ class _EventBus implements EventBus {
   private ping_interval: number = 5000;
   private _bus: Bus;
   private _wdtId: ReturnType<typeof setInterval>;
+  private _connected: boolean = false;
 
   constructor() {
     // post ping's to server to avoid disconnect
-    window.addEventListener('leaf-connection', (_) => {
+    window.addEventListener('leaf-connection', (event: CustomEvent) => {
+      console.log('eventbus.leaf-connection', event.detail);
+      // if (this.connected && this._bus.connected) {
       if (this.connected) {
         // connected ...
         const pingId = setInterval(() => {
@@ -45,13 +48,13 @@ class _EventBus implements EventBus {
 
     // hello events
     window.addEventListener('leaf-event', async (_event: CustomEvent) => {
-      // recieved message -> reset wdt (equivalent to feeding it)
+      // received message -> reset wdt (equivalent to feeding it)
       clearInterval(this._wdtId);
       // start a new wdt
-      this._wdtId = setTimeout(this.wdt_timeout.bind(this), 2 * this.ping_interval);
+      if (this._connected) this._wdtId = setTimeout(this.wdt_timeout.bind(this), 2 * this.ping_interval);
 
       const event = _event.detail;
-      // if (event.type !== 'pong') console.log('eventbus: leaf-event', event);
+      if (event.type !== 'pong') console.log('eventbus: leaf-event', event);
       switch (event.type) {
         case 'get_auth':
           try {
@@ -62,15 +65,21 @@ class _EventBus implements EventBus {
           }
           break;
         case 'hello_connected':
+          // eventbus is operational, start sending ping's
           console.log('connected:', event);
+          this._connected = true;
           this.ping_interval = 1000 * event.param.timeout_interval;
           break;
         case 'hello_no_token':
         case 'hello_invalid_token':
           console.log('connection attempt failed:', event);
+          this._connected = false;
+          await this.disconnect();
           break;
         case 'bye_timeout':
           console.log('server disconnect', event);
+          await this.disconnect();
+          this._connected = false;
           break;
         default:
           break;
@@ -79,7 +88,7 @@ class _EventBus implements EventBus {
   }
 
   get connected() {
-    return this._bus.connected;
+    return this._connected;
   }
 
   async connect(tree_id: string, bluetooth: boolean = false) {
@@ -88,7 +97,9 @@ class _EventBus implements EventBus {
   }
 
   async disconnect() {
-    if (this._bus) this._bus.disconnect();
+    await this.postEvent({ type: 'bye' });
+    this._connected = false;
+    if (this._bus) await this._bus.disconnect();
   }
 
   async postEvent(event: any) {
@@ -104,5 +115,5 @@ class _EventBus implements EventBus {
   }
 }
 
-// global eventbus
+// global eventbus (singleton)
 export const eventbus = new _EventBus();

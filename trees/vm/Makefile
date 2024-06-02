@@ -35,7 +35,8 @@ build: dependencies clean
 
 	@echo Cleaning up
 	rm -rf ${BUILD_DIR}
-	rm -rf ${PORT_DIR}/boards/${BOARD}	
+	rm -rf ${PORT_DIR}/boards/${BOARD}
+	rm -rf ${PORT_DIR}/partition-S3-N16-custom.csv
 
 
 dependencies:

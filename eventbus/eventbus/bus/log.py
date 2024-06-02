@@ -20,6 +20,7 @@ class Log(EventBus):
 
     def __init__(self, size=100):
         self.history = deque((), size)
+        self.last_event = None
         subscribe(self)
 
     async def post(self, event: Event) -> None:
@@ -27,6 +28,11 @@ class Log(EventBus):
         # append to history and print to console
         tp = event.get("type")
         if tp == event_type.LOG:
+            if self.last_event is not None:
+                last = self.last_event
+                if last.get("levelno") == event.get("levelno") and last.get("message") == event.get("message"):
+                    last["count"] = last.get("count", 1) + 1
+                    return
             levelno = event.get("levelno", 0)
             if levelno >= logging.ERROR:
                 self.history.appendleft(event)  # type: ignore
@@ -40,8 +46,11 @@ class Log(EventBus):
             color = colors.get(levelno, "")
             funcName = event.get("funcName") or ""
             t = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(event.get("timestamp", 0)))  # type: ignore
+            count = event.get("count")
+            # BUG: count is never reported (see return above ...)
+            repeat = f"[{count}] " if count is not None else ""
             print(
-                f"{t} {color}{event.get('levelname'):9}{RESET} {event.get('src'):12} {event.get('name'):20} {funcName:16} {event.get('message')}"
+                f"{repeat}{t} {color}{event.get('levelname'):9}{RESET} {event.get('src'):12} {event.get('name'):20} {funcName:16} {event.get('message')}"
             )
             tb = event.get("traceback")
             if tb is not None:
