@@ -22,7 +22,8 @@ class Counter(EventBus):
             asyncio.create_task(counter.counter_task())
         """
         super().__init__()
-        self.interval = interval
+        # TODO: delete 10x
+        self.interval = 10 * interval
         self.N = N
         self.state = State(eid)
         self.count = 0
