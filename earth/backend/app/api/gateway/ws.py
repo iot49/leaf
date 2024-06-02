@@ -4,8 +4,8 @@ from fastapi import HTTPException, WebSocket
 
 from eventbus import serve
 
-from ...bus import config, secrets
-from ...env import env
+from ...bus import certificates, config, secrets
+from ...env import Environment, env
 from ...tokens import verify_gateway2earth
 from ..tree.schema import TreeRead
 from . import router
@@ -26,8 +26,8 @@ async def tree_ws(websocket: WebSocket):
         try:
             tree: TreeRead = await verify_gateway2earth(token)
             param["versions"]["secrets"] = await secrets.get_version(tree.tree_id)
-            # only works on production server (docker-compose)
-            # param["versions"]["certificate"] = certificates.get_version(tree.tree_id)
+            if env.ENVIRONMENT == Environment.production:
+                param["versions"]["certificate"] = certificates.get_version(tree.tree_id)
             return tree.tree_id
         except HTTPException:
             logger.error(f"authentication failed for {param.get('client')}, token = {token}")
