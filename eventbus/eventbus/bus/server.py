@@ -104,8 +104,8 @@ class Server(EventBus):
             # update gateway connection state
             if self.gateway:
                 await connect_event.update(True)
-                await post(get_state())
-                await post(get_log())
+                await post(get_state(dst=client_addr))
+                await post(get_log(dst=client_addr))
             # won't return until the connection is closed
             await self.receiver_task()
         except RuntimeError:
@@ -139,6 +139,7 @@ class Server(EventBus):
         if self.addr_filter(dst):
             try:
                 # TODO: batch send events as lists
+                print(f"server.post to {dst}", event)
                 await self.transport.send_json(event)
             except RuntimeError as e:
                 logger.error(f"Server.post: Transport error {e}")

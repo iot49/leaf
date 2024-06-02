@@ -63,6 +63,8 @@ async def post(event: Event) -> None:
     """Post event on all subscribers."""
     global _subscribers
     for subscriber in _subscribers:
+        if event.get("type") == event_type.PUT_CONFIG:
+            print("PUT", event)
         await subscriber.post(event)
 
 

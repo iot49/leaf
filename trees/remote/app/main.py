@@ -22,7 +22,7 @@ from .gateway import Gateway  # type: ignore
 from .wifi import wifi
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 
 class UpdateListener(EventBus):

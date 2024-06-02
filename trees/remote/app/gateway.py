@@ -12,7 +12,7 @@ from . import CERT_DIR, config, led, secrets
 from .wifi import wifi
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.INFO)
 
 
 class Gateway(EventBus):
@@ -80,7 +80,7 @@ class Gateway(EventBus):
             if not self.connected:
                 return
             if msg.type == aiohttp.WSMsgType.TEXT:
-                logger.debug(f"received msg-type={msg.type}: {str(msg.data)}")
+                logger.info(f"received msg-type={msg.type}: {str(msg.data)}")
                 await post(json.loads(msg.data))
             elif msg.type == aiohttp.WSMsgType.ERROR:
                 logger.error(f"receiver_task: ws returned error {msg}")

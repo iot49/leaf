@@ -78,16 +78,16 @@ def put_cert(get_cert, cert: dict):
 
 
 # current values
-def get_state():
-    return make_event(event_type.GET_STATE, "#server")
+def get_state(dst="#server"):
+    return make_event(event_type.GET_STATE, dst)
 
 
-def get_config():
-    return make_event(event_type.GET_CONFIG, "#server")
+def get_config(dst="#server"):
+    return make_event(event_type.GET_CONFIG, dst)
 
 
-def get_log():
-    return make_event(event_type.GET_LOG, "#server")
+def get_log(dst="#server"):
+    return make_event(event_type.GET_LOG, dst)
 
 
 def put_config(data: dict, dst: str = "#server"):
