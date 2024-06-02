@@ -62,6 +62,7 @@ export class LeafMain extends LeafContext {
   }
 
   render() {
+    console.log('LeafMain.render, connected =', this.connected, 'route =', LeafBase.currentRoute);
     // settings are needed by all pages
     if (!this.settings) return this.spinner('Loading settings from cache...');
 

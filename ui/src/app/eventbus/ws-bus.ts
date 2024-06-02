@@ -41,6 +41,7 @@ export class WsBus implements Bus {
    */
   protected connect() {
     this._ws = new WebSocket(this._url);
+    this._reconnect = true;
 
     // connect, then reconnect when connection is lost
     let timer = setInterval(() => {

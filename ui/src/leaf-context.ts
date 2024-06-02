@@ -50,6 +50,7 @@ export class LeafContext extends LeafBase {
       // if (event.type != 'pong') console.log('leaf-context got event', event);
       switch (event.type) {
         case 'hello_connected':
+          console.log('post get_config, get_state, get_log  ');
           await eventbus.postEvent({ type: 'get_config', dst: '#server' });
           await eventbus.postEvent({ type: 'get_state', dst: '#server' });
           await eventbus.postEvent({ type: 'get_log', dst: '#server' });
