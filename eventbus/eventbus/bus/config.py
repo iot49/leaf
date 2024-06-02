@@ -28,7 +28,6 @@ class Config(EventBus):
         if et == event_type.GET_CONFIG:
             await post(put_config(dst=event["src"], data=self._config))
         elif et == event_type.PUT_CONFIG:
-            print("eventbus.bus.config got PUT_CONFIG", event)
             self._config = event["data"]
             try:
                 import micropython  # type: ignore  # noqa: F401

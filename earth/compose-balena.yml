@@ -190,6 +190,8 @@ services:
     networks:
       - tunnel
 
+  # TODO: replace docker-dropbox-app with rclone
+
   # https://github.com/rbonghi/docker-dropbox-app
   backup-homeassistant:
     image: rbonghi/dropbox:latest

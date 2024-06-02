@@ -24,8 +24,6 @@ async def client_ws(websocket: WebSocket):
         "versions": {"config": config.get("version")},
     }
 
-    print("client_ws ENTER", param)
-
     async def authenticate(token: str) -> str | None:
         """
         Authenticates the client connection using the provided token.

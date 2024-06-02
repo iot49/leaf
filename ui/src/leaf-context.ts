@@ -40,50 +40,39 @@ export class LeafContext extends LeafBase {
   constructor() {
     super();
 
-    window.addEventListener('leaf-connection', (event: CustomEvent) => {
-      this.connected = event.detail;
+    eventbus.on('#connected', async () => {
+      console.log('LeafContext: #connected');
+      this.connected = true;
+      this._connectedProvider.setValue(this.connected, true);
+      await eventbus.postEvent({ type: 'get_config', dst: '#server' });
+      await eventbus.postEvent({ type: 'get_state', dst: '#server' });
+      // await eventbus.postEvent({ type: 'get_log', dst: '#server' });
+    });
+
+    eventbus.on('#disconnected', (msg) => {
+      console.log('LeafContext: disconnected', msg);
+      this.connected = false;
       this._connectedProvider.setValue(this.connected, true);
     });
 
-    window.addEventListener('leaf-event', async (_event: CustomEvent) => {
-      const event = _event.detail;
-      // if (event.type != 'pong') console.log('leaf-context got event', event);
-      switch (event.type) {
-        case 'hello_connected':
-          console.log('post get_config, get_state, get_log  ');
-          await eventbus.postEvent({ type: 'get_config', dst: '#server' });
-          await eventbus.postEvent({ type: 'get_state', dst: '#server' });
-          await eventbus.postEvent({ type: 'get_log', dst: '#server' });
-          break;
-
-        case 'put_config':
-          this.patch_config();
-          this.config = event.data;
-          this._configProvider.setValue(this.config, true);
-          globalThis.leaf.config = this.config;
-          this.requestUpdate();
-          break;
-
-        case 'state':
-          // state update message
-          const proxy = new Proxy(event, state_handler);
-          const state = this._stateProvider.value;
-          state.set(event.eid, proxy);
-          this._stateProvider.setValue(state, true);
-          break;
-
-        case 'log':
-          // new log message
-          this._logProvider.setValue([...this._logProvider.value, event]);
-          break;
-      }
+    eventbus.on('state', (event) => {
+      // state update message
+      const proxy = new Proxy(event, state_handler);
+      const state = this._stateProvider.value;
+      state.set(event.eid, proxy);
+      this._stateProvider.setValue(state, true);
     });
-  }
 
-  private patch_config() {
-    // cfg.views[0].cards[0].entities[0].icon = "plus";
-    // cfg.views[0].cards[0].entities[2].unit = '%';
-    // cfg.views[0].cards[0].entities[2].format = '.1f';
+    eventbus.on('put_config', (event) => {
+      this.config = event.data;
+      this._configProvider.setValue(this.config, true);
+      globalThis.leaf.config = this.config;
+      this.requestUpdate();
+    });
+
+    eventbus.on('log', (event) => {
+      this._logProvider.setValue([...this._logProvider.value, event]);
+    });
   }
 
   async connectedCallback(): Promise<void> {
