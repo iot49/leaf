@@ -12,7 +12,7 @@ from . import CERT_DIR, config, led, secrets
 from .wifi import wifi
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.ERROR)
 
 
 class Gateway(EventBus):
@@ -90,9 +90,11 @@ class Gateway(EventBus):
     async def _update_task(self, versions):
         # config and secrets
         if versions.get("config") != config.get("version"):
-            await self.post(get_config())
+            gc = get_config()
+            gc["dst"] = "#earth"
+            await self.post(gc)
         if versions.get("secrets") != secrets.get("version"):
-            await self.post(get_secrets())
+            await self.post(get_secrets(dst="#earth"))
 
         # certificates
         version = ""

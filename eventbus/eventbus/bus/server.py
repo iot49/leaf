@@ -70,16 +70,16 @@ class Server(EventBus):
             await self.transport.send_json(get_auth())
             event = await asyncio.wait_for(self.transport.receive_json(), timeout=self.timeout + 1)
             if event is None or event.get("type") != event_type.PUT_AUTH:
-                print(f"??? get_auth received invalid response: {event}")
+                logger.error(f"??? get_auth received invalid response: {event}")
                 return
             self.param["client_addr"] = client_addr = await self.authenticate(event.get("token"))
             if not client_addr:
-                print(f"{self.param.get('client')}: authentication failed with {event}")
+                logger.error(f"{self.param.get('client')}: authentication failed with {event}")
                 await self.transport.send_json(hello_invalid_token())
                 return
             self.gateway = not client_addr.startswith("@")
         except (WebSocketDisconnect, RuntimeError, asyncio.TimeoutError) as e:
-            print(f"handshake failed: {e}")
+            logger.error(f"handshake failed: {e}")
             self.closed = True
             await self.transport.send_json(bye_timeout())
             return
@@ -139,7 +139,6 @@ class Server(EventBus):
         if self.addr_filter(dst):
             try:
                 # TODO: batch send events as lists
-                print(f"server.post to {dst}", event)
                 await self.transport.send_json(event)
             except RuntimeError as e:
                 logger.error(f"Server.post: Transport error {e}")

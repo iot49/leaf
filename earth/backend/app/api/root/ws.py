@@ -60,6 +60,4 @@ async def client_ws(websocket: WebSocket):
     try:
         await websocket.close()
     except Exception as e:
-        print(f"ws close failed: {e}")
-
-    print("client_ws EXIT", param)
+        logger.error(f"ws {id(websocket)} - close failed: {e}")

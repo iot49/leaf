@@ -55,10 +55,8 @@ async def update_config():
     shutil.copyfile(os.path.join(CONFIG_DIR, "config.yaml"), os.path.join(CONFIG_DIR, "backups", VERSION + ".yaml"))
 
     # broadcast the updated config to all connected trees and clients
-    print("Broadcasting config...")
     await post(put_config(dst="#clients", data=cfg))
     await post(put_config(dst="#branches", data=cfg))
-    print(cfg)
 
     # return config
     return json.dumps(cfg, indent=2)

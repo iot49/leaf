@@ -56,8 +56,8 @@ def put_auth(get_auth, token: str):
 
 
 # secrets
-def get_secrets():
-    return make_event(event_type.GET_SECRETS, "#earth")
+def get_secrets(dst="#earth"):
+    return make_event(event_type.GET_SECRETS, dst)
 
 
 def put_secrets(get_secrets, secrets: dict):

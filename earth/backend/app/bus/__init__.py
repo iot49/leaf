@@ -11,7 +11,7 @@ config = Config(config_file=os.path.join(env.CONFIG_DIR, "config.json"))
 state = CurrentState()
 Secrets()
 Certificates()
-Printer()
+# Printer()
 
 counter = Counter(eid="counter.count", interval=30)
 loop = asyncio.get_event_loop()
