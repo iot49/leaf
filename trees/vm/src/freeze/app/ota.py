@@ -4,7 +4,8 @@ import version  # type: ignore
 from ota32 import OTA as OTA32  # type: ignore
 
 from app import wifi  # type: ignore
-from eventbus import EventBus, event_type, post
+from eventbus import event_type
+from eventbus.eventbus import EventBus, post
 
 from . import DOMAIN
 

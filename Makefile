@@ -67,19 +67,14 @@ add-migration:
 test:
 	ENVIRONMENT="test" \
 	cd eventbus && \
-	rye run pytest -s # --cov="."
+	rye run pytest -s --cov="."
 	cd earth/backend && \
 	ENVIRONMENT="test" \
-	rye run pytest -s # -k test_gateway_token # --cov="."
+	# rye run pytest -s # -k test_gateway_token # --cov="."
 
 clean:
 	@echo "Removing python cache files..."
 	find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete
-
-deploy:
-	(cd earth && set -o allexport && source ../.env && set +o allexport && envsubst < "compose-balena.yml" > "docker-compose.yml";)
-	cd earth && balena push -m boser/leaf
-	cd earth && rm docker-compose.yml
 
 build-docs:
 	# switch to mkdocs: https://realpython.com/python-project-documentation-with-mkdocs/

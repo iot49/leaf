@@ -13,7 +13,7 @@ except ImportError:
 from eventbus import event_type
 from eventbus.event import get_auth
 
-from .. import Event, EventBus, post, subscribe, unsubscribe
+from .. import Event, eventbus
 from ..event import (
     State,
     bye_timeout,
@@ -41,7 +41,7 @@ class Transport:
         pass
 
 
-class Server(EventBus):
+class Server:
     CONNECTIONS = {}
 
     def __init__(
@@ -96,23 +96,22 @@ class Server(EventBus):
                 "connected_at": time.time(),
                 "connected": True,
             }
-            # ready for events
-            logger.debug(f"listening for events from {client_addr}")
-            subscribe(self)
             # send greeting
             await self.transport.send_json(hello_connected(self.param))
+            # ready for events
+            logger.debug(f"listening for events from {client_addr}")
+            self.sender()
             # update gateway connection state
             if self.gateway:
                 await connect_event.update(True)
-                await post(get_state(dst=client_addr))
-                await post(get_log(dst=client_addr))
+                await eventbus.emit(get_state(dst=client_addr))
+                await eventbus.emit(get_log(dst=client_addr))
             # won't return until the connection is closed
             await self.receiver_task()
         except RuntimeError:
             # client disconnected without sending BYE
             self.closed = True
         finally:
-            unsubscribe(self)
             connection = Server.CONNECTIONS.get(client_addr) or {}
             connection["connected"] = False
             connection["disconnected_at"] = time.time()
@@ -129,23 +128,29 @@ class Server(EventBus):
         else:
             return dst in ("#clients", client_addr)
 
-    async def post(self, event: Event) -> None:
-        # forward event to client
-        if self.closed:
-            unsubscribe(self)
-            return
-        # address filter
-        dst = event.get("dst", "")
-        if self.addr_filter(dst):
-            try:
-                # TODO: batch send events as lists
-                await self.transport.send_json(event)
-            except RuntimeError as e:
-                logger.error(f"Server.post: Transport error {e}")
-                self.closed = True
-        else:
-            pass
-            # logger.debug(f"addr_filter not posted: type={event.get('type')} dst={dst} (client_addr={self.param.get("client_addr")})")
+    def sender(self):
+        @eventbus.on("*")
+        async def all_events(**event):
+            nonlocal self
+            print(f"Server.sender: {event}, {self.param.get('client_addr')}")
+            # forward event to client
+            if self.closed:
+                # no more events, please ...
+                print(f"Server.sender: off {self.param}")
+                eventbus.off(all_events)
+                return
+            # address filter
+            dst = event.get("dst", "")
+            if self.addr_filter(dst):
+                try:
+                    # TODO: batch send events as lists
+                    await self.transport.send_json(event)
+                except RuntimeError as e:
+                    logger.error(f"Server.post: Transport error {e}")
+                    self.closed = True
+            else:
+                pass
+                # logger.debug(f"addr_filter not posted: type={event.get('type')} dst={dst} (client_addr={self.param.get("client_addr")})")
 
     async def process_event(self, event: Event) -> None:
         et = event.get("type")
@@ -162,7 +167,7 @@ class Server(EventBus):
             if "dst" in event:
                 if not self.gateway:
                     event["src"] = self.param["client_addr"]
-                await post(event)
+                await eventbus.emit(event)
             else:
                 logger.error(f"Invalid event - no dst (ignored) {event}")
 
@@ -177,7 +182,7 @@ class Server(EventBus):
                     await self.process_event(event)
             except asyncio.TimeoutError:
                 logger.debug(f"Timeout {self.param}")
-                await post(bye_timeout())
+                await eventbus.emit(bye_timeout())
                 self.closed = True
             except json.JSONDecodeError as e:
                 logger.error(f"Invalid JSON {e}")

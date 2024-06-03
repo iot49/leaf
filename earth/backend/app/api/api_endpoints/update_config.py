@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 import yaml
 from fastapi import HTTPException
 
-from eventbus import post
+from eventbus import eventbus
 from eventbus.event import put_config
 
 from ...env import env
@@ -55,8 +55,8 @@ async def update_config():
     shutil.copyfile(os.path.join(CONFIG_DIR, "config.yaml"), os.path.join(CONFIG_DIR, "backups", VERSION + ".yaml"))
 
     # broadcast the updated config to all connected trees and clients
-    await post(put_config(dst="#clients", data=cfg))
-    await post(put_config(dst="#branches", data=cfg))
+    await eventbus.emit(put_config(dst="#clients", data=cfg))
+    await eventbus.emit(put_config(dst="#branches", data=cfg))
 
     # return config
     return json.dumps(cfg, indent=2)

@@ -1,10 +1,11 @@
 from app import bus
 from tests.util import is_subset
 
-from eventbus import event_type, post
+from eventbus import event_type
 from eventbus.bus.server import Server
 from eventbus.eid import eid2addr
 from eventbus.event import State, get_config, make_event
+from eventbus.eventbus import post
 
 from .conftest import set_src, yield_ws
 

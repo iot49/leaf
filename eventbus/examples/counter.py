@@ -1,9 +1,10 @@
 import asyncio
 
-from eventbus import EventBus, event_type, post, subscribe
+from eventbus import event_type
 from eventbus.bus import CurrentState, Printer
 from eventbus.eid import eid2lid
 from eventbus.event import get_state, state, state_action, state_update
+from eventbus.eventbus import EventBus, post, subscribe
 
 
 class Counter(EventBus):

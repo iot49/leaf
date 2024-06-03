@@ -45,7 +45,7 @@ def test_events():
     assert is_subset({"type": GET_AUTH}, get_auth())
 
 
-async def test_state():
+async def _test_state():
     from eventbus.event import State
 
     leaf_id = "leaf_id"

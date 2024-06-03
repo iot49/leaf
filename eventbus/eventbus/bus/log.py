@@ -4,7 +4,7 @@ import logging
 import time
 from collections import deque
 
-from eventbus import Event, EventBus, event_type, post, subscribe
+from eventbus import event_type, eventbus
 
 BLUE = "\x1b[38;5;4m"
 GREEN = "\x1b[38;5;2m"
@@ -15,19 +15,19 @@ MAGENTA = "\x1b[38;5;5m"
 RESET = "\x1b[0m"
 
 
-class Log(EventBus):
+class Log:
     """Keep event history"""
 
     def __init__(self, size=100):
         self.history = deque((), size)
         self.last_event = None
-        subscribe(self)
 
-    async def post(self, event: Event) -> None:
-        # receive log message
-        # append to history and print to console
-        tp = event.get("type")
-        if tp == event_type.LOG:
+        print()
+
+        @eventbus.on(event_type.LOG)
+        async def log(**event):
+            # receive log message
+            # append to history and print to console
             if self.last_event is not None:
                 last = self.last_event
                 if last.get("levelno") == event.get("levelno") and last.get("message") == event.get("message"):
@@ -55,13 +55,15 @@ class Log(EventBus):
             tb = event.get("traceback")
             if tb is not None:
                 print(tb)
-        elif tp == event_type.GET_LOG:
+
+        @eventbus.on(event_type.GET_LOG)
+        async def get(src, **event):
             # send logging history
             history = self.history
-            dst = event["src"]
+            dst = src
             for i in range(len(history)):
                 ev = history.popleft()
                 history.append(ev)
                 # retarget event to requester
                 ev["dst"] = dst
-                await post(ev)
+                await eventbus.emit(ev)

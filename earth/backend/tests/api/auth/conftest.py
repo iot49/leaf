@@ -2,7 +2,7 @@ import asyncio
 
 from httpx_ws import aconnect_ws
 
-import eventbus
+import eventbus.eventbus as eventbus
 from eventbus.event import bye
 from eventbus.event_type import GET_AUTH, HELLO_CONNECTED, PUT_AUTH
 

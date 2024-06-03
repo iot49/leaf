@@ -1,8 +1,7 @@
 from fastapi.encoders import jsonable_encoder
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-import eventbus
-from eventbus import Event, EventBus, event_type, post, subscribe
+from eventbus import event_type, eventbus, tree_id
 from eventbus.event import put_secrets
 
 from .. import api, db, env, tokens
@@ -56,16 +55,14 @@ async def get_secrets_tree_id(
     return {}
 
 
-class Secrets(EventBus):
+class Secrets:
     """Tree secrets."""
 
     def __init__(self):
-        subscribe(self)
+        pass
 
-    async def post(self, event: Event) -> None:
-        et = event["type"]
-        if et == event_type.GET_SECRETS:
-            tree_id = eventbus.tree_id(event["src"])
-            secrets = await get_secrets_tree_id(tree_id=tree_id)
-            if secrets is not None:
-                await post(put_secrets(event, secrets=secrets))
+    @eventbus.on(event_type.GET_SECRETS)
+    async def get_secrets(**event) -> None:
+        secrets = await get_secrets_tree_id(tree_id=tree_id(event["src"]))
+        if secrets is not None:
+            await eventbus.emit(put_secrets(event, secrets=secrets))

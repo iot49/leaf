@@ -2,7 +2,8 @@
 
 import time
 
-from eventbus import Event, EventBus, event_type, subscribe
+from eventbus import event_type
+from eventbus.eventbus import Event, EventBus, subscribe
 
 
 class Printer(EventBus):

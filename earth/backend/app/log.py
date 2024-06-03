@@ -7,7 +7,7 @@ from logging import Formatter, Handler
 
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from eventbus import post_sync
+from eventbus import eventbus
 from eventbus.bus.log import Log
 from eventbus.event import log_event
 
@@ -98,7 +98,7 @@ class EventLogHandler(Handler):
         if env.ENVIRONMENT != Environment.test:
             # very taxing on balena cloud api
             # print_log_message(event)
-            post_sync(event)
+            eventbus.emit_sync(event)
 
 
 logger = logging.root

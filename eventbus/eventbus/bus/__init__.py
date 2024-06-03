@@ -1,6 +1,5 @@
 # ruff: noqa: F401
 
-
 from .config import Config
 from .counter import Counter
 from .current_state import CurrentState

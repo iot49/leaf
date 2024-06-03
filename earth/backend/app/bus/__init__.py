@@ -13,6 +13,6 @@ Secrets()
 Certificates()
 # Printer()
 
-counter = Counter(eid="counter.count", interval=30)
+counter = Counter(eid="counter.count", interval=3)
 loop = asyncio.get_event_loop()
 loop.create_task(counter.counter_task())

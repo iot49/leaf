@@ -7,7 +7,8 @@ import time
 import esp32  # type: ignore
 import ntptime  # type: ignore
 
-from eventbus import EventBus, event_type, subscribe
+from eventbus import event_type
+from eventbus.eventbus import EventBus, subscribe
 
 from . import (
     DOMAIN,

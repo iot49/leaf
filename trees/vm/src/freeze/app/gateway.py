@@ -5,8 +5,9 @@ import os
 
 import aiohttp
 
-from eventbus import Event, EventBus, event_type, post, subscribe, unsubscribe
+from eventbus import event_type
 from eventbus.event import get_cert, get_config, get_secrets, ping
+from eventbus.eventbus import Event, EventBus, post, subscribe, unsubscribe
 
 from . import CERT_DIR, config, led, secrets
 from .wifi import wifi

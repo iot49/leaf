@@ -1,6 +1,6 @@
 import time
 
-from . import Addr, event_type, post
+from . import Addr, event_type, eventbus
 from .eid import eid2addr, eid2eid
 
 """
@@ -144,12 +144,12 @@ class State:
         ev = self._event
         ev["value"] = value
         ev["timestamp"] = timestamp
-        await post(ev)
+        await eventbus.emit(ev)
         return ev
 
     async def act(self, action: str, param=None):
         ev = make_event(event_type.STATE_ACTION, dst=eid2addr(self._eid), eid=self._eid, action=action, param=param)
-        await post(ev)
+        await eventbus.emit(ev)
         return ev
 
     def __repr__(self) -> str:

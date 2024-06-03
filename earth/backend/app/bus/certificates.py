@@ -5,8 +5,7 @@ from datetime import datetime, timedelta, timezone
 import paramiko
 from OpenSSL import crypto
 
-import eventbus
-from eventbus import Event, EventBus, event_type, post, subscribe
+from eventbus import Event, event_type, eventbus
 from eventbus.event import put_cert
 
 from ..env import get_env
@@ -140,14 +139,9 @@ def get_certificates(tree_id: str, timeout: float = DEFAULT_TIMEOUT) -> dict:
     }
 
 
-class Certificates(EventBus):
+class Certificates:
     """Tree certificates."""
 
-    def __init__(self):
-        subscribe(self)
-
-    async def post(self, event: Event) -> None:
-        et = event["type"]
-        if et == event_type.GET_CERT:
-            tree_id = eventbus.tree_id(event["src"])
-            await post(put_cert(event, cert=get_certificates(tree_id)))
+    @eventbus.on(event_type.GET_CERT)
+    async def get_cert(self, **event: Event) -> None:
+        await eventbus.emit(put_cert(event, cert=get_certificates(tree_id(event["src"]))))
