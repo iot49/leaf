@@ -22,11 +22,13 @@ export class LeafEntities extends LeafBase {
   render() {
     this.number_of_entities = this.state.size;
     const templates: any[] = [];
+    console.log('rendering leaf-entities', this.card, this.state);
     for (const spec of this.card.entities) {
       const rule = spec.entity_id;
       const keys = this.state.keys();
       for (const eid of keys) {
         if (this.wildcard_match(eid, rule)) {
+          console.log('matched', eid, rule);
           templates.push(html`<leaf-entity entity_id=${eid} .spec=${spec}></leaf-entity>`);
         }
       }

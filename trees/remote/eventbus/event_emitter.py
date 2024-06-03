@@ -143,6 +143,7 @@ class EventEmitter:
             await asyncio.sleep(sleep)
 
     async def _call_handler(self, func, event):
+        # print("call_handler", func, event)
         res = func[0](**event)
         if isinstance(res, type_coro):
             await res

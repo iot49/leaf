@@ -193,24 +193,6 @@ services:
   # TODO: replace docker-dropbox-app with rclone
 
   # https://github.com/rbonghi/docker-dropbox-app
-  backup-homeassistant:
-    image: rbonghi/dropbox:latest
-    command: ['--rootdir', '/dropbox/backups', '--folder', 'homeassistant', '--fromLocal', '--verbose', '--interval', '120']
-    environment:
-      - PYTHONUNBUFFERED=1
-      - DROPBOX_APP_KEY=${DROPBOX_APP_KEY}
-      - DROPBOX_APP_SECRET=${DROPBOX_APP_SECRET}
-      - DROPBOX_REFRESH_TOKEN=${DROPBOX_REFRESH_TOKEN}
-    volumes:
-      - homeassistant:/dropbox
-
-  backup-jupyter:
-    image: rbonghi/dropbox:latest
-    command: ['--rootdir', '/dropbox/work', '--folder', 'jupyter', '--fromLocal', '--verbose', '--interval', '600']
-    environment:
-      - PYTHONUNBUFFERED=1
-      - DROPBOX_APP_KEY=${DROPBOX_APP_KEY}
-      - DROPBOX_APP_SECRET=${DROPBOX_APP_SECRET}
-      - DROPBOX_REFRESH_TOKEN=${DROPBOX_REFRESH_TOKEN}
-    volumes:
-      - jupyter:/dropbox
+  # backup-homeassistant:
+  # backup-jupyter:
+  # rclone config

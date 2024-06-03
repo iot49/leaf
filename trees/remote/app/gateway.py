@@ -92,7 +92,7 @@ class Gateway:
                     print(f"received msg-type={msg.type}: {str(msg.data)}")
                 await eventbus.emit(json.loads(msg.data))
             elif msg.type == aiohttp.WSMsgType.ERROR:
-                logger.error(f"receiver_task: ws returned error {msg}")
+                print(f"receiver_task: ws returned error {msg}")
                 self.connected = False
                 return
 
@@ -126,7 +126,7 @@ class Gateway:
                 await self._ws.send_json(event)
             except OSError as e:
                 self.connected = False
-                logger.info(f"failed send_json: {e}")
+                print(f"failed send_json: {e}")
         else:
             if DEBUG and event.get("type", "") not in (event_type.PING, event_type.PONG):
                 (f"skipping {event}")
