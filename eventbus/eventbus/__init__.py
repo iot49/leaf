@@ -61,10 +61,12 @@ async def serve(
     transport: Transport, authenticate: Callable[[str], Awaitable[str | None]], param, timeout=WS_TIMEOUT
 ) -> None:
     # won't return until the connection is closed
-    server = Server(transport=transport, authenticate=authenticate, param=param, timeout=timeout)
-    logger.info(f"+++++ client connection {param.get('client')}")
-    await server.run()
-    logger.info(f"----- client connection {param.get('client_addr') or param.get('client')}")
+    try:
+        logger.info(f"+++++ client connection {param.get('client')}")
+        server = Server(transport=transport, authenticate=authenticate, param=param, timeout=timeout)
+        await server.run()
+    finally:
+        logger.info(f"----- client connection {param.get('client_addr') or param.get('client')}")
 
 
 def tree_id(addr: Addr) -> str:

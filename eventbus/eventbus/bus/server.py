@@ -132,7 +132,6 @@ class Server:
         @eventbus.on("*")
         async def all_events(**event):
             nonlocal self
-            print(f"Server.sender: {event}, {self.param.get('client_addr')}")
             # forward event to client
             if self.closed:
                 # no more events, please ...
@@ -144,9 +143,10 @@ class Server:
             if self.addr_filter(dst):
                 try:
                     # TODO: batch send events as lists
+                    print(f"Server.sender: -> {self.param.get('client_addr')}: {event}")
                     await self.transport.send_json(event)
                 except RuntimeError as e:
-                    logger.error(f"Server.post: Transport error {e}")
+                    logger.error(f"Server.sender: Transport error {e}")
                     self.closed = True
             else:
                 pass
@@ -163,7 +163,7 @@ class Server:
             logger.debug("got bye, closing connection")
             self.closed = True
         else:
-            # logger.debug(f"eventbus.bus.server got {event}")
+            logger.debug(f"From {self.param.get('client_addr')}: {event}")
             if "dst" in event:
                 if not self.gateway:
                     event["src"] = self.param["client_addr"]

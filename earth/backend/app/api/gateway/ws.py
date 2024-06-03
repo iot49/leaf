@@ -41,5 +41,6 @@ async def tree_ws(websocket: WebSocket):
 
     try:
         await websocket.close()
-    except Exception as e:
-        logger.error(f"ws {id(websocket)} - close failed: {e}")
+    except Exception:
+        pass
+        # logger.error(f"ws {id(websocket)} - close failed: {e}")
