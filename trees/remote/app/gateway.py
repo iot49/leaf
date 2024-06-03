@@ -62,8 +62,6 @@ class Gateway:
             @eventbus.on("*")
             async def emitter(**event):
                 if self.connected:
-                    if DEBUG:
-                        print(f"emit_to_ws {event}")
                     await self.emit_to_ws(event)
                 else:
                     eventbus.off(emitter)

@@ -143,7 +143,7 @@ class Server:
             if self.addr_filter(dst):
                 try:
                     # TODO: batch send events as lists
-                    print(f"Server.sender: -> {self.param.get('client_addr')}: {event}")
+                    # print(f"Server.sender: -> {self.param.get('client_addr')}: {event}")
                     await self.transport.send_json(event)
                 except (RuntimeError, Exception) as e:
                     logger.error(f"Server.sender: Transport error {type(e)} {e}")
