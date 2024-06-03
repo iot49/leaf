@@ -7,17 +7,14 @@ import time
 import esp32  # type: ignore
 import ntptime  # type: ignore
 
-from eventbus import event_type
-from eventbus.eventbus import EventBus, subscribe
+from eventbus import event_type, eventbus
 
 from . import (
     DOMAIN,
-    branch_id,
     config,
     led,
     ota,  # noqa: F401
     secrets,
-    tree_id,
 )
 from .gateway import Gateway  # type: ignore
 from .wifi import wifi
@@ -26,24 +23,25 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-class UpdateListener(EventBus):
-    def __init__(self):
-        subscribe(self)
+@eventbus.on(event_type.PUT_CONFIG)
+def put_config(data, version, **event):
+    with open("/config.json", "w") as f:
+        logger.info(f"Updating config from {config.get('version')} --> {version}")
+        f.write(json.dumps(data))
 
-    async def post(self, event):
-        tp = event.get("type")
-        data = event.get("data", {})
-        new_version = data.get("version")
-        if tp == event_type.PUT_CONFIG and "wifi" in data:
-            with open("/config.json", "w") as f:
-                logger.info(f"Updating config from {config.get('version')} --> {new_version}")
-                f.write(json.dumps(data))
-        elif tp == event_type.PUT_SECRETS and "gateway-token" in data:
-            with open("/secrets.json", "w") as f:
-                logger.info(f"Updating secrets from {secrets.get('version')} --> {new_version}")
-                f.write(json.dumps(data))
-        elif tp == event_type.PUT_CERT:
-            logger.info(f"Updating certs: {event}")
+
+@eventbus.on(event_type.PUT_SECRETS)
+def put_secrets(data, version, **event):
+    with open("/secrets.json", "w") as f:
+        logger.info(f"Updating config from {secrets.get('version')} --> {version}")
+        f.write(json.dumps(data))
+
+
+@eventbus.on(event_type.PUT_CERT)
+def put_cert(data, version, **event):
+    with open("/secrets.json", "w") as f:
+        logger.info(f"Updating certs --> {version}")
+        f.write(json.dumps(data))
 
 
 async def main_task(ws_url):
@@ -53,11 +51,10 @@ async def main_task(ws_url):
         t = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time()))
         logger.info(f"Time set to {t}")
 
-        # event listener
-        _ = UpdateListener()
-
         # load plugins
-        plugins = config.get(f"trees/{tree_id}/branches/{branch_id}/plugins", {})
+        # plugins = config.get(f"trees/{tree_id}/branches/{branch_id}/plugins", {})
+        plugins = config.get("trees/plugins", {})
+        print("load plugins", plugins)
         for mod, param in plugins.items():
             try:
                 m = __import__(mod, None, None, (), 0)

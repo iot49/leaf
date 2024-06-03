@@ -5,18 +5,19 @@ import os
 
 import aiohttp
 
-from eventbus import event_type
+from eventbus import Event, event_type, eventbus
 from eventbus.event import get_cert, get_config, get_secrets, ping
-from eventbus.eventbus import Event, EventBus, post, subscribe, unsubscribe
 
 from . import CERT_DIR, config, led, secrets
 from .wifi import wifi
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.DEBUG)
+
+DEBUG = True
 
 
-class Gateway(EventBus):
+class Gateway:
     def __init__(self):
         self.connected = False
 
@@ -35,7 +36,6 @@ class Gateway(EventBus):
                     async with session.ws_connect(ws_url) as ws:
                         self.connected = True
                         msg = await self._connection(ws, gateway_token)
-                    unsubscribe(self)
                     return msg
             except Exception as e:
                 logger.error(f"connect error: {e}")
@@ -56,14 +56,23 @@ class Gateway(EventBus):
         if hello_msg["type"] == event_type.HELLO_CONNECTED:
             # send pings and receive messages
             self._ws = ws
+            logger.info(f"Connected - {hello_msg}")
+            led.pattern = led.GREEN
+
+            @eventbus.on("*")
+            async def emitter(**event):
+                if self.connected:
+                    if DEBUG:
+                        print(f"emit_to_ws {event}")
+                    await self.emit_to_ws(event)
+                else:
+                    eventbus.off(emitter)
+
             tasks = [
                 self._ping_task(hello_msg["param"]["timeout_interval"]),
                 self._receiver_task(),
                 self._update_task(hello_msg["param"]["versions"]),
             ]
-            subscribe(self)
-            logger.info(f"Connected - {hello_msg}")
-            led.pattern = led.GREEN
             await asyncio.gather(*tasks, return_exceptions=True)
             return "connection closed"
         else:
@@ -81,8 +90,9 @@ class Gateway(EventBus):
             if not self.connected:
                 return
             if msg.type == aiohttp.WSMsgType.TEXT:
-                logger.info(f"received msg-type={msg.type}: {str(msg.data)}")
-                await post(json.loads(msg.data))
+                if DEBUG:
+                    print(f"received msg-type={msg.type}: {str(msg.data)}")
+                await eventbus.emit(json.loads(msg.data))
             elif msg.type == aiohttp.WSMsgType.ERROR:
                 logger.error(f"receiver_task: ws returned error {msg}")
                 self.connected = False
@@ -93,9 +103,9 @@ class Gateway(EventBus):
         if versions.get("config") != config.get("version"):
             gc = get_config()
             gc["dst"] = "#earth"
-            await self.post(gc)
+            await self.emit_to_ws(gc)
         if versions.get("secrets") != secrets.get("version"):
-            await self.post(get_secrets(dst="#earth"))
+            await self.emit_to_ws(get_secrets(dst="#earth"))
 
         # certificates
         version = ""
@@ -105,16 +115,19 @@ class Gateway(EventBus):
                 version = f.read().strip()
         if versions.get("certificates", "") != version:
             # update certificates
-            await self.post(get_cert())
+            await self.emit_to_ws(get_cert())
 
-    async def post(self, event: Event) -> None:
+    async def emit_to_ws(self, event: Event) -> None:
         if not self.connected:
             return
         dst = event.get("dst", "")
         if dst in ("#clients", "#earth") or dst.startswith("@"):
-            logger.debug(f"sending {event}")
+            print(f"sending {event}")
             try:
                 await self._ws.send_json(event)
             except OSError as e:
                 self.connected = False
                 logger.info(f"failed send_json: {e}")
+        else:
+            if DEBUG and event.get("type", "") not in (event_type.PING, event_type.PONG):
+                (f"skipping {event}")

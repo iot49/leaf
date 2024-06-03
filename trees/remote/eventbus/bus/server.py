@@ -74,7 +74,7 @@ class Server:
                 return
             self.param["client_addr"] = client_addr = await self.authenticate(event.get("token"))
             if not client_addr:
-                print(f"{self.param.get('client')}: authentication failed with {event}")
+                logger.error(f"{self.param.get('client')}: authentication failed with {event}")
                 await self.transport.send_json(hello_invalid_token())
                 return
             self.gateway = not client_addr.startswith("@")

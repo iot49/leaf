@@ -32,10 +32,12 @@ class Counter:
                 await self.state.update(0)
 
     async def counter_task(self):
+        print("Counter started")
         N = self.max_count
         state = self.state
         n = 0
         while n < N or N == -1:
+            print(f"Counter {self.state.eid} = {self.count}")
             await state.update(self.count)
             self.count += 1
             n += 1

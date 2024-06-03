@@ -28,8 +28,8 @@ if not isfile("/secrets.json") or not isfile("/config.json"):
 def configure_logging():
     class LogHandler(logging.Handler):
         def emit(self, record):
+            from eventbus import eventbus
             from eventbus.event import log_event
-            from eventbus.eventbus import post_sync
 
             event = log_event(
                 levelname=record.levelname,
@@ -38,7 +38,7 @@ def configure_logging():
                 name=record.name,
                 message=record.message,
             )
-            post_sync(event)
+            eventbus.emit_sync(event)
             # print("app.__init__ LOG", event)
 
     root_logger = logging.getLogger()
