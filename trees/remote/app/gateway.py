@@ -14,7 +14,7 @@ from .wifi import wifi
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-DEBUG = True
+DEBUG = False
 
 
 class Gateway:
@@ -120,7 +120,8 @@ class Gateway:
             return
         dst = event.get("dst", "")
         if dst in ("#clients", "#earth") or dst.startswith("@"):
-            print(f"sending {event}")
+            if DEBUG:
+                print(f"sending {event}")
             try:
                 await self._ws.send_json(event)
             except OSError as e:

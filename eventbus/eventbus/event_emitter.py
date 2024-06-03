@@ -130,17 +130,11 @@ class EventEmitter:
             # Note: no log message - as that would generate another emit_sync event!
             print("***** sync event queue overflow")
 
-    async def _sync_emit_task(self, sleep):
-        """
-        Task that asynchronously emits events submitted by emit_sync.
-
-        Args:
-            sleep (float): The time to sleep between emitting events (in seconds). Default is 0.1 seconds.
-        """
+    async def _sync_emit_task(self, pause):
         while True:
             event = await self.event_queue.get()  # type: ignore
             await self.emit(event)
-            await asyncio.sleep(sleep)
+            await asyncio.sleep(pause)
 
     async def _call_handler(self, func, event):
         res = func[0](**event)
