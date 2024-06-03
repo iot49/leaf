@@ -30,6 +30,8 @@ logger.setLevel(logging.INFO)
 
 WS_TIMEOUT = 5  # disconnect if no message received [seconds]
 
+DEBUG = True
+
 
 class Transport:
     @abstractmethod
@@ -144,6 +146,8 @@ class Server:
                 try:
                     # TODO: batch send events as lists
                     # print(f"Server.sender: -> {self.param.get('client_addr')}: {event}")
+                    if DEBUG:
+                        print(f"Server.sender: -> {self.param.get('client_addr')}: {event}")
                     await self.transport.send_json(event)
                 except (RuntimeError, Exception) as e:
                     logger.error(f"Server.sender: Transport error {type(e)} {e}")
@@ -163,6 +167,8 @@ class Server:
             logger.debug("got bye, closing connection")
             self.closed = True
         else:
+            if DEBUG:
+                print(f"From {self.param.get('client_addr')}: {event}")
             logger.debug(f"From {self.param.get('client_addr')}: {event}")
             if "dst" in event:
                 if not self.gateway:
