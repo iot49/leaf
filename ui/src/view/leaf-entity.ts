@@ -29,12 +29,12 @@ export class LeafEntity extends LeafBase {
       .icon {
         font-size: 24px;
       }
-      .src {
-        width: 10rem;
+      .eid {
+        width: 14rem;
         margin-left: 1rem;
       }
       .name {
-        width: 14rem;
+        width: 10rem;
         margin-left: 1rem;
       }
       .value {
@@ -52,7 +52,7 @@ export class LeafEntity extends LeafBase {
 
   protected shouldUpdate(_changedProperties: PropertyValueMap<any> | Map<PropertyKey, unknown>): boolean {
     const entity: any = this.state.get(this.entity_id);
-    console.log('leaf-entity.shouldUpdate leaf-entity', this.entity_id, entity, this.value, entity && entity.value != this.value);
+    // console.log('leaf-entity.shouldUpdate leaf-entity', this.entity_id, entity, this.value, entity && entity.value != this.value);
     return entity && entity.value != this.value;
   }
 
@@ -69,14 +69,14 @@ export class LeafEntity extends LeafBase {
     const state: any = this.state.get(this.entity_id);
     this.value = state.value;
     const entity: any = new Proxy({ spec: this.spec, state: state }, proxy_handler);
-    const src = this.entity_id.split(':')[0];
+    // const src = this.entity_id.split(':')[0];
 
     return html`
       <sl-icon library="mdi" class="icon" name=${entity.icon}></sl-icon>
-      <span class="src">${src}</span>
       <span class="name">${entity.name}</span>
       <span class="value">${this.format(this.value, entity.format)}</span>
       <span class="unit">${entity.unit}</span>
+      <span class="eid">${this.entity_id}</span>
     `;
   }
 

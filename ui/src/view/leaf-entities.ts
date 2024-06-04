@@ -26,6 +26,7 @@ export class LeafEntities extends LeafBase {
     for (const spec of this.card.entities) {
       const rule = spec.entity_id;
       const keys = this.state.keys();
+      console.log('entities: keys', keys);
       for (const eid of keys) {
         if (this.wildcard_match(eid, rule)) {
           console.log('matched', eid, rule);

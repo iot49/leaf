@@ -1,7 +1,7 @@
 # type: ignore
 import asyncio
 
-from app import main
+from app import main, secrets
 from app.led import BLUE, set_color
 
 # override frozen main (for development)
@@ -11,11 +11,13 @@ set_color(BLUE)
 
 asyncio.new_event_loop()
 
-TEST_WS = "ws://192.168.8.138:8001/gateway/ws"
-TEST_WS = "ws://10.39.40.104:8001/gateway/ws"
 
-# asyncio.run(main(ws_url=TEST_WS))
+tree_id = secrets.get("tree").get("tree_id")
+if tree_id == "dev":
+    WS = "ws://10.0.0.76:8001/gateway/ws"
+else:
+    WS = "wss://leaf49.org/gateway/ws"
 
-asyncio.run(main())
+asyncio.run(main(WS))
 
 print("exiting to REPL")

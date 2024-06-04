@@ -38,6 +38,11 @@ export class LeafView extends LeafBase {
       .selected {
         border-bottom: 2px solid var(--sl-color-neutral-0);
       }
+      main {
+        overflow-y: auto;
+        width: 100vw;
+        font-size: var(--sl-font-size-x-small);
+      }
     `,
   ];
 
@@ -71,13 +76,15 @@ export class LeafView extends LeafBase {
             </div>`
         )}
       </nav>
-      ${cards.map((card) =>
-        choose(
-          card.type,
-          [['entities', () => html`<leaf-entities .card=${card}></leaf-entities>`]],
-          () => html`<h1>Unknown card type: ${card.type}</h1>`
-        )
-      )}
+      <main>
+        ${cards.map((card) =>
+          choose(
+            card.type,
+            [['entities', () => html`<leaf-entities .card=${card}></leaf-entities>`]],
+            () => html`<h1>Unknown card type: ${card.type}</h1>`
+          )
+        )}
+      </main>
     </leaf-page>`;
   }
 }
