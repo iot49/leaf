@@ -57,7 +57,7 @@ export class LeafContext extends LeafBase {
 
     eventbus.on('state', (event) => {
       // state update message
-      console.log('state update, notifying context', event);
+      // console.log('state update, notifying context', event);
       const proxy = new Proxy(event, state_handler);
       const state = this._stateProvider.value;
       state.set(event.eid, proxy);

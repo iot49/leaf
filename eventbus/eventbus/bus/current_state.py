@@ -17,7 +17,6 @@ class CurrentState:
         async def get(src, **event):
             """Send current values."""
             dst = src
-            print(f"CurrentState get_state -> {dst}", self._state)
             # make copy of keys to protect against co-modification
             for eid in list(self._state.keys()):
                 value, ts = self._state[eid]
