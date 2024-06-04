@@ -11,7 +11,6 @@ class CurrentState:
 
         @eventbus.on(event_type.STATE)
         def state(eid, value, timestamp, **event):
-            print("CurrentState got update", eid, value, timestamp)
             self._state[eid] = (value, timestamp)
 
         @eventbus.on(event_type.GET_STATE)
@@ -23,7 +22,6 @@ class CurrentState:
             for eid in list(self._state.keys()):
                 value, ts = self._state[eid]
                 state = State(eid, dst=dst)
-                print("CurrentState put_state", eid, value, ts)
                 await state.update(value, timestamp=ts)
 
     @property

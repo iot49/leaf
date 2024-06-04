@@ -145,7 +145,6 @@ class State:
         ev["value"] = value
         ev["timestamp"] = timestamp
         await eventbus.emit(ev)
-        print("State.update", ev)
         return ev
 
     async def act(self, action: str, param=None):
