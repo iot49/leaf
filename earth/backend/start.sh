@@ -15,6 +15,11 @@ chmod a+rx /home/letsencrypt/archive
 chown -R app:app /home/config
 chmod a+w /home/homeassistant/*.yaml  # homeassistant runs as root ...
 
+# IMPORTANT: single worker
+# otherwise e.g. current state is randomly assigned (and split between) to workers
+# after a looong time, most states may be available from all workers, but the updates are 
+# still randomly assigned
+# solutions are difficult - store states in a database, e.g. redis, or just use a single worker
 setuidgid app uvicorn app.main:app --workers 1 --host 0.0.0.0 --port 8000 --log-level error
 
 # setuidgid app uvicorn alembic upgrade head && uvicorn app.main:app --workers 1 --host 0.0.0.0 --port 8000

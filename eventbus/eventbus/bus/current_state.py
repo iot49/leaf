@@ -10,7 +10,6 @@ class CurrentState:
     def __init__(self):
         super().__init__()
         self._state = {}
-        print("CREATE CurrentState.__init__ id=", id(self), id(self._state))
 
         @eventbus.on(event_type.STATE)
         def state(eid, value, timestamp, **event):
@@ -20,7 +19,6 @@ class CurrentState:
         async def get(src, **event):
             """Send current values."""
             dst = src
-            print(f"CurrentState.get_state id={id(self)},{id(self._state)} dst={dst}", self._state)
             # make copy of keys to protect against co-modification
             for eid in list(self._state.keys()):
                 value, ts = self._state[eid]
