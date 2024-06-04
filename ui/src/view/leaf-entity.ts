@@ -69,14 +69,14 @@ export class LeafEntity extends LeafBase {
     const state: any = this.state.get(this.entity_id);
     this.value = state.value;
     const entity: any = new Proxy({ spec: this.spec, state: state }, proxy_handler);
-    // const src = this.entity_id.split(':')[0];
+    const src = this.entity_id.split(':')[0].split('.', 1)[0];
 
     return html`
       <sl-icon library="mdi" class="icon" name=${entity.icon}></sl-icon>
       <span class="name">${entity.name}</span>
       <span class="value">${this.format(this.value, entity.format)}</span>
       <span class="unit">${entity.unit}</span>
-      <span class="eid">${this.entity_id}</span>
+      <span class="eid">${src}</span>
     `;
   }
 

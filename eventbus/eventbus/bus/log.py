@@ -5,6 +5,7 @@ import time
 from collections import deque
 
 from eventbus import event_type, eventbus
+from eventbus.singleton import singleton
 
 BLUE = "\x1b[38;5;4m"
 GREEN = "\x1b[38;5;2m"
@@ -15,6 +16,7 @@ MAGENTA = "\x1b[38;5;5m"
 RESET = "\x1b[0m"
 
 
+@singleton
 class Log:
     """Keep event history"""
 

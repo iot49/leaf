@@ -1,10 +1,13 @@
 import json
 from typing import Any
 
+from eventbus.singleton import singleton
+
 from .. import event_type, eventbus
 from ..event import put_config
 
 
+@singleton
 class Config:
     """Configuration."""
 

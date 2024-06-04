@@ -1,14 +1,16 @@
 from .. import event_type, eventbus
 from ..event import State
+from ..singleton import singleton
 
 
+@singleton
 class CurrentState:
     """Keep tack of state values."""
 
     def __init__(self):
         super().__init__()
         self._state = {}
-        print("CurrentState.__init__ id=", id(self), id(self._state))
+        print("CREATE CurrentState.__init__ id=", id(self), id(self._state))
 
         @eventbus.on(event_type.STATE)
         def state(eid, value, timestamp, **event):

@@ -1,8 +1,10 @@
 import time
 
 from eventbus import event_type, eventbus
+from eventbus.singleton import singleton
 
 
+@singleton
 class Printer:
     """Print events to the console."""
 

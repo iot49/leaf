@@ -2,10 +2,12 @@ import asyncio
 import time
 
 from eventbus.event import State, get_src_addr
+from eventbus.singleton import singleton
 
 from .. import eventbus
 
 
+@singleton
 class Reflect:
     """Resettable counter"""
 
