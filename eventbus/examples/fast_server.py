@@ -63,7 +63,7 @@ async def reset_task():
 
 configure_logging()
 Log()
-CurrentState()
+current_state = CurrentState()
 Printer()
 counter1 = Counter("counter1.up", interval=3, max_count=N)
 counter2 = Counter("counter2.up", interval=5, max_count=N)
@@ -73,7 +73,7 @@ print("GetState", json.dumps(get_state))
 
 
 async def main():
-    await asyncio.gather(counter1._counter_task(), counter2._counter_task(), reset_task())
+    await asyncio.gather(counter1.counter_task(), counter2.counter_task(), reset_task())
 
 
 if __name__ == "__main__":

@@ -8,6 +8,7 @@ class CurrentState:
     def __init__(self):
         super().__init__()
         self._state = {}
+        print("CurrentState.__init__ id=", id(self), id(self._state))
 
         @eventbus.on(event_type.STATE)
         def state(eid, value, timestamp, **event):

@@ -9,6 +9,7 @@ from .secrets import Secrets
 
 config = Config(config_file=os.path.join(env.CONFIG_DIR, "config.json"))
 state = CurrentState()
+print("created CurrentState, id=", id(state))
 Secrets()
 Certificates()
 reflect = Reflect(interval=10)
