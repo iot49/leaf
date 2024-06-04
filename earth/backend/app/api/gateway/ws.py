@@ -30,7 +30,7 @@ async def tree_ws(websocket: WebSocket):
                 param["versions"]["certificate"] = certificates.get_version(tree.tree_id)
             return tree.tree_id
         except HTTPException:
-            logger.error(f"authentication failed for {param.get('client')}, token = {token}")
+            print(f"authentication failed for {param.get('client')}, token = {token}")
             return None
 
     await websocket.accept()

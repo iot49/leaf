@@ -30,7 +30,7 @@ logger.setLevel(logging.INFO)
 
 WS_TIMEOUT = 5  # disconnect if no message received [seconds]
 
-DEBUG = True
+DEBUG = False
 
 
 class Transport:

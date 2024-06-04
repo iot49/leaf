@@ -52,11 +52,12 @@ export class LeafEntity extends LeafBase {
 
   protected shouldUpdate(_changedProperties: PropertyValueMap<any> | Map<PropertyKey, unknown>): boolean {
     const entity: any = this.state.get(this.entity_id);
+    console.log('leaf-entity.shouldUpdate leaf-entity', this.entity_id, entity, this.value, entity && entity.value != this.value);
     return entity && entity.value != this.value;
   }
 
   render() {
-    // console.log('render leaf-entity', this.entity_id);
+    console.log('render leaf-entity', this.entity_id);
     const proxy_handler = {
       get(target, prop, _) {
         const a = target.spec[prop];

@@ -52,7 +52,7 @@ dependencies:
 
 flash:
 	@ls /dev/*usb*
-	esptool.py erase_flash
+	# esptool.py erase_flash
 	esptool.py --chip esp32s3 write_flash -z 0 firmware/${BOARD}/latest/firmware.bin
 
 flash-download:
